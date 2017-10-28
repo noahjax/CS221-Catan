@@ -15,3 +15,4 @@ class Player(object):
         self.turn_num = turn_num
         self.name = name
         self.color = color
+        self.pieces = set()         #Don't necessarily need to keep track of pieces for each player, but could be useful
