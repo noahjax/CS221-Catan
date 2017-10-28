@@ -2,5 +2,5 @@
 
 Project for CS221 
 
-AI settlers of Catan.
+AI for settlers of Catan.
 
