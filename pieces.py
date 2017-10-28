@@ -18,4 +18,3 @@ class Piece(object):
         self.type = type
         self.player = player
         self.location = location    #Not sure if individual pieces need to keep track of location
-        self.pieces = set()         #Don't necessarily need to keep track of pieces for each player, but could be useful
