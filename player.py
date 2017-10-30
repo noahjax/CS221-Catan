@@ -1,4 +1,5 @@
 import pieces
+from collections import defaultdict
 #import all the stuff
 
 class Player(object):
@@ -12,7 +13,12 @@ class Player(object):
         if turn_num < 1 or turn_num > 4:
             raise Exception("Turn number must be between 1 and 4 inclusive")
 
+        #Lets have turn number start at 0 because it might make coding nicer
         self.turn_num = turn_num
         self.name = name
         self.color = color
-        self.pieces = set()         #Don't necessarily need to keep track of pieces for each player, but could be useful
+
+        #Storing these in dict to make it easy to figure out how many they have. {"item": count}
+        self.resources = defaultdict(str)
+        self.devCards = defaultdict(str)
+        self.pieces = defaultdict(str)         #Don't necessarily need to keep track of pieces for each player, but could be useful
