@@ -1,11 +1,13 @@
 #Need a ton of imports
-import pieces
+from pieces import *
 import random
-from collections import deque
+from collections import deque, defaultdict
 
 class Game(object):
     """
     Represents a game of Catan. Each game has players and a board. 
+
+    Currently working on making getter functions so you can get easily get available actions
 
     (Add more stuff)
     """
@@ -19,16 +21,6 @@ class Game(object):
         self.turn_num = 0       #Starts at 0 so it can easily access player list
         self.devCards = self.initialize_dev_cards()
         self.gameStart = False
-
-    #Function to create and shuffle deck of dev cards
-    def initialize_dev_cards(self):
-        devCards = ['Knight'] * 14
-        devCards += ['Victoy Point'] * 5
-        devCards += ['Road Building'] * 2
-        devCards += ['Monopoly'] * 2
-        devCards += ['Year of Plenty'] * 2
-        random.shuffle(devCards)
-        return deque(devCards)
 
     #Function to handle pregame placing of pieces
     # def run_pregame():
@@ -46,25 +38,124 @@ class Game(object):
     #Handle buying a piece. cur_player can be accessed through self, and each player should store thier own available resource cards.
     # def buyPiece(self, piece):
 
-    #Handle buting a devCard. Update player to have this devCard, remove resources from player    
-    def buyDevCard(self):
+    ################################################################
+    #######################   Dev Cards   ##########################
+    ################################################################
+    
+    #Function to create and shuffle deck of dev cards
+    def initialize_dev_cards(self):
+        devCards = ['Knight'] * 14
+        devCards += ['Victoy Point'] * 5
+        devCards += ['Road Building'] * 2
+        devCards += ['Monopoly'] * 2
+        devCards += ['Year of Plenty'] * 2
+        random.shuffle(devCards)
+        return deque(devCards)
+
+    #Check to see if you can buy a devCard
+    def canBuyDevCard(self, player_num):
+        #Make sure there are devCards left 
+        if not self.devCards:
+            print("No dev cards left sorry")    ###Probably want to handle this better
+            return False
         #Get current player
-        cur_player = self.players[self.turn_num]
+        cur_player = self.players[player_num]
+        #Check if you have the resources to buy a devCard
+        if cur_player.resources['Ore'] < 1 or cur_player.resources['Wool'] < 1 or cur_player.resources['Grain'] < 1:
+            print("You don't have enough resources to buy a devCard")
+            return False
         
-        #Check if player has resources to buy devCard
-        if cur_player.resources['Ore'] >= 1 and cur_player.resources['Wool'] >= 1 and cur_player.resources['Grain'] >= 1:
+        return True
+
+    #Handle buting a devCard. Update player to have this devCard, remove resources from player    
+    def buyDevCard(self, player_num):
+        if self.canBuyDevCard(player_num):
+            cur_player = self.players[player_num]
             #Update player resources
             cur_player.resources['Ore'] -= 1
             cur_player.resources['Wool'] -= 1
             cur_player.resources['Grain'] -= 1
 
-            #Make sure there are devCards left
-            if not self.devCards:
-                print("No dev cards left sorry")    ###Probably want to handle this better
-                return
             #Get devCard and give to player
             devCard = self.devCards.pop()
             cur_player.devCards[devCard] += 1
+
+    
+    ################################################################
+    #######################   Pieces   #############################
+    ################################################################
+
+    ###AT some point I think it makes sense to store piece costs as a part of the game so you only
+    ###calculate resources needed once at the start
+
+    #Check if player can buy a particular piece
+    def canBuyPiece(self, player_num, piecetype):
+        resources_needed = defaultdict(str)
+        #Put values in resources needed based on the piece type
+        if piecetype == "Settlement":
+            resources_needed['Brick'] = 1
+            resources_needed['Wood'] = 1
+            resources_needed['Wool'] = 1
+            resources_needed['Grain'] = 1
+        elif piecetype == "City":
+            resources_needed['Ore'] = 3
+            resources_needed['Grain'] = 2
+        elif piecetype == "Road":
+            resources_needed['Brick'] = 1
+            resources_needed['Wood'] = 1
+    
+        #Get resources the player has
+        cur_resources = self.players[player_num].resources
+
+        #Check if player has required resources
+        for key in resources_needed:
+            if cur_resources[key] < resources_needed[key]:
+                return False
+        
+        return True
+
+    #Buy piece
+    def buyPiece(self, player_num, piecetype):
+        if not self.canBuyPiece(player_num, piecetype): 
+            print("You don't have enough resources to buy this piece")
+            return
+        resources_needed = defaultdict(str)
+        #Put values in resources needed based on the piece type
+        if piecetype == "Settlement":
+            resources_needed['Brick'] = 1
+            resources_needed['Wood'] = 1
+            resources_needed['Wool'] = 1
+            resources_needed['Grain'] = 1
+        elif piecetype == "City":
+            resources_needed['Ore'] = 3
+            resources_needed['Grain'] = 2
+        elif piecetype == "Road":
+            resources_needed['Brick'] = 1
+            resources_needed['Wood'] = 1
+    
+        #Get resources the player has
+        cur_resources = self.players[player_num].resources
+
+        #Update players resources
+        for key in resources_needed:
+            cur_resources[key] -= resources_needed[key]
+
+        #Give piece to player
+        self.players[player_num].pieces[piecetype] += 1
+
+    ###Need better understanding of board architecture to implement these
+    # def canPlacePiece()
+    # def getAvailableLocations()        
+    # def placePiece():
+
+
+#############################################################################
+###################################   End    ################################
+#############################################################################
+
+
+
+
 
 #Random test code
 game = Game(None,None)
