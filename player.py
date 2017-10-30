@@ -22,3 +22,16 @@ class Player(object):
         self.resources = defaultdict(str)
         self.devCards = defaultdict(str)
         self.pieces = defaultdict(str)         #Don't necessarily need to keep track of pieces for each player, but could be useful
+
+    #Allows you to check if two players are equal...Not sure if we need it, but may come in handy
+    def __eq__(self, other):
+        if other is None:
+            return False
+        if other.__class__ != Player:
+            return False
+        return (self.color == other.color
+                and self.name == other.name
+                and self.turn_num == other.turn_num
+                and self.devCards == other.devCards
+                and self.resources == other.resources
+                and self.pieces == other.pieces)
