@@ -2,6 +2,8 @@
 from pieces import *
 import random
 from collections import deque, defaultdict
+from devcards import *
+from enum import Enum
 
 class Game(object):
     """
@@ -15,7 +17,9 @@ class Game(object):
     #Need to handle cases where board or players aren't initialized at some point
     # def __init__(self, players=None, board=None):
     def __init__(self, players, board):
-        
+
+        self.currMaxRoad = 0
+        self.currMaxKnights = 0
         self.players = players
         self.board = board
         self.turn_num = 0       #Starts at 0 so it can easily access player list
