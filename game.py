@@ -3,6 +3,7 @@ from pieces import *
 import random
 from collections import deque, defaultdict
 from devcards import *
+from player import *
 from enum import Enum
 
 class Game(object):
@@ -49,7 +50,7 @@ class Game(object):
     #Function to create and shuffle deck of dev cards
     def initialize_dev_cards(self):
         devCards = ['Knight'] * 14
-        devCards += ['Victoy Point'] * 5
+        devCards += ['Victory Point'] * 5
         devCards += ['Road Building'] * 2
         devCards += ['Monopoly'] * 2
         devCards += ['Year of Plenty'] * 2
@@ -82,7 +83,14 @@ class Game(object):
 
             #Get devCard and give to player
             devCard = self.devCards.pop()
-            cur_player.devCards[devCard] += 1
+
+            card_to_add = buyDevCard(cur_player, devCard, self.players)
+
+            if devCard in self.devCards.keys():
+                self.devCards[devCard].append(card_to_add)
+            else:
+                self.devCards[devCard] = [card_to_add]
+
 
     
     ################################################################

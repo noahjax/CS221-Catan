@@ -1,4 +1,3 @@
-import pieces
 from collections import defaultdict
 #import all the stuff
 
@@ -21,7 +20,7 @@ class Player(object):
 
         #Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(str)
-        self.devCards = defaultdict(str)
+        self.devCards = {}
         self.pieces = defaultdict(str)         #Don't necessarily need to keep track of pieces for each player, but could be useful
         self.numKnights = 0
         self.roadLength = 0
@@ -44,3 +43,7 @@ class Player(object):
 
     def incrementScore(self, value):
         self.score += value
+
+    def playDevCard(self, devCardString):
+        card = self.devCards[devCardString].pop(0)
+        card.play()

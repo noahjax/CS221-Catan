@@ -1,24 +1,31 @@
 from game import *
 from pieces import *
 
-def incrementInDict(player, card):
-    if card in player.devCards.keys():
-        player.devCards[card] += 1
-    else:
-        player.devCards[card] = 1
+
+def buyDevCard(player, type, players):
+    if type == 'Knight':
+        return Knight(player, players)
+    elif type == 'Victory Point':
+        return Victory_Point(player)
+    elif type == 'Monopoly':
+        return Monopoly(player, players)
+    elif type == 'Road Building':
+        return Road_Building(player)
+    elif type == 'Year of Plenty':
+        return Year_Of_Plenty(player, players)
+
 
 class Knight :
-    def __init__(self, board, player, players):
+    def __init__(self, player, players):
         self.player = player
-        self.board = board
         self.players = players
         self.player.numKnights += 1
-        incrementInDict(self.player, 'Knight')
 
     ##Definition for a player who wants to use it
     def play(self, board, player):
         ##Not sure how we want to do this yet
         ##Need to figure out how to ask where the player wants to the robber
+        return True
 
     ##definition for our AI/ when we know position
     def play(self, board, position):
@@ -27,7 +34,7 @@ class Knight :
             if not oppPlayer == self.player:
                 ##check if other player has piece near robber position
                 ##if they do ask them for a card.
-                self.player.devCards['Knight'] -= 1
+                continue
 
         self.player.numKnights += 1
         if self.player.numKnights >= 3 and self.player.numKnights > Game.currMaxKnights:
@@ -39,7 +46,6 @@ class Victory_Point:
     def __init__(self, player):
         self.player = player
         self.value = 1
-        incrementInDict(self.player, 'Victory Point')
 
     def play(self):
         self.player.incrementScore(1)
@@ -48,20 +54,19 @@ class Victory_Point:
 class Road_Building:
     def __init__(self, player):
         self.player = player
-        incrementInDict(self.player, 'Road Building')
-        if self.player.resources['Road'] >= 9 and self.player.resources['Road'] > Game.currMaxRoad:
+        if self.player.pieces['Road'] >= 9 and self.player.pieces['Road'] > Game.currMaxRoad:
             Game.currMaxRoad = self.player.resources['Road']
             self.player.incrementScore(2)
 
     def play(self, board):
         ##Let the player build two roads
-        self.player.devCards['Road Building'] -= 1
+        return True
+
 
 class Monopoly:
     def __init__(self, player, players):
         self.player = player
         self.players = players
-        incrementInDict(self.player, 'Monopoly')
 
     def play(self, resource):
         for player in self.players:
@@ -71,18 +76,15 @@ class Monopoly:
                     self.player.resources[resource] += numResources
                     self.player.numResources += numResources
                     player.resources[resource] = 0
-        self.player.devCards['Monopoly'] -= 1
 
 class Year_Of_Plenty:
     def __init__(self, player, players):
         self.player = player
         self.players = players
-        incrementInDict(self.player, 'Year Of Plenty')
 
     def play(self, resourceOne, resourceTwo):
         self.player.resources[resourceOne] += 1
         self.player.resources[resourceTwo] += 1
-        self.player.devCards['Year Of Plenty'] -= 1
 
 
 
