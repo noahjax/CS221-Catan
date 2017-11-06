@@ -1,4 +1,3 @@
-import pieces
 from collections import defaultdict
 #import all the stuff
 
@@ -17,11 +16,17 @@ class Player(object):
         self.turn_num = turn_num
         self.name = name
         self.color = color
+        self.score = 0
 
         #Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(str)
-        self.devCards = defaultdict(str)
+        self.devCards = {}
         self.pieces = defaultdict(str)         #Don't necessarily need to keep track of pieces for each player, but could be useful
+        self.numKnights = 0
+        self.roadLength = 0
+        self.numResources = 0
+
+
 
     #Allows you to check if two players are equal...Not sure if we need it, but may come in handy
     def __eq__(self, other):
@@ -35,3 +40,10 @@ class Player(object):
                 and self.devCards == other.devCards
                 and self.resources == other.resources
                 and self.pieces == other.pieces)
+
+    def incrementScore(self, value):
+        self.score += value
+
+    def playDevCard(self, devCardString):
+        card = self.devCards[devCardString].pop(0)
+        card.play()

@@ -2,6 +2,9 @@
 from pieces import *
 import random
 from collections import deque, defaultdict
+from devcards import *
+from player import *
+from enum import Enum
 
 class Game(object):
     """
@@ -15,7 +18,9 @@ class Game(object):
     #Need to handle cases where board or players aren't initialized at some point
     # def __init__(self, players=None, board=None):
     def __init__(self, players, board):
-        
+
+        self.currMaxRoad = 0
+        self.currMaxKnights = 0
         self.players = players
         self.board = board
         self.turn_num = 0       #Starts at 0 so it can easily access player list
@@ -45,7 +50,7 @@ class Game(object):
     #Function to create and shuffle deck of dev cards
     def initialize_dev_cards(self):
         devCards = ['Knight'] * 14
-        devCards += ['Victoy Point'] * 5
+        devCards += ['Victory Point'] * 5
         devCards += ['Road Building'] * 2
         devCards += ['Monopoly'] * 2
         devCards += ['Year of Plenty'] * 2
@@ -78,7 +83,14 @@ class Game(object):
 
             #Get devCard and give to player
             devCard = self.devCards.pop()
-            cur_player.devCards[devCard] += 1
+
+            card_to_add = buyDevCard(cur_player, devCard, self.players)
+
+            if devCard in self.devCards.keys():
+                self.devCards[devCard].append(card_to_add)
+            else:
+                self.devCards[devCard] = [card_to_add]
+
 
     
     ################################################################

@@ -36,3 +36,23 @@ class Piece(object):
         elif piecetype == "Road":
             self.resources_needed['Brick'] = 1
             self.resources_needed['Wood'] = 1
+
+class Robber:
+    def __init__(self, board, player, players, location):
+        self.board = board
+        self.player = player
+        self.players = players
+        self.location = location
+
+    def place(self, board, position):
+        if not position == self.location:
+            ##set location on board for robber
+            ##if position on board
+            self.location = position
+            return True
+        else:
+            print("This location is invalid, please choose again.")
+            return False
+
+    def findLocation(self):
+        return self.location
