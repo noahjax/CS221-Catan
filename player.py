@@ -9,7 +9,7 @@ class Player(object):
     """
     def __init__(self, turn_num, name, color):
         
-        if turn_num < 1 or turn_num > 4:
+        if 3 < turn_num < 0:
             raise Exception("Turn number must be between 1 and 4 inclusive")
 
         #Lets have turn number start at 0 because it might make coding nicer
@@ -25,6 +25,7 @@ class Player(object):
         self.numKnights = 0
         self.roadLength = 0
         self.numResources = 0
+        self.isAi = False
 
 
 
@@ -43,6 +44,9 @@ class Player(object):
 
     def incrementScore(self, value):
         self.score += value
+
+    def getName(self):
+        return self.name
 
     def playDevCard(self, devCardString):
         card = self.devCards[devCardString].pop(0)
