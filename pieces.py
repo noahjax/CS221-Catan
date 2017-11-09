@@ -8,6 +8,7 @@ class PieceType(Enum):
     city = "City"
     robber = "Robber"
 
+
 class Piece(object):
     """
     Represents one of four possible pieces
