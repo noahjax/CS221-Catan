@@ -1,12 +1,12 @@
 
 class Board:
     
-    nodes = {0 : [None] * 7,
-             1 : [None] * 9,
-             2 : [None] * 11,
-             3 : [None] * 11,
-             4 : [None] * 9,
-             5 : [None] * 7}
+    nodes = {0 : [Node(0, i) for i in range(7)],
+             1 : [Node(1, i) for i in range(9)],
+             2 : [Node(2, i) for i in range(11)],
+             3 : [Node(3, i) for i in range(11)],
+             4 : [Node(4, i) for i in range(9)],
+             5 : [Node(5, i) for i in range(7)]}
   
     def inBounds(self, node):
         return node[0] >= 0 and node[0] < len(self.nodes.keys()) and node[1] >= 0 and node[1] < len(self.nodes[node[0]])
@@ -38,3 +38,31 @@ class Board:
 
     def __init__(self):
         pass
+
+class Node:
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
+        self.touchingTiles = []
+        self.neighbours = []
+        self.isOccupied = False
+        self.occupyingPiece = None
+
+    def get_occupying_piece(self):
+        return self.occupyingPiece
+
+    def is_occupied(self):
+        return self.isOccupied
+
+    def get_tiles(self):
+        return self.touchingTiles
+
+    def set_occupying_piece(self, piece):
+        self.isOccupied = True
+        self.occupyingPiece = piece
+
+    def set_neighbours(self, board):
+        self.neighbours = board.getNeighborNodes(self.row, self.col)
+
+
+
