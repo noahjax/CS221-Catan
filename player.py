@@ -21,7 +21,8 @@ class Player(object):
         #Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(int)
         self.devCards = {}
-        self.pieces = defaultdict(int)         #Don't necessarily need to keep track of pieces for each player, but could be useful
+        self.roads = {}
+        self.cities_and_settlements = {}       #Don't necessarily need to keep track of pieces for each player, but could be useful
         self.numKnights = 0
         self.roadLength = 0
         self.numResources = 0
@@ -51,3 +52,10 @@ class Player(object):
     def playDevCard(self, devCardString):
         card = self.devCards[devCardString].pop(0)
         card.play()
+
+    def give_card(self):
+        # Need to define this as an AI choice
+        if len(self.resources) != 0:
+            return self.resources.pop(0)
+        return 0
+
