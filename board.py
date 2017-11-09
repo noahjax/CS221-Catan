@@ -1,3 +1,4 @@
+from node import *
 
 class Board:
   
@@ -37,31 +38,13 @@ class Board:
                        4: [Node(4, i) for i in range(9)],
                        5: [Node(5, i) for i in range(7)]}
 
+class Tile:
 
-class Node:
-    def __init__(self, row, col):
-        self.row = row
-        self.col = col
-        self.touchingTiles = []
-        self.neighbours = []
-        self.isOccupied = False
-        self.occupyingPiece = None
-
-    def get_occupying_piece(self):
-        return self.occupyingPiece
-
-    def is_occupied(self):
-        return self.isOccupied
-
-    def get_tiles(self):
-        return self.touchingTiles
-
-    def set_occupying_piece(self, piece):
-        self.isOccupied = True
-        self.occupyingPiece = piece
-
-    def set_neighbours(self, board):
-        self.neighbours = board.getNeighborNodes(self.row, self.col)
+    def __init__(self, resource, value, has_robber, id):
+        self.resource = resource
+        self.value = value
+        self.hasRobber = has_robber
+        self.id = id
 
 
 
