@@ -2,7 +2,7 @@ from game import *
 from pieces import *
 
 
-def buyDevCard(player, type, players):
+def createDevCard(player, type, players):
     if type == 'Knight':
         return Knight(player, players)
     elif type == 'Victory Point':

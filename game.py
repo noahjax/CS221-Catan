@@ -84,7 +84,7 @@ class Game(object):
             #Get devCard and give to player
             devCard = self.devCards.pop()
 
-            card_to_add = buyDevCard(cur_player, devCard, self.players)
+            card_to_add = createDevCard(cur_player, devCard, self.players)
 
             if devCard in self.devCards.keys():
                 self.devCards[devCard].append(card_to_add)
