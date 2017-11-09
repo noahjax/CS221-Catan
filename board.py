@@ -31,10 +31,11 @@ class Board:
 
 class Tile:
 
-    def __init__(self, resource, value, has_robber):
+    def __init__(self, resource, value, has_robber, id):
         self.resource = resource
         self.value = value
         self.hasRobber = has_robber
+        self.id = id
 
 
 
