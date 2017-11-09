@@ -1,4 +1,5 @@
 from collections import defaultdict
+from pieces import *
 #import all the stuff
 
 class Player(object):
@@ -22,7 +23,7 @@ class Player(object):
         self.resources = defaultdict(int)
         self.devCards = {}
         self.roads = {}
-        self.cities_and_settlements = {}       #Don't necessarily need to keep track of pieces for each player, but could be useful
+        self.cities_and_settlements = []      #Don't necessarily need to keep track of pieces for each player, but could be useful
         self.numKnights = 0
         self.roadLength = 0
         self.numResources = 0
@@ -45,6 +46,19 @@ class Player(object):
 
     def incrementScore(self, value):
         self.score += value
+
+    def place_settlement(self, positions, player):
+        # To define with the AI but for now just pick first available
+        node = positions[0]
+        settlement_to_add = Settlement(player, node)
+        node.set_occupying_piece(settlement_to_add)
+        player.cities_and_settlements.append(settlement_to_add)
+        player.score += 1
+
+        for tile in node.touchingTiles:
+            player.resources[tile.resource] += 1
+            self.numResources += 1
+
 
     def getName(self):
         return self.name

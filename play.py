@@ -81,18 +81,23 @@ class Play:
                     self.run_AI_turn(curr_player)
                 self.turnNum += 1
 
-
+    # Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
         for i in range(4):
-            currTurn = self.turnNum % self.num_players
-            self.turnNum += 1
-            player = self.players[currTurn]
-            playerName = player.getName()
-            print("It is " + playerName + "\'s turn:")
-            possible_placement = self.board.nodes
+            self.initial_settlement_placements(i)
 
-            
+        for i in range(3, 0, -1):
+            self.initial_settlement_placements(i)
         return True
+
+    # This will place the initial settlement given the current player
+    def initial_settlement_placements(self, playerIndex):
+        player = self.players[playerIndex]
+        playerName = player.getName()
+        print("It is " + playerName + "\'s turn:")
+        possible_placement = self.game.getSettlementLocations(player)
+        # May want to decompose this into "get location" using AI and then place afterwards
+        player.place_settlement(possible_placement, player)
 
     def run_AI_turn(self, curr_player):
         """
@@ -101,7 +106,7 @@ class Play:
         :param curr_player:
         :return:
         """
-        curr_player_poss_moves = curr_player.getPossibleMoves()
+        curr_player_poss_moves = self.game.getPossibleActions(curr_player)
 
         # Get all the moves that the player can play, with the positions for each piece
         moves = curr_player_poss_moves[0]
