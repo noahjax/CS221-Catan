@@ -372,8 +372,10 @@ class Game(object):
     '''Missing test for settlement being at end of road'''
     #Helper to test if node is valid for a settlment. 
     def isValidSettlement(node):
-        if node.isOccupied or node.neighbors: 
-            return False
+        if node.isOccupied: return False
+        for neighbor in node.neighbors:
+            if neighbor.isOccupied: return False
+        return True
 
     #Get all possible locations to place a settlement
     def getSettlementLocations(self, player):
