@@ -445,8 +445,8 @@ class Game(object):
 #############################################################################
 #####################   Handle Distributing Resources    ####################
 #############################################################################
-    '''This code is very incomplete'''
 
+'''This code is slightly less incomplete'''
     #Can access board through self, so really just need roll
     def distributeResources(self, roll):
 
@@ -455,23 +455,32 @@ class Game(object):
             print("Move robber. No resources to distribute")
             return
 
-        # For every player, go over the nodes we have pieces in
-        # Add the nodes they are currently involved with
+        #Could loop over all tiles in the game, but for now implementing by looping over all nodes.
+        for row in self.board.nodes:
+            for node in row.values:
+                if node.isOccupied:
+                    #Look at all tiles touching node
+                    for tile in node.touchingTiles:
+                        #If tile value was rolled and its not blocked, give out resources
+                        if tile.value == roll and not tile.hasRobber:
+                            resourceNum = 2 if node.occupyingPiece == City else 1
+                            node.occupyingPiece.player.resources[tile.resource] += resourceNum
+                    
 
-        #Loop over all tiles in game
-        for i in range(19):
-            tile = self.board.board[i]
-            #Get nodes if this tile gives out resources
-            if tile == roll:
-                nodes = self.board.getPieceCoords(i)
-                for piece in nodes:
-                    #Check if node has a piece that gives resources
-                    if type(piece) is Settlement:
-                        piece.player.resources[tile] += 1
-                        piece.player.numResources[tile] += 1
-                    elif type(piece) is City:
-                        piece.player.resources[tile] += 2
-                        piece.player.numResources[tile] += 2
+        # #Loop over all tiles in game
+        # for i in range(19):
+        #     tile = self.board.board[i]
+        #     #Get nodes if this tile gives out resources
+        #     if tile == roll:
+        #         nodes = self.board.getPieceCoords(i)
+        #         for piece in nodes:
+        #             #Check if node has a piece that gives resources
+        #             if type(piece) == Settlement:
+        #                 piece.player.resources[tile] += 1
+        #                 piece.player.numResources[tile] += 1
+        #             elif type(piece) == City:
+        #                 piece.player.resources[tile] += 2
+        #                 piece.player.numResources[tile] += 2
                         
 
 
