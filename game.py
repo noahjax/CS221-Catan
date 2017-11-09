@@ -66,7 +66,7 @@ class Game(object):
         #Get current player
         cur_player = self.players[player_num]
         #Check if you have the resources to buy a devCard
-        if cur_player.resources['Ore'] < 1 or cur_player.resources['Wool'] < 1 or cur_player.resources['Grain'] < 1:
+        if cur_player.resources['Ore'] < 1 or cur_player.resources['Wool'] < 1 or cur_player.resources['Wheat'] < 1:
             print("You don't have enough resources to buy a devCard")
             return False
         
@@ -79,7 +79,7 @@ class Game(object):
             #Update player resources
             cur_player.resources['Ore'] -= 1
             cur_player.resources['Wool'] -= 1
-            cur_player.resources['Grain'] -= 1
+            cur_player.resources['Wheat'] -= 1
 
             #Get devCard and give to player
             devCard = self.devCards.pop()
@@ -96,64 +96,170 @@ class Game(object):
     ################################################################
     #######################   Pieces   #############################
     ################################################################
+    '''
+    Determine how many of each different types of piece you can buy. 
+    This is entirely based off of resources and not whether you can place them. 
+    '''
 
-    ###AT some point I think it makes sense to store piece costs as a part of the game so you only
-    ###calculate resources needed once at the start
+    def canBuyRoad(self,resources):
+        return resources['Brick'] >= 1 and resources['Wood'] >= 1
 
-    #Check if player can buy a particular piece
-    def canBuyPiece(self, player_num, piecetype):
-        resources_needed = defaultdict(str)
-        #Put values in resources needed based on the piece type
-        if piecetype == "Settlement":
-            resources_needed['Brick'] = 1
-            resources_needed['Wood'] = 1
-            resources_needed['Wool'] = 1
-            resources_needed['Grain'] = 1
-        elif piecetype == "City":
-            resources_needed['Ore'] = 3
-            resources_needed['Grain'] = 2
-        elif piecetype == "Road":
-            resources_needed['Brick'] = 1
-            resources_needed['Wood'] = 1
+    def canBuyCity(self, resources):
+        return resources['Ore'] >= 3 and resources['Wheat'] >= 2
+
+    def canBuySettlement(self, resources):
+        return resources['Brick'] >= 1 and resources['Wood'] >= 1 \
+            and resources['Wool'] >= 1 and resources['Wheat'] >= 1
+
+    def canBuyDevCard(self, resources):
+        if not self.devCards: return False
+        return resources['Ore'] >= 1 and resources['Wheat'] >= 1 \
+            and resources['Wool'] >= 1
+
+    def updateRoadResources(self, resources, add=False):
+        i = -1 if add else 1
+        resources['Brick'] -= 1 * i
+        resources['Wood'] -= 1 * i
+
+    def updateCityResources(self, resources, add=False):
+        i = -1 if add else 1
+        resources['Ore'] -= 3 * i
+        resources['Wheat'] -= 2 * i
+
+    def updateSettlementResources(self, resources, add=False):
+        i = -1 if add else 1
+        resources['Brick'] -= 1 * i
+        resources['Wood'] -= 1 * i
+        resources['Wool'] -= 1 * i
+        resources['Wheat'] -= 1 * i
     
-        #Get resources the player has
-        cur_resources = self.players[player_num].resources
+    def updateDevCardResources(self, resources, add=False):
+        i = -1 if add else 1
+        resources['Ore'] -= 1 * i
+        resources['Wool'] -= 1 * i
+        resources['Wheat'] -= 1 * i
 
-        #Check if player has required resources
-        for key in resources_needed:
-            if cur_resources[key] < resources_needed[key]:
-                return False
+    def findResourceCombos(self, resources, pieces, ans):
+
+        #Copy pieces so we don't modify it as we recur
+        cur_pieces = pieces.copy()
         
-        return True
+        #Check if you can buy a road, if you can, recurse without road resources
+        if self.canBuyRoad(resources):
+            cur_pieces['Road'] += 1
+            self.updateRoadResources(resources)
+            self.findResourceCombos(resources, cur_pieces, ans)
+            self.updateRoadResources(resources, add=True)
+            cur_pieces['Road'] -= 1
+        
+        #Check if you can buy a settlement, if you can, recurse 
+        if self.canBuySettlement(resources):
+            cur_pieces['Settlement'] += 1
+            self.updateSettlementResources(resources)
+            self.findResourceCombos(resources, cur_pieces, ans)
+            self.updateSettlementResources(resources, add=True)
+            cur_pieces['Settlement'] -= 1
+        
+        #Check if you can buy a city, if you can, recurse
+        if self.canBuyCity(resources):
+            cur_pieces['City'] += 1
+            self.updateSettlementResources(resources)
+            self.findResourceCombos(resources, cur_pieces, ans)
+            self.updateSettlementResources(resources, add=True)
+            cur_pieces['City'] -= 1
+            
+        #Check if you can buy a DevCard, if you can, recurse     
+        if self.canBuyDevCard(resources):
+            cur_pieces['DevCard'] += 1
+            self.updateDevCardResources(resources)
+            self.findResourceCombos(resources, cur_pieces, ans)
+            self.updateDevCardResources(resources, add=True)
+            cur_pieces['DevCard'] -= 1
+        
+        #Remove 0 values and add to answer
+        cur_pieces = defaultdict(int, dict((k,v) for k,v in cur_pieces.items() if v))
+        if cur_pieces not in ans:
+            ans.append(cur_pieces)
 
-    #Buy piece
-    def buyPiece(self, player_num, piecetype):
-        if not self.canBuyPiece(player_num, piecetype): 
-            print("You don't have enough resources to buy this piece")
-            return
-        resources_needed = defaultdict(str)
-        #Put values in resources needed based on the piece type
-        if piecetype == "Settlement":
-            resources_needed['Brick'] = 1
-            resources_needed['Wood'] = 1
-            resources_needed['Wool'] = 1
-            resources_needed['Grain'] = 1
-        elif piecetype == "City":
-            resources_needed['Ore'] = 3
-            resources_needed['Grain'] = 2
-        elif piecetype == "Road":
-            resources_needed['Brick'] = 1
-            resources_needed['Wood'] = 1
+    #Returns list of dictionaries [{Road:1, City:1},{...}]
+    def piecesPurchasable(self, player):
+        player_resources = player.resources
+        ans = []
+        pieces = defaultdict(int)
+        self.findResourceCombos(player_resources, pieces, ans)
+        return ans
+
     
-        #Get resources the player has
-        cur_resources = self.players[player_num].resources
+    def testPiecesPurchasable(self):
+        player = Player(1, 'Noah', 'Red')
+        player.resources['Wood'] = 1
+        player.resources['Brick'] = 1
+        player.resources['Ore'] = 1
+        # player.resources['Wheat'] = 1
+        # player.resources['Wool'] = 1
 
-        #Update players resources
-        for key in resources_needed:
-            cur_resources[key] -= resources_needed[key]
 
-        #Give piece to player
-        self.players[player_num].pieces[piecetype] += 1
+        x = self.piecesPurchasable(player)
+        print(len(x))
+        
+
+    
+
+
+    # #Check if player can buy a particular piece
+    # def canBuyPiece(self, player_num, piecetype):
+    #     resources_needed = defaultdict(str)
+    #     #Put values in resources needed based on the piece type
+    #     if piecetype == "Settlement":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    #         resources_needed['Wool'] = 1
+    #         resources_needed['Wheat'] = 1
+    #     elif piecetype == "City":
+    #         resources_needed['Ore'] = 3
+    #         resources_needed['Wheat'] = 2
+    #     elif piecetype == "Road":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    
+    #     #Get resources the player has
+    #     cur_resources = self.players[player_num].resources
+
+    #     #Check if player has required resources
+    #     for key in resources_needed:
+    #         if cur_resources[key] < resources_needed[key]:
+    #             return False
+        
+    #     return True
+
+    # #Buy piece
+    # def buyPiece(self, player_num, piecetype):
+    #     if not self.canBuyPiece(player_num, piecetype): 
+    #         print("You don't have enough resources to buy this piece")
+    #         return
+    #     resources_needed = defaultdict(str)
+    #     #Put values in resources needed based on the piece type
+    #     if piecetype == "Settlement":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    #         resources_needed['Wool'] = 1
+    #         resources_needed['Wheat'] = 1
+    #     elif piecetype == "City":
+    #         resources_needed['Ore'] = 3
+    #         resources_needed['Wheat'] = 2
+    #     elif piecetype == "Road":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    
+    #     #Get resources the player has
+    #     cur_resources = self.players[player_num].resources
+
+    #     #Update players resources
+    #     for key in resources_needed:
+    #         cur_resources[key] -= resources_needed[key]
+
+    #     #Give piece to player
+    #     self.players[player_num].pieces[piecetype] += 1
 
     ###Need better understanding of board architecture to implement these
     # def canPlacePiece()
@@ -161,6 +267,74 @@ class Game(object):
     # def placePiece():
 
 # Given a roll, what do we do?
+    ################################################################
+    ######################   Get Actions   ########################
+    ################################################################
+    '''
+    Returns a list of all possible actions for a given game.
+    Pretty much all of the information needed should be stored in the game class.
+    Makes use of helpers for different types of actions.
+    Possible action types:
+        -buyPiece: (placing a piece is incorporated as part of buying a piece)
+            -Road
+            -Settlement
+            -City
+        -buyDevCard
+        -playDevCard
+            -Knight
+            -Victory Point
+            -etc
+        -end turn
+        -trade (to be implemented later)
+
+
+        Return format:
+        [(piece, location)]
+    '''
+
+    '''
+    Current thinking: 
+        -Create functions that give a list of possible [(piece, location)] assignments for a given gamestate
+        -Functions also return number of these assignments you can pick
+    '''
+
+    #Get valid road locations
+    def getRoadLocations(self, player):
+        possible_locations = []
+        
+        #Loop over all edges, check if edge is empty and one of the neighbors is a valid city/road
+            #Add valid edges to the list
+        
+        return possible_locations
+    
+    #Get valid bu
+    def getSettlementLocations(self, player):
+        possible_locations = []
+        
+        #Loop over all nodes, check if is empty and neighborhoods 
+        return possible_locations
+
+    def getCityLocations(self, player):
+        possible_locations = []
+
+        #Loop over all nodes, check if node is settlement
+
+
+
+
+    # #Helper that gets the possible pieces that you can buy and place
+    # def possiblePieces(self):
+    #     return self.possibleRoads() + self.possibleCities() + self.pos
+
+
+    # def getPossibleActions(self):
+    #     cur_player = self.players[self.turn_num]
+
+    #     possibleActions = []
+    #     possibleActions += self.possiblePieces()
+
+
+
 #############################################################################
 #####################   Handle Distributing Resources    ####################
 #############################################################################
@@ -201,7 +375,4 @@ class Game(object):
 
 #Random test code
 game = Game(None,None)
-test = game.initialize_dev_cards()
-print(len(test))
-test.pop()
-print(len(test))
+game.testPiecesPurchasable()
