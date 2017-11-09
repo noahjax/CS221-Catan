@@ -1,13 +1,25 @@
 from enum import Enum
 from collections import defaultdict
 
-#Not sure if this enum is even useful now that we have classes for each piece
-# class PieceType(Enum):
-#     settlement = "Settlement"
-#     road = "Road"
-#     city = "City"
-#     robber = "Robber"
+#Not sure if this enum is even useful...might as well use strings
+class PieceType(Enum):
+    settlement = "Settlement"
+    road = "Road"
+    city = "City"
+    robber = "Robber"
 
+
+class Piece(object):
+    """
+    Represents one of four possible pieces
+        -Settlement
+        -Road
+        -City
+        -Robber
+    """
+    def __init__(self, piecetype, player, location):
+        self.type = type
+        
 #Also not sure how useful this will be. Haven't used it down below yet but easily could
 #by calling Resource.Ore instead of 'Ore'. Does allow you to loop through resources thought which is nice.
 class Resource(Enum):
@@ -16,16 +28,6 @@ class Resource(Enum):
     Brick = 'Brick'
     Grain = 'Grain'
 
-
-class Piece:
-    """
-    Superclass for pieces settlement, road, and robber. Holds functions shared across pieces.
-    """
-    def __init__(self, player, location):
-        self.pieceType = "Piece"
-        self.player = player
-        self.location = location
-        self.resources_needed = defaultdict(str)
 
     #To string for all subclasses
     def __str__(self):
@@ -100,6 +102,9 @@ class Robber:
             #May want to handle printing in function that calls this, idk
             print("This location is invalid, please choose again.")  
             return False
+
+    def findLocation(self):
+        return self.location
 
     def __str__(self):
         return "Robber \nLocation: " + str(self.location)
