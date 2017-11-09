@@ -95,7 +95,7 @@ class Play:
         player = self.players[playerIndex]
         playerName = player.getName()
         print("It is " + playerName + "\'s turn:")
-        possible_placement = self.game.getSettlementLocations(player)
+        possible_placement = self.game.getSettlementLocations(player, True)
         # May want to decompose this into "get location" using AI and then place afterwards
         player.place_settlement(possible_placement, player)
 

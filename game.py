@@ -387,13 +387,16 @@ class Game(object):
         return True
 
     #Get all possible locations to place a settlement
-    def getSettlementLocations(self, player):
+    def getSettlementLocations(self, player, firstTurn):
         possible_locations = []
         
         #Loop over all nodes, check if is empty and neighbors are appropriate
         for row in self.board.nodes.values():
-            for node in row:    
-                if isValidSettlement(node):
+            for node in row:
+                if firstTurn:
+                    if not node.isOccupied:
+                        possible_locations.append(node)
+                elif self.isValidSettlement(node):
                     possible_locations.append(node)
 
         return possible_locations
