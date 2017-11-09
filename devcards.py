@@ -1,66 +1,93 @@
 from game import *
 from pieces import *
 
-#Make types enums
+
+"""
+Determines how devcards are created in game play, this will create
+the given class and then return an instance of it with the correct 
+parameters. 
+"""
+
+
 def buyDevCard(player, type, players):
     if type == 'Knight':
         return Knight(player, players)
     elif type == 'Victory Point':
-        return Victory_Point(player)
+        return VictoryPoint(player)
     elif type == 'Monopoly':
         return Monopoly(player, players)
     elif type == 'Road Building':
-        return Road_Building(player)
+        return RoadBuilding(player)
     elif type == 'Year of Plenty':
-        return Year_Of_Plenty(player, players)
+        return YearOfPlenty(player, players)
 
 
-class Knight :
+# Defines the Knight dev card from Catan
+class Knight:
+
+    # Initialization of the class
     def __init__(self, player, players):
         self.player = player
         self.players = players
         self.player.numKnights += 1
 
-    ##Definition for a player who wants to use it
-    def play(self, board, player):
-        ##Not sure how we want to do this yet
-        ##Need to figure out how to ask where the player wants to the robber
-        return True
+    # Plays the Knight card given a new position for the Robber
+    def play(self, position):
+        game.set_robber_location(position)
+        players_to_give_cards = set()
 
-    ##definition for our AI/ when we know position
-    def play(self, board, position):
-        Robber.place(board, position)
+        # Check all players that need to give a card
         for oppPlayer in self.players:
             if not oppPlayer == self.player:
-                ##check if other player has piece near robber position
-                ##if they do ask them for a card.
-                continue
+                for node in self.player.nodes:
+                    for tile in node.tiles:
+                        if tile == position:
+                            players_to_give_cards.add(oppPlayer)
 
+        # For each of those players make them give a card
+        for player in players_to_give_cards:
+            resource = player.give_card()
+            if resource != 0:
+                self.player.resources[resource] += 1
+
+        # Increment the current players army
         self.player.numKnights += 1
+
+        # If this gives them largest army update the game state
         if self.player.numKnights >= 3 and self.player.numKnights > Game.currMaxKnights:
             self.player.score += 2
             Game.currMaxKnights = self.player.numKnights
 
 
-class Victory_Point:
+# Defines a default Victory Point dev card from Catan
+class VictoryPoint:
+
+    # Initialize the victory point card
     def __init__(self, player):
         self.player = player
         self.value = 1
 
+    # Define what happens when the player plays this card
     def play(self):
         self.player.incrementScore(1)
 
 
-class Road_Building:
+# Defines the road building dev card from Catan
+class RoadBuilding:
+
     def __init__(self, player):
         self.player = player
-        if self.player.pieces['Road'] >= 9 and self.player.pieces['Road'] > Game.currMaxRoad:
+
+        # Defines the logic for longest road, needs to be updated when we figure out path logic
+        if len(self.player.roads) >= 9 and len(self.player.roads) > Game.currMaxRoad:
             Game.currMaxRoad = self.player.resources['Road']
             self.player.incrementScore(2)
 
-    def play(self, board):
-        ##Let the player build two roads
-        return True
+    def play(self, positions):
+        # Need to pick the two positions before this point (AI again)
+        for position in positions:
+            newRoad = Road(self.player, position)
+            self.player.roads.append(newRoad)
 
 
 class Monopoly:
@@ -77,7 +104,7 @@ class Monopoly:
                     self.player.numResources += numResources
                     player.resources[resource] = 0
 
-class Year_Of_Plenty:
+class YearOfPlenty:
     def __init__(self, player, players):
         self.player = player
         self.players = players
@@ -85,6 +112,7 @@ class Year_Of_Plenty:
     def play(self, resourceOne, resourceTwo):
         self.player.resources[resourceOne] += 1
         self.player.resources[resourceTwo] += 1
+        self.player.numResources += 2
 
 
 

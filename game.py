@@ -17,7 +17,7 @@ class Game(object):
 
     #Need to handle cases where board or players aren't initialized at some point
     # def __init__(self, players=None, board=None):
-    def __init__(self, players, board):
+    def __init__(self, players, board, robber_tile):
 
         self.currMaxRoad = 0
         self.currMaxKnights = 0
@@ -26,6 +26,7 @@ class Game(object):
         self.turn_num = 0       #Starts at 0 so it can easily access player list
         self.devCards = self.initialize_dev_cards()
         self.gameStart = False
+        self.robber_location = robber_tile
 
     #Function to handle pregame placing of pieces
     # def run_pregame():
@@ -82,14 +83,22 @@ class Game(object):
             cur_player.resources['Wheat'] -= 1
 
             #Get devCard and give to player
-            devCard = self.devCards.pop()
+            dev_card = self.devCards.pop()
 
-            card_to_add = createDevCard(cur_player, devCard, self.players)
+            card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
-            if devCard in self.devCards.keys():
-                self.devCards[devCard].append(card_to_add)
+            if dev_card in self.devCards.keys():
+                self.devCards[dev_card].append(card_to_add)
             else:
-                self.devCards[devCard] = [card_to_add]
+                self.devCards[dev_card] = [card_to_add]
+
+    #Handle moving the robber
+    def set_robber_location(self, location):
+        currPosition = self.robber_location
+        currPosition.has_robber = False
+        self.robber_location = location
+        location.has_robber = True
+
 
 
     

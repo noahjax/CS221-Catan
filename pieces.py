@@ -1,7 +1,6 @@
 from enum import Enum
-from collections import defaultdict
 
-#Not sure if this enum is even useful...might as well use strings
+
 class PieceType(Enum):
     settlement = "Settlement"
     road = "Road"
@@ -9,19 +8,6 @@ class PieceType(Enum):
     robber = "Robber"
 
 
-class Piece(object):
-    """
-    Represents one of four possible pieces
-        -Settlement
-        -Road
-        -City
-        -Robber
-    """
-    def __init__(self, piecetype, player, location):
-        self.type = type
-        
-#Also not sure how useful this will be. Haven't used it down below yet but easily could
-#by calling Resource.Ore instead of 'Ore'. Does allow you to loop through resources thought which is nice.
 class Resource(Enum):
     Ore = 'Ore'
     Wood = 'Wood'
@@ -29,85 +15,62 @@ class Resource(Enum):
     Grain = 'Grain'
 
 
-    #To string for all subclasses
-    def __str__(self):
-        printStr = self.pieceType
-        printStr += "\nPlayer: " + str(self.player)
-        printStr += "\nLocation: " + str(self.location)
-        printStr += "\nResources Needed: " + str(dict(self.resources_needed))
-        return printStr
-        
-
-class Settlement(Piece):
+class Settlement:
     """
     Represents the settlement piece
     """
     def __init__(self, player, location):
-        Piece.__init__(self, player, location)
         self.pieceType = 'Settlement'
-        #Define resources needed to buy this piece
-        self.resources_needed['Brick'] = 1
-        self.resources_needed['Wood'] = 1
-        self.resources_needed['Wool'] = 1
-        self.resources_needed['Grain'] = 1
+        self.player = player
+        self.location = location
+        # Define resources needed to buy this piece
+        self.resources_needed = {'Brick': 1, 'Wood': 1, 'Wool': 1, 'Grain': 1}
+
+    def __str__(self):
+        print_str = self.pieceType
+        print_str += "\nPlayer: " + str(self.player)
+        print_str += "\nLocation: " + str(self.location)
+        print_str += "\nResources Needed: " + str(dict(self.resources_needed))
+        return print_str
 
 
-class Road(Piece):
+class Road:
     """
     Represents the road piece
     """
     def __init__(self, player, location):
-        Piece.__init__(self, player, location)
         self.pieceType = 'Road'
-        #Define resources needed to buy this piece
-        self.resources_needed['Brick'] = 1
-        self.resources_needed['Wood'] = 1
+        self.location = location
+        self.player = player
+        # Define resources needed to buy this piece
+        self.resources_needed = {'Brick': 1, 'Wood': 1}
+
+    def __str__(self):
+        print_str = self.pieceType
+        print_str += "\nPlayer: " + str(self.player)
+        print_str += "\nLocation: " + str(self.location)
+        print_str += "\nResources Needed: " + str(dict(self.resources_needed))
+        return print_str
 
 
-class City(Piece):
+class City:
     """
     Represents the city piece
     """
     def __init__(self, player, location):
-        Piece.__init__(self, player, location)
         self.pieceType = 'City'
-        #Define resources needed to buy this piece
-        self.resources_needed['Ore'] = 2
-        self.resources_needed['Grain'] = 1
-
-class Robber:
-    """
-    Represents the robber piece
-
-    My thinking is that we initialize the Robber piece with only a position. We don't 
-    need to do much but keep track of where the robber is. All of the heavy logic can be handled in
-    game when a  7 is rolled. May not need robber class at all.
-    """
-    def __init__(self, location):
-    # def __init__(self, board, player, players, location):
-        #Not sure if we need these
-        # self.board = board    
-        # self.player = player
-        # self.players = players
         self.location = location
-
-    #May not even need this function if we handle the logic in game
-    def move(self, board, position):
-        if not position == self.location:
-            ##set location on board for robber
-            ##if position on board
-            self.location = position
-            return True
-        else:
-            #May want to handle printing in function that calls this, idk
-            print("This location is invalid, please choose again.")  
-            return False
-
-    def findLocation(self):
-        return self.location
+        self.player = player
+        # Define resources needed to buy this piece
+        self.resources_needed = {'Ore': 1, 'Grain': 1}
 
     def __str__(self):
-        return "Robber \nLocation: " + str(self.location)
+        print_str = self.pieceType
+        print_str += "\nPlayer: " + str(self.player)
+        print_str += "\nLocation: " + str(self.location)
+        print_str += "\nResources Needed: " + str(dict(self.resources_needed))
+        return print_str
+
 
 # test = City("noah", 2)
 # print(test)
