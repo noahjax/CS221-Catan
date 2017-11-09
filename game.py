@@ -72,7 +72,7 @@ class Game(object):
         
         return True
 
-    #Handle buting a devCard. Update player to have this devCard, remove resources from player    
+    #Handle buying a devCard. Update player to have this devCard, remove resources from player    
     def buyDevCard(self, player_num):
         if self.canBuyDevCard(player_num):
             cur_player = self.players[player_num]
@@ -162,11 +162,38 @@ class Game(object):
 
 
 #############################################################################
+#####################   Handle Distributing Resources    ####################
+#############################################################################
+'''This code is very incomplete'''
+
+    #Can access board through self, so really just need roll
+    def distributeResources(self, roll):
+
+        #Check if roll is 7
+        if roll == 7:
+            print("Move robber. No resources to distribute")
+            return
+
+        #Loop over all tiles in game
+        for i in range(19):
+            tile = self.board.board[i]
+            #Get nodes if this tile gives out resources
+            if tile == roll:
+                nodes = self.board.getPieceCoords(i)
+                for piece in nodes:
+                    #Check if node has a piece that gives resources
+                    if type(piece) is Settlement:
+                        piece.player.resources[tile] += 1
+                        piece.player.numResources[tile] += 1
+                    elif type(piece) is City:
+                        piece.player.resources[tile] += 2
+                        piece.player.numResources[tile] += 2
+                        
+
+
+#############################################################################
 ###################################   End    ################################
 #############################################################################
-
-
-
 
 
 #Random test code
