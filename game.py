@@ -265,6 +265,96 @@ class Game(object):
 
         x = self.piecesPurchasable(player)
         print(len(x))
+        
+
+    
+
+
+    # #Check if player can buy a particular piece
+    # def canBuyPiece(self, player_num, piecetype):
+    #     resources_needed = defaultdict(str)
+    #     #Put values in resources needed based on the piece type
+    #     if piecetype == "Settlement":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    #         resources_needed['Wool'] = 1
+    #         resources_needed['Wheat'] = 1
+    #     elif piecetype == "City":
+    #         resources_needed['Ore'] = 3
+    #         resources_needed['Wheat'] = 2
+    #     elif piecetype == "Road":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    
+    #     #Get resources the player has
+    #     cur_resources = self.players[player_num].resources
+
+    #     #Check if player has required resources
+    #     for key in resources_needed:
+    #         if cur_resources[key] < resources_needed[key]:
+    #             return False
+        
+    #     return True
+
+    # #Buy piece
+    # def buyPiece(self, player_num, piecetype):
+    #     if not self.canBuyPiece(player_num, piecetype): 
+    #         print("You don't have enough resources to buy this piece")
+    #         return
+    #     resources_needed = defaultdict(str)
+    #     #Put values in resources needed based on the piece type
+    #     if piecetype == "Settlement":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    #         resources_needed['Wool'] = 1
+    #         resources_needed['Wheat'] = 1
+    #     elif piecetype == "City":
+    #         resources_needed['Ore'] = 3
+    #         resources_needed['Wheat'] = 2
+    #     elif piecetype == "Road":
+    #         resources_needed['Brick'] = 1
+    #         resources_needed['Wood'] = 1
+    
+    #     #Get resources the player has
+    #     cur_resources = self.players[player_num].resources
+
+    #     #Update players resources
+    #     for key in resources_needed:
+    #         cur_resources[key] -= resources_needed[key]
+
+    #     #Give piece to player
+    #     self.players[player_num].pieces[piecetype] += 1
+
+    ###Need better understanding of board architecture to implement these
+    # def canPlacePiece()
+    # def getAvailableLocations()        
+    # def placePiece():
+
+# Given a roll, what do we do?
+    ################################################################
+    ######################   Get Actions   ########################
+    ################################################################
+    '''
+    Returns a list of all possible actions for a given game.
+    Pretty much all of the information needed should be stored in the game class.
+    Makes use of helpers for different types of actions.
+    Possible action types:
+        -buyPiece: (placing a piece is incorporated as part of buying a piece)
+            -Road
+            -Settlement
+            -City
+        -buyDevCard
+        -playDevCard
+            -Knight
+            -Victory Point
+            -etc
+        -end turn
+        -trade (to be implemented later)
+
+
+        Return format:
+        [(piece, location)]
+    '''
 
     '''
     This section handles getting possible locations for different types of pieces and given a 
@@ -353,6 +443,9 @@ class Game(object):
         if roll == 7:
             print("Move robber. No resources to distribute")
             return
+
+        # For every player, go over the nodes we have pieces in
+        # Add the nodes they are currently involved with
 
         #Loop over all tiles in game
         for i in range(19):
