@@ -19,9 +19,9 @@ class Player(object):
         self.score = 0
 
         #Storing these in dict to make it easy to figure out how many they have. {"item": count}
-        self.resources = defaultdict(str)
+        self.resources = defaultdict(int)
         self.devCards = {}
-        self.pieces = defaultdict(str)         #Don't necessarily need to keep track of pieces for each player, but could be useful
+        self.pieces = defaultdict(int)         #Don't necessarily need to keep track of pieces for each player, but could be useful
         self.numKnights = 0
         self.roadLength = 0
         self.numResources = 0
