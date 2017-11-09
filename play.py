@@ -14,25 +14,43 @@ class Play:
     ten points.)
     """
     def __init__(self):
-        # Initialize the board and give values
+        # Initialize the board and give values and resources to tiles
         self.board = Board()
         self.turnNum = 0
         self.num_players = 4
-        values = 2*[i for i in range(2, 13)]
 
-        for i in range(self.board.board):
+        # Simulate all possible die rolls and tile types
+        values = 2*[i for i in range(2, 13)]
+        tile_types = [['Ore'] * 3,
+                      ['Brick'] * 3,
+                      ['Wood'] * 4,
+                      ['Grain'] * 4,
+                      ['Wool'] * 4]
+
+        # Select random values and resource for each tile and create it
+        for i in range(20):
             # Grab a random value and assign it to the tile
-            randIndex = random.randint(0, len(values))
-            currTile = self.board.board[i]
-            currTile.setValue(values.pop(randIndex))
-            # If its the desert tile set the robber to true
-            if currTile.resource == 'desert':
-                currTile.robber = True
+            if i != 10:
+                rand_value = random.randint(0, len(values))
+                rand_tile = random.randint(0, len(values))
+
+                value = values.pop(rand_value)
+                resource = tile_types.pop(rand_tile)
+
+                tile = Tile(resource, value, False, i)
+
+                # Need to figure out how to map tiles to nodes
+                self.board.tiles.append(tile)
+            else:
+                tile = Tile('Desert', 0, True, i)
+                self.board.tiles.append(tile)
 
         # Initialize the players
         self.players = []
         names = []
         colors = ["blue", "red", "green", "yellow"]
+
+        # Will need to comment out if we use AI
         for i in range(self.num_players):
             names.append(input("Insert name of player:"))
 
@@ -71,6 +89,8 @@ class Play:
             player = self.players[currTurn]
             playerName = player.getName()
             print("It is " + playerName + "\'s turn:")
+            possible_placement = self.board.nodes
+
             
         return True
 

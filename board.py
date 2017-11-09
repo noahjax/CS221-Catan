@@ -37,6 +37,8 @@ class Board:
                        3: [Node(3, i) for i in range(11)],
                        4: [Node(4, i) for i in range(9)],
                        5: [Node(5, i) for i in range(7)]}
+        self.tiles = []
+
 
 class Tile:
 
