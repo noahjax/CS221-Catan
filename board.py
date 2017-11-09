@@ -39,6 +39,7 @@ class Board:
     def __init__(self):
         pass
 
+
 class Node:
     def __init__(self, row, col):
         self.row = row
