@@ -1,12 +1,5 @@
 
 class Board:
-    
-    nodes = {0 : [Node(0, i) for i in range(7)],
-             1 : [Node(1, i) for i in range(9)],
-             2 : [Node(2, i) for i in range(11)],
-             3 : [Node(3, i) for i in range(11)],
-             4 : [Node(4, i) for i in range(9)],
-             5 : [Node(5, i) for i in range(7)]}
   
     def inBounds(self, node):
         return node[0] >= 0 and node[0] < len(self.nodes.keys()) and node[1] >= 0 and node[1] < len(self.nodes[node[0]])
@@ -37,7 +30,12 @@ class Board:
         return nEdgesOne + nEdgesTwo 
 
     def __init__(self):
-        pass
+        self.nodes = {0: [Node(0, i) for i in range(7)],
+                       1: [Node(1, i) for i in range(9)],
+                       2: [Node(2, i) for i in range(11)],
+                       3: [Node(3, i) for i in range(11)],
+                       4: [Node(4, i) for i in range(9)],
+                       5: [Node(5, i) for i in range(7)]}
 
 
 class Node:
