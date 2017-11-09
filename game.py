@@ -395,7 +395,7 @@ class Game(object):
         #Loop over all nodes, check if there is already a city there with the right owner
         for row in self.board.nodes.values():
             for node in row:
-                if node.occupyingPiece is City and node.occupyingPiece.player == player:
+                if node.occupyingPiece is Settlement and node.occupyingPiece.player == player:
                     possible_locations.append(node)
 
         return possible_locations
