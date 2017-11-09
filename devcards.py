@@ -1,8 +1,8 @@
 from game import *
 from pieces import *
 
-
-def createDevCard(player, type, players):
+#Make types enums
+def buyDevCard(player, type, players):
     if type == 'Knight':
         return Knight(player, players)
     elif type == 'Victory Point':
