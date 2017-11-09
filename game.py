@@ -266,6 +266,7 @@ class Game(object):
     # def getAvailableLocations()        
     # def placePiece():
 
+# Given a roll, what do we do?
     ################################################################
     ######################   Get Actions   ########################
     ################################################################
@@ -346,6 +347,9 @@ class Game(object):
         if roll == 7:
             print("Move robber. No resources to distribute")
             return
+
+        # For every player, go over the nodes we have pieces in
+        # Add the nodes they are currently involved with
 
         #Loop over all tiles in game
         for i in range(19):
