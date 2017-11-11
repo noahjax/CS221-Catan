@@ -374,17 +374,11 @@ class Game(object):
     #Get valid road locations
     def getRoadLocations(self, player):
         possible_locations = []
-        for node in player.occupyingNodes:
-            for neighbour in node.neighbours:
-                for neighbour_two in neighbour.neighbours:
-                    if not neighbour.isOccupied and not neighbour_two.isOccupied:
-                        if not (node, neighbour) in game.roads:
-                            possible_locations.append((node, neighbour))
 
         for road in player.roads:
             second_node = road[1]
             for neighbour in second_node.neighbours:
-                if not neighbour.isOccupied and (second_node, neighbour) not in game.roads:
+                if not (second_node, neighbour) in game.roads:
                     possible_locations.append((second_node, neighbour))
 
         return possible_locations
@@ -392,14 +386,21 @@ class Game(object):
     '''Missing test for settlement being at end of road'''
     #Helper to test if node is valid for a settlment. 
     def isValidSettlement(self, node, player):
-        if node.isOccupied: return False
-        for neighbor in node.neighbours:
-            if neighbor.isOccupied: return False
+        # If node is occupied we can't place anything there
+        if node.isOccupied:
+            return False
 
-        #Check if the node is currently on a players road
+        # If neighbour is occupied we can't place anything there
+        for neighbor in node.neighbours:
+            if neighbor.isOccupied:
+                return False
+
+        # Check if the node is currently on a players road
         for (node_one, node_two) in player.roads.iteritems():
             if node_one == node or node_two == node:
                 return True
+
+        # If we get here we can not use the given node
         return False
 
     #Get all possible locations to place a settlement
@@ -407,24 +408,22 @@ class Game(object):
         possible_locations = []
         
         #Loop over all nodes, check if is empty and neighbors are appropriate
-        for row in self.board.nodes:
-            for node in row:
-                if firstTurn:
-                    if not node.isOccupied:
-                        possible_locations.append(node)
-                elif self.isValidSettlement(node, player):
+        for node in self.board.nodes:
+            if firstTurn:
+                if not node.isOccupied:
                     possible_locations.append(node)
+            elif self.isValidSettlement(node, player):
+                possible_locations.append(node)
 
         return possible_locations
 
     def getCityLocations(self, player):
         possible_locations = []
 
-        #Loop over all nodes, check if there is already a city there with the right owner
-        for row in self.board.nodes.values():
-            for node in row:
-                if node.occupyingPiece is Settlement and node.occupyingPiece.player == player:
-                    possible_locations.append(node)
+        # Loop over all nodes, check if there is already a Settlement there with the right owner
+        for node in player.occupyingNodes:
+            if node.occupyingPiece is Settlement:
+                possible_locations.append(node)
 
         return possible_locations
 
@@ -465,8 +464,10 @@ class Game(object):
 #####################   Handle Distributing Resources    ####################
 #############################################################################
 
-'''This code is slightly less incomplete'''
-    #Can access board through self, so really just need roll
+    """
+    This code is slightly less incomplete
+    """
+    # Can access board through self, so really just need roll
     def distributeResources(self, roll):
 
         #Check if roll is 7
