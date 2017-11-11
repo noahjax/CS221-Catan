@@ -97,7 +97,8 @@ class Play:
         print("It is " + playerName + "\'s turn:")
         possible_placement = self.game.getSettlementLocations(player, True)
         # May want to decompose this into "get location" using AI and then place afterwards
-        player.place_settlement(possible_placement, player)
+        player.place_settlement(possible_placement, player, True)
+        player.place_road(2, True)
 
     def run_AI_turn(self, curr_player):
         """
@@ -137,7 +138,7 @@ class Play:
         """
         for player in self.players:
             if player.score >= 10:
-                print (player.name + " has won the game!")
+                print(player.name + " has won the game!")
 
 
 

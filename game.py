@@ -27,6 +27,7 @@ class Game(object):
         self.devCards = self.initialize_dev_cards()
         self.gameStart = False
         self.robber_location = robber_tile
+        self.roads = []
 
     #Function to handle pregame placing of pieces
     # def run_pregame():
@@ -373,30 +374,45 @@ class Game(object):
     #Get valid road locations
     def getRoadLocations(self, player):
         possible_locations = []
-        pass
-        #Loop over all edges, check if edge is empty and one of the neighbors is a valid city/road
-            #Add valid edges to the list
+        for node in player.occupyingNodes:
+            for neighbour in node.neighbours:
+                for neighbour_two in neighbour.neighbours:
+                    if not neighbour.isOccupied and not neighbour_two.isOccupied:
+                        if not (node, neighbour) in game.roads:
+                            possible_locations.append((node, neighbour))
+
+        for road in player.roads:
+            second_node = road[1]
+            for neighbour in second_node.neighbours:
+                if not neighbour.isOccupied and (second_node, neighbour) not in game.roads:
+                    possible_locations.append((second_node, neighbour))
+
         return possible_locations
     
     '''Missing test for settlement being at end of road'''
     #Helper to test if node is valid for a settlment. 
-    def isValidSettlement(node):
+    def isValidSettlement(self, node, player):
         if node.isOccupied: return False
-        for neighbor in node.neighbors:
+        for neighbor in node.neighbours:
             if neighbor.isOccupied: return False
-        return True
+
+        #Check if the node is currently on a players road
+        for (node_one, node_two) in player.roads.iteritems():
+            if node_one == node or node_two == node:
+                return True
+        return False
 
     #Get all possible locations to place a settlement
     def getSettlementLocations(self, player, firstTurn):
         possible_locations = []
         
         #Loop over all nodes, check if is empty and neighbors are appropriate
-        for row in self.board.nodes.values():
+        for row in self.board.nodes:
             for node in row:
                 if firstTurn:
                     if not node.isOccupied:
                         possible_locations.append(node)
-                elif self.isValidSettlement(node):
+                elif self.isValidSettlement(node, player):
                     possible_locations.append(node)
 
         return possible_locations
