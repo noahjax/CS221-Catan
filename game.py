@@ -510,5 +510,5 @@ class Game(object):
 
 
 #Random test code
-game = Game(None,None)
+game = Game(None,None,None)
 game.testPiecesPurchasable()
