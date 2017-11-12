@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import*
+import numpy as np
 
 class Display:
  
@@ -8,10 +9,12 @@ class Display:
 
     dot = None
     tile = None
-
+    robber = None
+    
     dotWidth, dotHeight = (None, None) 
     tileWidth, tileHeight = (None, None)
-    
+    robberWidth, robberHeight = (None, None)
+
     # Store the location that the image for each node occupies
     # Each location is mapped to by a key equivalent to the coordinate of the node in the
     # game logic (e.g. (0, 1) : (xmin, ymin, xmax, ymax))
@@ -23,17 +26,26 @@ class Display:
     # Each element in permanent blits is a tuple containing an image, and the x, y coordinate to blit at
     # (img, (blitAtX, blitAtY))
     permanentBlits = []
-    tempBlits = []
+    
+    # Store the tempBlits as a dict, since the order etc will be changing
+    # As such, these should not need to be printed in any particular order
+    tempBlits = {}
+
+    # Store the x, y tuples of each tile center
+    # In order of tile index (0-18)
+    tileCenters = []
 
     def __init__(self):
-        # Load the screen, dot, and tile pngs
+        # Loads:
+        # - tiles
+        # - nodes
+        # - robber
         # Set the member variables storing their sizes.
         pygame.init()
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
         self.dot = pygame.image.load('dot.png')
-        dotSize = self.dot.get_rect().size
-        self.dot = pygame.transform.scale(self.dot, (dotSize[0] / 25, dotSize[1] / 25))
+        self.dot = pygame.transform.scale(self.dot, (self.screenWidth / 30, self.screenHeight / 30))
         
         self.tile = pygame.image.load('hex.png')
         self.tile = pygame.transform.scale(self.tile, (self.screenWidth / 8, self.screenHeight / 8))
@@ -44,10 +56,23 @@ class Display:
         self.dotWidth = self.dot.get_rect().size[0]
         self.dotHeight = self.dot.get_rect().size[1]
 
+        # This should happen before loading any temp blits, as tileCenters are initialized here
         self.loadPermanentBlits()
-        
+ 
+        self.robber = pygame.image.load('robber.png')
+        self.robber = pygame.transform.scale(self.robber, (self.tileWidth / 2, self.tileHeight / 2))
+        self.robberWidth = self.robber.get_rect().size[0]
+        self.robberHeight = self.robber.get_rect().size[1]
+
+        self.placeRobber(5) # Just initializing the robber to the 5th tile for now 
+
+    def placeRobber(self, tile):
+        # Add the robber to tempBlits at the center of the specified tile
+        tx, ty = self.tileCenters[tile]
+        self.tempBlits['robber'] = (self.robber, (tx - self.robberWidth / 2, ty - self.robberHeight / 2))
+
     def loadPermanentBlits(self):    
-        # Compute the location to blit each tile and each node
+        # Compute the blit locations of each node and tile
         numTiles = [3, 4, 5, 4, 3]
 
         offsets = [self.screenWidth / 2 - self.tileWidth * 3 / 2, \
@@ -78,6 +103,7 @@ class Display:
                 # Place the j tiles
                 imgX = j * self.tileWidth + offsets[i]
                 imgY = i * self.tileHeight * 4 / 5 + self.screenWidth / 7
+                self.tileCenters.append((imgX + self.tileWidth / 2, imgY + self.tileHeight / 2)) 
                 self.permanentBlits.append((self.tile, (imgX, imgY)))
                 
                 if j == numTiles[i] - 1:
@@ -110,13 +136,11 @@ class Display:
                         self.nodeLocs[coords] = (dotX, dotY, dotX + self.dotWidth, dotY + self.dotHeight)
                         counterJBot += 1
                 
-        for s in sorted(self.nodeLocs.keys()):
-            print(s)
         # Now we add the nodes to self.permanentBlits, so that they will appear after the tiles
         for n in nodesToBlit:
             self.permanentBlits.append(n)
 
-
+        
     def getNodeAtXY(self, x, y):
         # If a node is at the coordinates x, y, return the coordinates of the node in the game logic
         # Return None if no node is at the specified coords
@@ -125,51 +149,55 @@ class Display:
                 return coords
         return None
 
-    def handleClick(self, event):
+    def handleClick(self, event, playerCommand):
         if event.button == 1:
-            # The left button was clicked
-            mouseX, mouseY = event.pos
-            node = self.getNodeAtXY(mouseX, mouseY)
-            
-            if node != None:
-                print('clicked node ' + str(node))
-                #TODO: what do we want to do once we have the node?
+            if playerCommand == 'getNode':
+                mouseX, mouseY = event.pos
+                node = self.getNodeAtXY(mouseX, mouseY)
+                
+                if node != None:
+                    print('clicked node ' + str(node))
+                    #TODO: what do we want to do once we have the node?
 
-            else:
-                raise Exception('No node clicked. Unspecified behaviour')
-
+                else:
+                    raise Exception('No node clicked. Unspecified behaviour')
+            elif playerCommand == 'moveRobber':
+                # Get the nearest tile to the clicked point, and send the robber there
+                destTile = np.argmin([np.linalg.norm(np.subtract(event.pos, tc)) for tc in self.tileCenters])
+                self.placeRobber(destTile)
+        
     def blitAll(self):
         # Blit all available objects to the screen
         # Currently blits all objects in 
         # - permanentBlits
         # - tempBlits 
-        for blit in (self.permanentBlits + self.tempBlits):
+        for blit in (self.permanentBlits + self.tempBlits.values()):
             self.screen.blit(blit[0], blit[1])
+
+    def getUserCommand(self):
+        # Put some kinds of possible commands in here at the moment
+        # I'm guessing that this kind of thing will be moved elsewhere long-term 
+        print('Possible commands:\ngetNode\nmoveRobber')
+        return raw_input('')
 
     def run(self):
         white = (255, 255, 255)
         running = True 
         while running:
-            # Not sure if this saves any processing time, but I think we want some way to
-            # pause this loop while the AI players are executing their turns. Otherwise, there
-            # could be a lot of extra iterations that don't do anything
-            # raw_input('Press enter on user\'s turn') 
             self.screen.fill((white))
             self.blitAll()
             pygame.display.flip()
-           
+            
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False 
                 elif event.type == MOUSEBUTTONDOWN:
-                    self.handleClick(event)
-
-            # raw_input('Press enter when turn is ended')
-
+                    command = self.getUserCommand()
+                    self.handleClick(event, command)
 
 # Test the Display class
-# display = Display()
-# display.run()
+display = Display()
+display.run()
 
 
 
