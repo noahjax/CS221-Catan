@@ -1,7 +1,7 @@
 from game import *
 from board import *
 from player import *
-
+from display import *
 
 class Play:
     """
@@ -26,17 +26,19 @@ class Play:
                       ['Wood'] * 4,
                       ['Grain'] * 4,
                       ['Wool'] * 4]
-
+        
         # Select random values and resource for each tile and create it
-        for i in range(20):
+
+        # Flatten the tile_types list so that popping works
+        tilePool = [tile for tileType in tile_types for tile in tileType]
+        for i in range(19):
             # Grab a random value and assign it to the tile
             if i != 10:
-                rand_value = random.randint(0, len(values))
-                rand_tile = random.randint(0, len(values))
-
+                rand_value = random.randint(0, len(values) - 1)
+                rand_tile = random.randint(0, len(tilePool) - 1)
                 value = values.pop(rand_value)
-                resource = tile_types.pop(rand_tile)
-
+                resource = tilePool.pop(rand_tile)
+        
                 tile = Tile(resource, value, False, i)
 
                 # Need to figure out how to map tiles to nodes
@@ -44,7 +46,7 @@ class Play:
             else:
                 tile = Tile('Desert', 0, True, i)
                 self.board.tiles.append(tile)
-
+        
         # Initialize the players
         self.players = []
         names = []
@@ -52,21 +54,26 @@ class Play:
 
         # Will need to comment out if we use AI
         for i in range(self.num_players):
-            names.append(input("Insert name of player:"))
+            names.append(raw_input("Insert name of player:"))
 
         # Add the current player to players array
         for i in range(self.num_players):
             new_player = Player(i+1, names[i], colors[i])
             self.players.append(new_player)
 
-        # Initialize the game
-        self.game = Game(self.players, self.board)
-
-
+        # Initialize the game 
+        initRobberTile = 5
+        self.game = Game(self.players, self.board, initRobberTile)
+        
+        # Initialize the display with the generated tiles
+        self.display = Display(self.board, initRobberTile) 
+        
     def main(self):
         """
         Main function that manages the majority of the game play.
         """
+        self.display.run() 
+        '''
         self.firstTwoTurns()
         while True:
             if game.currMaxScore >= 10:
@@ -80,7 +87,7 @@ class Play:
                 else:
                     self.run_AI_turn(curr_player)
                 self.turnNum += 1
-
+        '''
     # Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
         for i in range(4):
@@ -138,7 +145,5 @@ class Play:
         for player in self.players:
             if player.score >= 10:
                 print (player.name + " has won the game!")
-
-
-
-
+play = Play()
+play.main()

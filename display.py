@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import*
 import numpy as np
+import board as bd 
 
 class Display:
  
@@ -26,7 +27,11 @@ class Display:
     # Each element in permanent blits is a tuple containing an image, and the x, y coordinate to blit at
     # (img, (blitAtX, blitAtY))
     permanentBlits = []
-    
+   
+    # Store the type of each tile. This is set upon intialization of the board, when an initial
+    # arrangement should be passed in
+    tileValues = []
+
     # Store the tempBlits as a dict, since the order etc will be changing
     # As such, these should not need to be printed in any particular order
     tempBlits = {}
@@ -34,21 +39,31 @@ class Display:
     # Store the x, y tuples of each tile center
     # In order of tile index (0-18)
     tileCenters = []
-
-    def __init__(self):
+    
+    # The font in which text should be displayed
+    font = None
+    
+    def __init__(self, board, robberTile):
         # Loads:
         # - tiles
         # - nodes
         # - robber
         # Set the member variables storing their sizes.
         pygame.init()
+        pygame.font.init()
+       
+        # Not sure this is the best way to do this, as we will have to keep updating the
+        # local board, as well as the board stored elsewhere. Should really discuss this
+        self.board = board
+        
+        self.font = pygame.font.SysFont('Comic Sans MS', 10)
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
         self.dot = pygame.image.load('dot.png')
-        self.dot = pygame.transform.scale(self.dot, (self.screenWidth / 30, self.screenHeight / 30))
+        self.dot = pygame.transform.scale(self.dot, (int(self.screenWidth / 30), int(self.screenHeight / 30)))
         
         self.tile = pygame.image.load('hex.png')
-        self.tile = pygame.transform.scale(self.tile, (self.screenWidth / 8, self.screenHeight / 8))
+        self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
 
         self.tileWidth = self.tile.get_rect().size[0]
         self.tileHeight = self.tile.get_rect().size[1]
@@ -58,40 +73,53 @@ class Display:
 
         # This should happen before loading any temp blits, as tileCenters are initialized here
         self.loadPermanentBlits()
- 
+
         self.robber = pygame.image.load('robber.png')
-        self.robber = pygame.transform.scale(self.robber, (self.tileWidth / 2, self.tileHeight / 2))
+        self.robber = pygame.transform.scale(self.robber, (int(self.tileWidth / 2), int(self.tileHeight / 2)))
         self.robberWidth = self.robber.get_rect().size[0]
         self.robberHeight = self.robber.get_rect().size[1]
 
-        self.placeRobber(5) # Just initializing the robber to the 5th tile for now 
+        self.placeRobber(robberTile) 
 
     def placeRobber(self, tile):
         # Add the robber to tempBlits at the center of the specified tile
         tx, ty = self.tileCenters[tile]
-        self.tempBlits['robber'] = (self.robber, (tx - self.robberWidth / 2, ty - self.robberHeight / 2))
+        self.tempBlits['robber'] = (self.robber, (tx - int(self.robberWidth / 2), ty - int(self.robberHeight / 2)))
+
+    def getTextSurface(self, tile):
+        # Returns a surface containing the resource, value string of the given tile
+        text = str(tile.resource) + ' ' + str(tile.value)
+        textSurface = self.font.render(text, False, (0, 0, 0))
+        # Scale according to the size of the tiles
+        textSurface = pygame.transform.scale(textSurface, (int(self.tileWidth * 4 / 5), int(self.tileWidth / 4)))
+        return textSurface
+
 
     def loadPermanentBlits(self):    
         # Compute the blit locations of each node and tile
         numTiles = [3, 4, 5, 4, 3]
 
-        offsets = [self.screenWidth / 2 - self.tileWidth * 3 / 2, \
-                   self.screenWidth / 2 - self.tileWidth * 2, \
-                   self.screenWidth / 2 - self.tileWidth * 5 / 2, \
-                   self.screenWidth / 2 - self.tileWidth * 2, \
-                   self.screenWidth / 2 - self.tileWidth * 3 / 2]
+        offsets = [int(self.screenWidth / 2) - int(self.tileWidth * 3 / 2), \
+                   int(self.screenWidth / 2) - int(self.tileWidth * 2), \
+                   int(self.screenWidth / 2) - int(self.tileWidth * 5 / 2), \
+                   int(self.screenWidth / 2) - int(self.tileWidth * 2), \
+                   int(self.screenWidth / 2) - int(self.tileWidth * 3 / 2)]
 
         # Store the locations of the dots relative to each hexagon
-        topDotOffsets = [(-self.dotWidth / 2, self.tileHeight / 5 - self.dotHeight / 2), \
-                      (self.tileWidth / 2 - self.dotWidth / 2, -self.dotHeight / 2), \
-                      (self.tileWidth - self.dotWidth / 2, self.tileHeight / 5 - self.dotHeight / 2)]
-        bottomDotOffsets = [(-self.dotWidth / 2, self.tileHeight * 4 / 5 - self.dotHeight / 2), \
-                            (self.tileWidth / 2 - self.dotWidth / 2, self.tileHeight - self.dotHeight / 2), \
-                            (self.tileWidth - self.dotWidth / 2, self.tileHeight * 4 / 5 - self.dotHeight / 2)]
+        topDotOffsets = [(int(-self.dotWidth / 2), int(self.tileHeight / 5) - int(self.dotHeight / 2)), \
+                      (int(self.tileWidth / 2) - int(self.dotWidth / 2), int(-self.dotHeight / 2)), \
+                      (self.tileWidth - int(self.dotWidth / 2), int(self.tileHeight / 5) - int(self.dotHeight / 2))]
+        bottomDotOffsets = [(int(-self.dotWidth / 2), int(self.tileHeight * 4 / 5) - int(self.dotHeight / 2)), \
+                            (int(self.tileWidth / 2) - int(self.dotWidth / 2), self.tileHeight - int(self.dotHeight / 2)), \
+                            (self.tileWidth - int(self.dotWidth / 2), int(self.tileHeight * 4 / 5) - int(self.dotHeight / 2))]
 
         # Store all of the nodes to blit in this list, and add them last so
         # that they will appear in the foreground
         nodesToBlit = []
+
+        # Since we are setting up the tiles in order, we can set the type of each tile at the same time
+        # Use this counter to keep track of the tile index to be set
+        counterTile = 0
 
         for i in range(len(numTiles)):
             
@@ -100,12 +128,16 @@ class Display:
             counterJTop = 0
             counterJBot = 0
             for j in range(numTiles[i]):
-                # Place the j tiles
                 imgX = j * self.tileWidth + offsets[i]
-                imgY = i * self.tileHeight * 4 / 5 + self.screenWidth / 7
-                self.tileCenters.append((imgX + self.tileWidth / 2, imgY + self.tileHeight / 2)) 
+                imgY = i * int(self.tileHeight * 4 / 5) + int(self.screenWidth / 7)
+                self.tileCenters.append((imgX + int(self.tileWidth / 2), imgY + int(self.tileHeight / 2))) 
                 self.permanentBlits.append((self.tile, (imgX, imgY)))
-                
+    
+                # Display the type of the tile inside the hexagon
+                tile = self.board.tiles[i]
+                text = self.getTextSurface(tile)
+                self.permanentBlits.append((text, (imgX + int(self.tileWidth / 8), imgY + int(self.tileHeight / 2) - int(self.tileHeight / 8))))
+
                 if j == numTiles[i] - 1:
                     # We only place all three dots if we are on the last tile
                     # Otherwise we will be double counting the dots on intersections
@@ -139,8 +171,9 @@ class Display:
         # Now we add the nodes to self.permanentBlits, so that they will appear after the tiles
         for n in nodesToBlit:
             self.permanentBlits.append(n)
+       
+        print('done in init')
 
-        
     def getNodeAtXY(self, x, y):
         # If a node is at the coordinates x, y, return the coordinates of the node in the game logic
         # Return None if no node is at the specified coords
@@ -151,7 +184,7 @@ class Display:
 
     def handleClick(self, event, playerCommand):
         if event.button == 1:
-            if playerCommand == 'getNode':
+            if playerCommand == 'gn':
                 mouseX, mouseY = event.pos
                 node = self.getNodeAtXY(mouseX, mouseY)
                 
@@ -161,7 +194,7 @@ class Display:
 
                 else:
                     raise Exception('No node clicked. Unspecified behaviour')
-            elif playerCommand == 'moveRobber':
+            elif playerCommand == 'mr':
                 # Get the nearest tile to the clicked point, and send the robber there
                 destTile = np.argmin([np.linalg.norm(np.subtract(event.pos, tc)) for tc in self.tileCenters])
                 self.placeRobber(destTile)
@@ -171,13 +204,13 @@ class Display:
         # Currently blits all objects in 
         # - permanentBlits
         # - tempBlits 
-        for blit in (self.permanentBlits + self.tempBlits.values()):
+        for blit in (self.permanentBlits + list(self.tempBlits.values())):
             self.screen.blit(blit[0], blit[1])
 
     def getUserCommand(self):
         # Put some kinds of possible commands in here at the moment
         # I'm guessing that this kind of thing will be moved elsewhere long-term 
-        print('Possible commands:\ngetNode\nmoveRobber')
+        print('Possible commands:\ngetNode (gn) moveRobber (mr)')
         return raw_input('')
 
     def run(self):
@@ -194,10 +227,6 @@ class Display:
                 elif event.type == MOUSEBUTTONDOWN:
                     command = self.getUserCommand()
                     self.handleClick(event, command)
-
-# Test the Display class
-display = Display()
-display.run()
 
 
 

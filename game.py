@@ -446,7 +446,7 @@ class Game(object):
 #####################   Handle Distributing Resources    ####################
 #############################################################################
 
-'''This code is slightly less incomplete'''
+    '''This code is slightly less incomplete'''
     #Can access board through self, so really just need roll
     def distributeResources(self, roll):
 
@@ -490,5 +490,5 @@ class Game(object):
 
 
 #Random test code
-game = Game(None,None)
+game = Game(None,None,None)
 game.testPiecesPurchasable()
