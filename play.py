@@ -173,7 +173,13 @@ class Play:
         for player in self.players:
             if player.score >= 10:
                 print (player.name + " has won the game!")
+<<<<<<< HEAD
                 print(player.name + " has won the game!")
 
 play = Play()
 play.main()
+=======
+play = Play()
+play.main()
+
+>>>>>>> ef3a13b44f17c8c64ffbc9dae208f72aa1bb5cd7

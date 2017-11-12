@@ -464,8 +464,11 @@ class Game(object):
 #####################   Handle Distributing Resources    ####################
 #############################################################################
 
+<<<<<<< HEAD
     '''This code is slightly less incomplete'''
     #Can access board through self, so really just need roll
+=======
+>>>>>>> ef3a13b44f17c8c64ffbc9dae208f72aa1bb5cd7
     """
     This code is slightly less incomplete
     """
