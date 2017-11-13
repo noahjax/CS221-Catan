@@ -188,14 +188,14 @@ class Play:
                 elif buyType == 'c':
                     possiblePlacement = self.game.getCityLocations(curr_player)
                     node = self.getCitySettlementLoc(possiblePlacement)
-                    # TODO: place settlement human
                     curr_player.place_city(node, curr_player, False)
                     self.display.placeCity(node)
                     
                 elif buyType == 'r':
-                    possiblePlacement = self.game.getRoadLocations(curr_player, False)
-                    roadLoc = self.getRoadLoc(possiblePlacement)
-                    curr_player.place_road_human(node, curr_player, False)
+                    possiblePlacement = self.game.getRoadLocations(curr_player)
+                    print(possiblePlacement)
+                    roadLoc = self.getRoadLoc(curr_player, possiblePlacement)
+                    curr_player.place_road_human(roadLoc, curr_player, False)
                     self.display.placeRoad(roadLoc[0], roadLoc[1])
         
         print('run human turn')
