@@ -134,9 +134,10 @@ class Display:
                 self.permanentBlits.append((self.tile, (imgX, imgY)))
     
                 # Display the type of the tile inside the hexagon
-                tile = self.board.tiles[i]
+                tile = self.board.tiles[counterTile]
                 text = self.getTextSurface(tile)
                 self.permanentBlits.append((text, (imgX + int(self.tileWidth / 8), imgY + int(self.tileHeight / 2) - int(self.tileHeight / 8))))
+                counterTile += 1
 
                 if j == numTiles[i] - 1:
                     # We only place all three dots if we are on the last tile
@@ -181,7 +182,8 @@ class Display:
             if minmaxTuple[0] <= x <= minmaxTuple[2] and minmaxTuple[1] <= y <= minmaxTuple[3]:
                 return coords
         return None
-
+    
+    '''
     def handleClick(self, event, playerCommand):
         if event.button == 1:
             if playerCommand == 'gn':
@@ -198,7 +200,7 @@ class Display:
                 # Get the nearest tile to the clicked point, and send the robber there
                 destTile = np.argmin([np.linalg.norm(np.subtract(event.pos, tc)) for tc in self.tileCenters])
                 self.placeRobber(destTile)
-        
+    '''  
     def blitAll(self):
         # Blit all available objects to the screen
         # Currently blits all objects in 
@@ -220,6 +222,48 @@ class Display:
         self.blitAll()
         pygame.display.flip()
 
+    def placeRoad(self, node1, node2):
+        # Place something to mark the node here
+        # Assumes that the nodes passed in are valid locations
+        x11, y11, x12, y12 = self.nodeLocs[node1]
+        x21, y21, x22, y22 = self.nodeLocs[node1]
+
+        pass
+
+    def placeSettlement(self, node):
+        # x1, y1, x2, y2 = self.nodeLocs[node]
+        # self.update()
+        # raise Exception('Not yet implemented')
+        pass
+
+    def placeCity(self, node):
+        x1, y1, x2, y2 = self.nodeLocs[node]
+        self.update()
+        # raise Exception('Not yet implemented')
+        pass
+
+    def getNode(self):
+        # Takes in an action and updates the display accordingly
+        nodeFound = False
+        while True:
+            # Loop until they click a node
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    mouseX, mouseY = event.pos
+                    node = self.getNodeAtXY(mouseX, mouseY)
+                
+                    if node != None:
+                        print('clicked node ' + str(node))
+                        return node
+        return None 
+
+    # Load some different colored nodes for different player, nodes, etc
+    # Four default colors
+
+    
+    # Know they can buy that, have all possible positions
+    # Once we get possible positions, wait for click, highlight possible positions and wait for one of them to be clicked
+    '''
     def execute(self, action):
         # Takes in an action and updates the display accordingly
         actionExecuted = False
@@ -229,9 +273,10 @@ class Display:
                 if event.type == QUIT:
                     exit(0)
                 elif event.type == MOUSEBUTTONDOWN:
+                    # Something to return the node clicked
                     self.handleClick(event, action)
                     actionExecuted = True
             self.update()
             if actionExecuted:
                 break
-
+    '''

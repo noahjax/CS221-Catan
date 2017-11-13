@@ -22,6 +22,7 @@ class Game(object):
         self.currMaxRoad = 0
         self.currMaxKnights = 0
         self.players = players
+        self.currMaxScore = 0
         self.board = board
         self.turn_num = 0       #Starts at 0 so it can easily access player list
         self.devCards = self.initialize_dev_cards()
@@ -95,6 +96,7 @@ class Game(object):
 
     #Handle moving the robber
     def set_robber_location(self, location):
+        # TODO: update robber location in display
         currPosition = self.robber_location
         currPosition.has_robber = False
         self.robber_location = location
@@ -401,9 +403,12 @@ class Game(object):
                 return False
 
         # Check if the node is currently on a players road
-        for (node_one, node_two) in player.roads.iteritems():
+        '''
+        for (node_one, node_two) in player.roads:
             if node_one == node or node_two == node:
                 return True
+        '''
+        return True
 
         # If we get here we can not use the given node
         return False
@@ -413,12 +418,13 @@ class Game(object):
         possible_locations = []
         
         #Loop over all nodes, check if is empty and neighbors are appropriate
-        for node in self.board.nodes:
-            if firstTurn:
-                if not node.isOccupied:
+        for li in self.board.nodes.values():
+            for node in li:
+                if firstTurn:
+                    if not node.isOccupied:
+                        possible_locations.append(node)
+                elif self.isValidSettlement(node, player):
                     possible_locations.append(node)
-            elif self.isValidSettlement(node, player):
-                possible_locations.append(node)
 
         return possible_locations
 

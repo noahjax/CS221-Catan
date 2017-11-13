@@ -44,7 +44,7 @@ class Play:
         tileCounter = 0
         for i in range(19):
             # Grab a random value and assign it to the tile
-            if i != 10:
+            if i != 9:
                 rand_value = random.randint(0, len(values) - 1)
                 rand_tile = random.randint(0, len(tilePool) - 1)
                 value = values.pop(rand_value)
@@ -73,7 +73,7 @@ class Play:
             self.players.append(new_player)
 
         # Initialize the game 
-        initRobberTile = 5
+        initRobberTile = 9
         self.game = Game(self.players, self.board, initRobberTile)
         
         # Initialize the display with the generated tiles
@@ -88,13 +88,9 @@ class Play:
         # self.firstTwoTurns()
         while True:
             # game.currMaxScore is not implemented
-            #if game.currMaxScore >= 10:
-            #    self.endGame()
-            if False:
-                # Replace with endgame condition when game.currMaxScore is implemented
-                pass
+            if game.currMaxScore >= 10:
+                self.endGame()
             else:
-
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
                 
@@ -147,13 +143,61 @@ class Play:
             else:
                 curr_player.pickDevCard(key, val)
 
+    def printResources(self, currPlayer):
+        print('print resources not implemented')
+        pass
 
+    def getCitySettlementLoc(self, possiblePlacement):
+        print('pp = ' + str(possiblePlacement))
+        while True:
+            nc = self.display.getNode()
+            if self.board.nodes[nc[0]][nc[1]] in possiblePlacement:
+                return self.board.nodes[nc[0]][nc[1]] 
+            print('node ' + str(nc) + ' is not a valid location')
+
+    def getRoadLoc(self, curPlayer, possiblePlacement):
+        # For the human player to select the location of a road they want to build 
+        while True:
+            node1 = self.display.getNode()
+            node2 = self.display.getNode()
+            if (node1, node2) in possiblePlacement or (node2, node1) in possiblePlacement:
+                return node1, node2 
+            print('nodes ' + str(node1) + ' ' + str(node2) + ' are not valid')
+        return None 
 
     def run_human_turn(self, curr_player):
         """
         This will run a humans turn, not yet implemented will deal with this when we
         have a graphical interface
         """
+        # Options are to buy something or end turn
+        print('run human turn')
+        self.printResources(curr_player)
+        option = raw_input('Buy something (bs) or enter to end turn: ')
+        if option == 'bs':
+            while True:
+                buyType = raw_input('type (s, c, r) or enter to end turn: ')
+                if buyType == 's':
+                    print(curr_player.score)
+                    possiblePlacement = self.game.getSettlementLocations(curr_player, False) # array of possible nodes
+                    node = self.getCitySettlementLoc(possiblePlacement)
+                    curr_player.place_settlement_human(node, curr_player, self.game, False)
+                    self.display.placeSettlement(node)
+                    print(curr_player.score)
+
+                elif buyType == 'c':
+                    possiblePlacement = self.game.getCityLocations(curr_player)
+                    node = self.getCitySettlementLoc(possiblePlacement)
+                    # TODO: place settlement human
+                    curr_player.place_city(node, curr_player, False)
+                    self.display.placeCity(node)
+                    
+                elif buyType == 'r':
+                    possiblePlacement = self.game.getRoadLocations(curr_player, False)
+                    roadLoc = self.getRoadLoc(possiblePlacement)
+                    curr_player.place_road_human(node, curr_player, False)
+                    self.display.placeRoad(roadLoc[0], roadLoc[1])
+        
         print('run human turn')
         # curPlayerPossMoves = self.game.getPossibleActions(curr_player) 
         curPlayerPossMoves = ['gn', 'mr'] # Testing only. Should be replaced with getPossibleActions
