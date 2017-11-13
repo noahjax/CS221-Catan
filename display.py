@@ -207,26 +207,32 @@ class Display:
         for blit in (self.permanentBlits + list(self.tempBlits.values())):
             self.screen.blit(blit[0], blit[1])
 
-    def getUserCommand(self):
+    def getUserAction(self):
         # Put some kinds of possible commands in here at the moment
         # I'm guessing that this kind of thing will be moved elsewhere long-term 
         print('Possible commands:\ngetNode (gn) moveRobber (mr)')
         return raw_input('')
 
-    def run(self):
+    def update(self):
+        # Update the display
         white = (255, 255, 255)
-        running = True 
-        while running:
-            self.screen.fill((white))
-            self.blitAll()
-            pygame.display.flip()
-            
+        self.screen.fill((white))
+        self.blitAll()
+        pygame.display.flip()
+
+    def execute(self, action):
+        # Takes in an action and updates the display accordingly
+        actionExecuted = False
+        while True:
+            # Wait until the user clicks something
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    running = False 
+                    exit(0)
                 elif event.type == MOUSEBUTTONDOWN:
-                    command = self.getUserCommand()
-                    self.handleClick(event, command)
-
+                    self.handleClick(event, action)
+                    executed = True
+            self.update()
+            if actionExecuted:
+                break
 
 

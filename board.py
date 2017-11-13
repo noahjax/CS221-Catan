@@ -30,13 +30,20 @@ class Board:
         nEdgesTwo = [(two, n) for n in nTwo]
         return nEdgesOne + nEdgesTwo 
 
+    def getNodesForTile(self, tile):
+        # Let each tile have an identifier = the node coord at its peak
+        # Return the 6 nodes at that tile's corners
+        r, c = tile.id
+        return [(r, c - 1), (r, c), (r, c + 1), \
+                (r + 1, c - 1), (r + 1, c), (r + 1, c + 1)]
+
     def __init__(self):
         self.nodes = {0: [Node(0, i) for i in range(7)],
-                       1: [Node(1, i) for i in range(9)],
-                       2: [Node(2, i) for i in range(11)],
-                       3: [Node(3, i) for i in range(11)],
-                       4: [Node(4, i) for i in range(9)],
-                       5: [Node(5, i) for i in range(7)]}
+                      1: [Node(1, i) for i in range(9)],
+                      2: [Node(2, i) for i in range(11)],
+                      3: [Node(3, i) for i in range(11)],
+                      4: [Node(4, i) for i in range(9)],
+                      5: [Node(5, i) for i in range(7)]}
         self.tiles = []
 
 

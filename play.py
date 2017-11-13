@@ -26,11 +26,22 @@ class Play:
                       ['Wood'] * 4,
                       ['Grain'] * 4,
                       ['Wool'] * 4]
+    
+        # Set the tile ids
+        # Each tile is defined by the coordinates of its peak node (0, 1), (0, 3), etc
+        # tileIds contains the coordinates of each tile 0-18 in the above specified form
+        self.tileIds = []
+        for i in range(1, 7, 2): self.tileIds.append((0, i))
+        for i in range(1, 9, 2): self.tileIds.append((1, i))
+        for i in range(1, 11, 2): self.tileIds.append((2, i))
+        for i in range(1, 9, 2): self.tileIds.append((3, i))
+        for i in range(1, 7, 2): self.tileIds.append((4, i))
+        assert len(self.tileIds) == 19
         
         # Select random values and resource for each tile and create it
-
         # Flatten the tile_types list so that popping works
         tilePool = [tile for tileType in tile_types for tile in tileType]
+        tileCounter = 0
         for i in range(19):
             # Grab a random value and assign it to the tile
             if i != 10:
@@ -39,12 +50,12 @@ class Play:
                 value = values.pop(rand_value)
                 resource = tilePool.pop(rand_tile)
         
-                tile = Tile(resource, value, False, i)
+                tile = Tile(resource, value, False, self.tileIds[i])
 
                 # Need to figure out how to map tiles to nodes
                 self.board.tiles.append(tile)
             else:
-                tile = Tile('Desert', 0, True, i)
+                tile = Tile('Desert', 0, True, self.tileIds[i])
                 self.board.tiles.append(tile)
         
         # Initialize the players
@@ -72,22 +83,30 @@ class Play:
         """
         Main function that manages the majority of the game play.
         """
-        self.display.run() 
-        '''
-        self.firstTwoTurns()
+        self.display.update() # Show the display in its initialized state
+
+        # self.firstTwoTurns()
         while True:
-            if game.currMaxScore >= 10:
-                self.endGame()
+            # game.currMaxScore is not implemented
+            #if game.currMaxScore >= 10:
+            #    self.endGame()
+            if False:
+                # Replace with endgame condition when game.currMaxScore is implemented
+                pass
             else:
 
                 curr_turn = self.turnNum
-                curr_player = self.players[curr_turn]
-                if curr_player.isAi:
-                    self.run_human_turn(curr_player)
-                else:
-                    self.run_AI_turn(curr_player)
+                curr_player = self.players[curr_turn % self.num_players]
+                
+                # Working on the display functionality, so only run human turns for now
+                self.run_human_turn(curr_player)
+
+                #if curr_player.isAi:
+                #    self.run_human_turn(curr_player)
+                #else:
+                #    self.run_AI_turn(curr_player)
                 self.turnNum += 1
-        '''
+    
     # Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
         for i in range(4):
@@ -135,9 +154,17 @@ class Play:
         This will run a humans turn, not yet implemented will deal with this when we
         have a graphical interface
         """
-        return True
-
-
+        print('run human turn')
+        # curPlayerPossMoves = self.game.getPossibleActions(curr_player) 
+        curPlayerPossMoves = ['gn', 'mr'] # Testing only. Should be replaced with getPossibleActions
+        while True:
+            # Loop until the user enters a valid action
+            action = self.display.getUserAction()
+            print('action = ' + str(action))
+            if action in curPlayerPossMoves: 
+                break
+            print('I\'m sorry Dave, I\'m afraid I can\'t do that')
+        self.display.execute(action)
 
     def endGame(self):
         """
@@ -146,6 +173,6 @@ class Play:
         for player in self.players:
             if player.score >= 10:
                 print (player.name + " has won the game!")
-play = Play()
-play.main()
+                print(player.name + " has won the game!")
+
 
