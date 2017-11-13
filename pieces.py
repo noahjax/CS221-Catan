@@ -1,18 +1,17 @@
-from enum import Enum
-
-
-class PieceType(Enum):
-    settlement = "Settlement"
-    road = "Road"
-    city = "City"
-    robber = "Robber"
-
-
-class Resource(Enum):
-    Ore = 'Ore'
-    Wood = 'Wood'
-    Brick = 'Brick'
-    Grain = 'Grain'
+# from enum import Enum
+#
+# class PieceType(Enum):
+#     settlement = "Settlement"
+#     road = "Road"
+#     city = "City"
+#     robber = "Robber"
+#
+#
+# class Resource(Enum):
+#     Ore = 'Ore'
+#     Wood = 'Wood'
+#     Brick = 'Brick'
+#     Grain = 'Grain'
 
 
 class Settlement:

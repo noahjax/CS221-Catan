@@ -404,6 +404,11 @@ class Game(object):
             for neighbour in first_node.neighbours:
                 if not (first_node, neighbour) in game.roads:
                     possible_locations.append((first_node, neighbour))
+
+        for node in player.occupyingNodes:
+            for neighbour in node.neighbours:
+                if not (node, neighbour) in game.roads and not (neighbour, node) in game.roads:
+                    possible_locations.append((node, neighbour))
     
         return possible_locations
     

@@ -30,6 +30,7 @@ class Knight:
         self.player = player
         self.players = players
         self.player.numKnights += 1
+        self.type = 'Knight'
 
     # Plays the Knight card given a new position for the Robber
     def play(self, position):
@@ -66,10 +67,11 @@ class VictoryPoint:
     def __init__(self, player):
         self.player = player
         self.value = 1
+        self.type = 'Victory Point'
 
     # Define what happens when the player plays this card
     def play(self):
-        self.player.incrementScore(1)
+        self.player.incrementScore(self.value)
 
 
 # Defines the road building dev card from Catan
@@ -77,6 +79,7 @@ class RoadBuilding:
 
     def __init__(self, player):
         self.player = player
+        self.type = 'Road Building'
 
         # Defines the logic for longest road, needs to be updated when we figure out path logic
         if len(self.player.roads) >= 9 and len(self.player.roads) > Game.currMaxRoad:
@@ -94,6 +97,7 @@ class Monopoly:
     def __init__(self, player, players):
         self.player = player
         self.players = players
+        self.type = 'Monopoly'
 
     def play(self, resource):
         for player in self.players:
@@ -108,6 +112,7 @@ class YearOfPlenty:
     def __init__(self, player, players):
         self.player = player
         self.players = players
+        self.type = 'Year of Plenty'
 
     def play(self, resourceOne, resourceTwo):
         self.player.resources[resourceOne] += 1
