@@ -4,6 +4,8 @@ import random
 from collections import deque, defaultdict
 from devcards import *
 from player import *
+from enum import Enum
+from log import *
 
 class Game(object):
     """
@@ -28,6 +30,8 @@ class Game(object):
         self.gameStart = False
         self.robber_location = robber_tile
         self.roads = []
+
+        catan_log.log("Game class intitialized")
 
     #Function to handle pregame placing of pieces
     # def run_pregame():
@@ -88,10 +92,19 @@ class Game(object):
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
+            #Checks if you already have devCard, may be redundant with defaultdict()
             if dev_card in self.devCards.keys():
                 self.devCards[dev_card].append(card_to_add)
             else:
                 self.devCards[dev_card] = [card_to_add]
+
+            #Log purchase
+            name = cur_player.name
+            catan_log.log(name + " bought " + dev_card)
+
+        else:
+            catan_log.log("Couldn't buy devCard")
+        
 
     #Handle moving the robber
     def set_robber_location(self, location):
@@ -100,6 +113,8 @@ class Game(object):
         currPosition.has_robber = False
         self.robber_location = location
         location.has_robber = True
+
+        catan_log.log("Robber location moved to " + location)
 
 
 
@@ -263,6 +278,9 @@ class Game(object):
         ans = []
         pieces = defaultdict(int)
         self.findResourceCombos(player_resources, pieces, ans)
+
+        catan_log.log("Found pieces purchasable for " + player.name)
+
         return ans
 
     #Simple test
@@ -471,6 +489,8 @@ class Game(object):
                 cur_action[(piece, count)] = locations
             #Add this dict to the list of possible actions
             actions.append(cur_action)
+        
+        catan_log.log("Found possible actions for " + player.name)
 
         return actions
 
@@ -503,6 +523,7 @@ class Game(object):
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
                     
+        catan_log.log("Distributed resources to players")
 
         # #Loop over all tiles in game
         # for i in range(19):
@@ -520,7 +541,6 @@ class Game(object):
         #                 piece.player.numResources[tile] += 2
                         
 
-
 #############################################################################
 ###################################   End    ################################
 #############################################################################
@@ -528,4 +548,3 @@ class Game(object):
 
 #Random test code
 game = Game(None,None,None)
-game.testPiecesPurchasable()
