@@ -22,7 +22,7 @@ class Player(object):
 
         #Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(int)
-        self.devCards = {}
+        self.devCards = defaultdict(int)
         self.roads = []
         self.occupyingNodes = []
         self.cities_and_settlements = []      #Don't necessarily need to keep track of pieces for each player, but could be useful
@@ -49,37 +49,45 @@ class Player(object):
     def incrementScore(self, value):
         self.score += value
 
-    def place_settlement_human(self, node, player, game, firstTurn):
-        settlement_to_add = Settlement(player, node)
+    def place_settlement_human(self, node, game, firstTurn):
+        settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
-        player.cities_and_settlements.append(settlement_to_add)
-        player.occupyingNodes.append(node)
-        player.score += 1
+        self.cities_and_settlements.append(settlement_to_add)
+        self.occupyingNodes.append(node)
+        self.incrementScore(1)
 
         if firstTurn:
             for tile in node.touchingTiles:
-                player.resources[tile.resource] += 1
+                self.resources[tile.resource] += 1
                 self.numResources += 1
         else:
             game.updateSettlementResources(self.resources)
-        return node
 
 
+    def place_city_human(self, node, player, game):
+        prev_settlement = node.get_occupying_piece()
+        player.cities_and_settlements.remove(prev_settlement)
+        city_to_add = City(player, node)
+        node.set_occupying_piece(city_to_add)
+        player.cities_and_settlements.append(city_to_add)
+        self.incrementScore(1)
+        game.updateCityResources(player.resources)
 
-    def place_settlement(self, positions, player, firstTurn):
+
+    def place_settlement(self, positions, firstTurn):
         # To define with the AI but for now just pick first available
         # will eventually need to add logic for either it being AI or human click
         node = self.pick_position_settlement(positions)
 
-        settlement_to_add = Settlement(player, node)
+        settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
-        player.cities_and_settlements.append(settlement_to_add)
-        player.occupyingNodes.append(node)
-        player.score += 1
+        self.cities_and_settlements.append(settlement_to_add)
+        self.occupyingNodes.append(node)
+        self.score += 1
 
         if firstTurn:
             for tile in node.touchingTiles:
-                player.resources[tile.resource] += 1
+                self.resources[tile.resource] += 1
                 self.numResources += 1
         else:
             game.updateSettlementResources(self.resources)
@@ -112,9 +120,18 @@ class Player(object):
         game.roads.append(roadLoc)
         if not firstTurn:
             game.updateRoadResources(self.resources)
+        # TODO: Check longest road logic
 
     def getName(self):
         return self.name
+
+    def get_dev_card(self):
+        card = game.devCards.pop(0)
+        print "You got a " + card.type
+        if card in self.devCards:
+            self.devCards[card] += 1
+        else:
+            self.devCards[card] = 1
 
     def playDevCard(self, devCardString):
         card = self.devCards[devCardString].pop(0)
