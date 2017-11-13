@@ -230,9 +230,8 @@ class Display:
                     exit(0)
                 elif event.type == MOUSEBUTTONDOWN:
                     self.handleClick(event, action)
-                    executed = True
+                    actionExecuted = True
             self.update()
             if actionExecuted:
                 break
-
 
