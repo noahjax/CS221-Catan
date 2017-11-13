@@ -59,6 +59,7 @@ class Player(object):
         player.cities_and_settlements.append(settlement_to_add)
         player.occupyingNodes.append(node)
         player.score += 1
+            #TODO: pass update to the display
 
         if firstTurn:
             for tile in node.touchingTiles:
@@ -78,7 +79,7 @@ class Player(object):
 
     # This will figure out how to place a road
     # We will need to check that player has the resources before calling this
-    def place_road(self, numRoads, firstTurn):
+    def place_road_AI(self, numRoads, firstTurn):
         for i in range(numRoads):
             possible_road_locations = game.getRoadLocations(self)
 
@@ -89,6 +90,12 @@ class Player(object):
             # Add logic for longest road/path stuff
             if not firstTurn:
                 game.updateRoadResources(self.resources)
+                       
+    def place_road_human(self, roadLoc, firstTurn):
+        self.roads.append(roadLoc)
+        game.roads.append(roadLoc)
+        if not firstTurn:
+            game.updateRoadResources(self.resources)
 
     def getName(self):
         return self.name

@@ -22,6 +22,7 @@ class Game(object):
         self.currMaxRoad = 0
         self.currMaxKnights = 0
         self.players = players
+        self.currMaxScore = 0
         self.board = board
         self.turn_num = 0       #Starts at 0 so it can easily access player list
         self.devCards = self.initialize_dev_cards()
@@ -95,6 +96,7 @@ class Game(object):
 
     #Handle moving the robber
     def set_robber_location(self, location):
+        # TODO: update robber location in display
         currPosition = self.robber_location
         currPosition.has_robber = False
         self.robber_location = location
