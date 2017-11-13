@@ -377,10 +377,15 @@ class Game(object):
 
         for road in player.roads:
             second_node = road[1]
+            first_node = road[0]
             for neighbour in second_node.neighbours:
                 if not (second_node, neighbour) in game.roads:
                     possible_locations.append((second_node, neighbour))
 
+            for neighbour in first_node.neighbours:
+                if not (first_node, neighbour) in game.roads:
+                    possible_locations.append((first_node, neighbour))
+    
         return possible_locations
     
     '''Missing test for settlement being at end of road'''
