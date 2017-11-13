@@ -3,7 +3,7 @@ from pieces import *
 from game import *
 #import all the stuff
 
-class Player(object):
+class HumanPlayer(object):
     """
     Class for each player 
 
@@ -143,3 +143,30 @@ class Player(object):
             return self.resources.pop(0)
         return 0
 
+class AiPlayer(object):
+    """
+    Class for each player
+
+    (Add more stuff)
+    """
+    def __init__(self, turn_num, name, color):
+
+        if 3 < turn_num < 0:
+            raise Exception("Turn number must be between 1 and 4 inclusive")
+
+        #Lets have turn number start at 0 because it might make coding nicer
+        self.turn_num = turn_num
+        self.name = name
+        self.color = color
+        self.score = 0
+
+        #Storing these in dict to make it easy to figure out how many they have. {"item": count}
+        self.resources = defaultdict(int)
+        self.devCards = defaultdict(int)
+        self.roads = []
+        self.occupyingNodes = []
+        self.cities_and_settlements = []      #Don't necessarily need to keep track of pieces for each player, but could be useful
+        self.numKnights = 0
+        self.roadLength = 0
+        self.numResources = 0
+        self.isAi = False

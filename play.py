@@ -65,12 +65,17 @@ class Play:
 
         # Will need to comment out if we use AI
         for i in range(self.num_players):
-            names.append(raw_input("Insert name of player:"))
-
-        # Add the current player to players array
-        for i in range(self.num_players):
-            new_player = Player(i+1, names[i], colors[i])
+            name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            if name != "":
+                new_player = HumanPlayer(i, name, colors[i])
+            else:
+                new_player = AiPlayer(i, "AI", colors[i])
             self.players.append(new_player)
+
+        # # Add the current player to players array
+        # for i in range(self.num_players):
+        #     new_player = Player(i+1, names[i], colors[i])
+        #     self.players.append(new_player)
 
         # Initialize the game 
         initRobberTile = 9
