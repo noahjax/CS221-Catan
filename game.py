@@ -4,7 +4,6 @@ import random
 from collections import deque, defaultdict
 from devcards import *
 from player import *
-from enum import Enum
 
 class Game(object):
     """
