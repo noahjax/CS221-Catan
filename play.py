@@ -175,5 +175,3 @@ class Play:
                 print (player.name + " has won the game!")
                 print(player.name + " has won the game!")
 
-play = Play()
-play.main()

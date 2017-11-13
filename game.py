@@ -68,7 +68,7 @@ class Game(object):
         #Get current player
         cur_player = self.players[player_num]
         #Check if you have the resources to buy a devCard
-        if cur_player.resources['Ore'] < 1 or cur_player.resources['Wool'] < 1 or cur_player.resources['Wheat'] < 1:
+        if cur_player.resources['Ore'] < 1 or cur_player.resources['Wool'] < 1 or cur_player.resources['Grain'] < 1:
             print("You don't have enough resources to buy a devCard")
             return False
         
@@ -81,7 +81,7 @@ class Game(object):
             #Update player resources
             cur_player.resources['Ore'] -= 1
             cur_player.resources['Wool'] -= 1
-            cur_player.resources['Wheat'] -= 1
+            cur_player.resources['Grain'] -= 1
 
             #Get devCard and give to player
             dev_card = self.devCards.pop()
@@ -126,10 +126,10 @@ class Game(object):
     #         resources_needed['Brick'] = 1
     #         resources_needed['Wood'] = 1
     #         resources_needed['Wool'] = 1
-    #         resources_needed['Wheat'] = 1
+    #         resources_needed['Grain'] = 1
     #     elif piecetype == "City":
     #         resources_needed['Ore'] = 3
-    #         resources_needed['Wheat'] = 2
+    #         resources_needed['Grain'] = 2
     #     elif piecetype == "Road":
     #         resources_needed['Brick'] = 1
     #         resources_needed['Wood'] = 1
@@ -175,16 +175,16 @@ class Game(object):
         return resources['Brick'] >= 1 and resources['Wood'] >= 1
 
     def canBuyCity(self, resources):
-        return resources['Ore'] >= 3 and resources['Wheat'] >= 2
+        return resources['Ore'] >= 3 and resources['Grain'] >= 2
 
     def canBuySettlement(self, resources):
         return resources['Brick'] >= 1 and resources['Wood'] >= 1 \
-            and resources['Wool'] >= 1 and resources['Wheat'] >= 1
+            and resources['Wool'] >= 1 and resources['Grain'] >= 1
 
     def canBuyDevCard(self, resources):
         if not self.devCards:
             return False
-        return resources['Ore'] >= 1 and resources['Wheat'] >= 1 \
+        return resources['Ore'] >= 1 and resources['Grain'] >= 1 \
             and resources['Wool'] >= 1
 
     # Second group of helpers to update resources if you buy an item
@@ -196,20 +196,20 @@ class Game(object):
     def updateCityResources(self, resources, add=False):
         i = -1 if add else 1
         resources['Ore'] -= 3 * i
-        resources['Wheat'] -= 2 * i
+        resources['Grain'] -= 2 * i
 
     def updateSettlementResources(self, resources, add=False):
         i = -1 if add else 1
         resources['Brick'] -= 1 * i
         resources['Wood'] -= 1 * i
         resources['Wool'] -= 1 * i
-        resources['Wheat'] -= 1 * i
+        resources['Grain'] -= 1 * i
 
     def updateDevCardResources(self, resources, add=False):
         i = -1 if add else 1
         resources['Ore'] -= 1 * i
         resources['Wool'] -= 1 * i
-        resources['Wheat'] -= 1 * i
+        resources['Grain'] -= 1 * i
 
     #Handles recursion to explore items you can buy
     def findResourceCombos(self, resources, pieces, ans):
@@ -270,7 +270,7 @@ class Game(object):
         player.resources['Wood'] = 1
         player.resources['Brick'] = 1
         player.resources['Ore'] = 1
-        # player.resources['Wheat'] = 1
+        # player.resources['Grain'] = 1
         # player.resources['Wool'] = 1
 
         x = self.piecesPurchasable(player)
@@ -288,10 +288,10 @@ class Game(object):
     #         resources_needed['Brick'] = 1
     #         resources_needed['Wood'] = 1
     #         resources_needed['Wool'] = 1
-    #         resources_needed['Wheat'] = 1
+    #         resources_needed['Grain'] = 1
     #     elif piecetype == "City":
     #         resources_needed['Ore'] = 3
-    #         resources_needed['Wheat'] = 2
+    #         resources_needed['Grain'] = 2
     #     elif piecetype == "Road":
     #         resources_needed['Brick'] = 1
     #         resources_needed['Wood'] = 1
@@ -317,10 +317,10 @@ class Game(object):
     #         resources_needed['Brick'] = 1
     #         resources_needed['Wood'] = 1
     #         resources_needed['Wool'] = 1
-    #         resources_needed['Wheat'] = 1
+    #         resources_needed['Grain'] = 1
     #     elif piecetype == "City":
     #         resources_needed['Ore'] = 3
-    #         resources_needed['Wheat'] = 2
+    #         resources_needed['Grain'] = 2
     #     elif piecetype == "Road":
     #         resources_needed['Brick'] = 1
     #         resources_needed['Wood'] = 1
