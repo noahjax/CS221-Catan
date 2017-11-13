@@ -143,16 +143,17 @@ class Play:
             else:
                 curr_player.pickDevCard(key, val)
 
-    def printResources(currPlayer):
+    def printResources(self, currPlayer):
         print('print resources not implemented')
         pass
 
     def getCitySettlementLoc(self, possiblePlacement):
+        print('pp = ' + str(possiblePlacement))
         while True:
-            node = self.display.getNode()
-            if node in possiblePlacement:
-                return node
-            print('node ' + str(node) + ' is not a valid location')
+            nc = self.display.getNode()
+            if self.board.nodes[nc[0]][nc[1]] in possiblePlacement:
+                return self.board.nodes[nc[0]][nc[1]] 
+            print('node ' + str(nc) + ' is not a valid location')
 
     def getRoadLoc(self, curPlayer, possiblePlacement):
         # For the human player to select the location of a road they want to build 
@@ -170,27 +171,31 @@ class Play:
         have a graphical interface
         """
         # Options are to buy something or end turn
+        print('run human turn')
         self.printResources(curr_player)
         option = raw_input('Buy something (bs) or enter to end turn: ')
         if option == 'bs':
             while True:
                 buyType = raw_input('type (s, c, r) or enter to end turn: ')
                 if buyType == 's':
+                    print(curr_player.score)
                     possiblePlacement = self.game.getSettlementLocations(curr_player, False) # array of possible nodes
                     node = self.getCitySettlementLoc(possiblePlacement)
-                    player.place_settlement(node, curr_player, False)
+                    curr_player.place_settlement_human(node, curr_player, self.game, False)
                     self.display.placeSettlement(node)
+                    print(curr_player.score)
 
                 elif buyType == 'c':
-                    possiblePlacement = self.game.getCityLocations(curr_player, False)
+                    possiblePlacement = self.game.getCityLocations(curr_player)
                     node = self.getCitySettlementLoc(possiblePlacement)
-                    player.place_city(node, curr_player, False)
+                    # TODO: place settlement human
+                    curr_player.place_city(node, curr_player, False)
                     self.display.placeCity(node)
                     
                 elif buyType == 'r':
                     possiblePlacement = self.game.getRoadLocations(curr_player, False)
                     roadLoc = self.getRoadLoc(possiblePlacement)
-                    player.place_road_human(node, curr_player, False)
+                    curr_player.place_road_human(node, curr_player, False)
                     self.display.placeRoad(roadLoc[0], roadLoc[1])
         
         print('run human turn')

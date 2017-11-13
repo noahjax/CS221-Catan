@@ -231,15 +231,15 @@ class Display:
         pass
 
     def placeSettlement(self, node):
-        x1, y1, x2, y2 = nodeLocs[node]
-        self.update()
-        raise Exception('Not yet implemented')
+        # x1, y1, x2, y2 = self.nodeLocs[node]
+        # self.update()
+        # raise Exception('Not yet implemented')
         pass
 
     def placeCity(self, node):
-        x1, y1, x2, y2 = nodeLocs[node]
+        x1, y1, x2, y2 = self.nodeLocs[node]
         self.update()
-        raise Exception('Not yet implemented')
+        # raise Exception('Not yet implemented')
         pass
 
     def getNode(self):

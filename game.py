@@ -398,9 +398,12 @@ class Game(object):
                 return False
 
         # Check if the node is currently on a players road
-        for (node_one, node_two) in player.roads.iteritems():
+        '''
+        for (node_one, node_two) in player.roads:
             if node_one == node or node_two == node:
                 return True
+        '''
+        return True
 
         # If we get here we can not use the given node
         return False
@@ -410,12 +413,13 @@ class Game(object):
         possible_locations = []
         
         #Loop over all nodes, check if is empty and neighbors are appropriate
-        for node in self.board.nodes:
-            if firstTurn:
-                if not node.isOccupied:
+        for li in self.board.nodes.values():
+            for node in li:
+                if firstTurn:
+                    if not node.isOccupied:
+                        possible_locations.append(node)
+                elif self.isValidSettlement(node, player):
                     possible_locations.append(node)
-            elif self.isValidSettlement(node, player):
-                possible_locations.append(node)
 
         return possible_locations
 
