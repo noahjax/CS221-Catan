@@ -58,7 +58,10 @@ class Play:
             else:
                 tile = Tile('Desert', 0, True, self.tileIds[i])
                 self.board.tiles.append(tile)
-        
+
+            self.board.setTouchingTiles(tile)  
+            
+
         # Initialize the players
         self.players = []
         names = []
@@ -352,5 +355,15 @@ class Play:
             if player.score >= 10:
                 print (player.name + " has won the game!")
                 print(player.name + " has won the game!")
+
+    def main2(self):    
+        self.display.update() # Show the display in its initialized state
+        while True:
+            r, c = self.display.getNode()
+            node = self.board.nodes[r][c]
+            for tile in node.touchingTiles:
+                print(tile.value, tile.resource)
+
+
 play = Play()
-play.main()
+play.main2()
