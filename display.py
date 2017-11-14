@@ -8,7 +8,7 @@ class Display:
     screen = None
     screenWidth, screenHeight = (640, 480)
 
-    dot = None
+    redDot, blueDot, greenDot, orangeDot, blackDot = (None, None, None, None, None)
     tile = None
     robber = None
     tlbrRoad = None
@@ -64,9 +64,21 @@ class Display:
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
         
-        # Load the node png
-        self.dot = pygame.image.load('dot.png')
-        self.dot = pygame.transform.scale(self.dot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+        # Dots on dots on dots on dots on dots on ... 
+        self.redDot = pygame.image.load('red_dot.png')
+        self.redDot = pygame.transform.scale(self.redDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+        
+        self.blueDot = pygame.image.load('blue_dot.png')
+        self.blueDot = pygame.transform.scale(self.blueDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+        
+        self.greenDot = pygame.image.load('green_dot.png')
+        self.greenDot = pygame.transform.scale(self.greenDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+        
+        self.orangeDot = pygame.image.load('orange_dot.png')
+        self.orangeDot = pygame.transform.scale(self.orangeDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+        
+        self.blackDot = pygame.image.load('black_dot.png')
+        self.blackDot = pygame.transform.scale(self.blackDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
 
         # Load the city and town pngs
         self.city = pygame.image.load('castle.png')
@@ -83,8 +95,8 @@ class Display:
         self.tileWidth = self.tile.get_rect().size[0]
         self.tileHeight = self.tile.get_rect().size[1]
 
-        self.dotWidth = self.dot.get_rect().size[0]
-        self.dotHeight = self.dot.get_rect().size[1]
+        self.dotWidth = self.redDot.get_rect().size[0]
+        self.dotHeight = self.redDot.get_rect().size[1]
 
 
         # Load the three different road orientations
@@ -192,7 +204,7 @@ class Display:
                         # Both blit the dot to the game screen, and add it to nodeLocs
                         dotX = imgX + offset[0]
                         dotY = imgY + offset[1]
-                        nodesToBlit.append((self.dot, (dotX, dotY)))
+                        nodesToBlit.append((self.blackDot, (dotX, dotY)))
                         coords = (i, counterJTop) 
                         self.nodeLocs[coords] = (dotX, dotY, dotX + self.dotWidth, dotY + self.dotHeight)
                         counterJTop += 1
@@ -201,7 +213,7 @@ class Display:
                     for offset in bottomDotOffsets[:dotRange]:
                         dotX = imgX + offset[0]
                         dotY = imgY + offset[1]
-                        nodesToBlit.append((self.dot, (dotX, dotY)))
+                        nodesToBlit.append((self.blackDot, (dotX, dotY)))
                         coords = (i + 1, counterJBot)
                         self.nodeLocs[coords] = (dotX, dotY, dotX + self.dotWidth, dotY + self.dotHeight)
                         counterJBot += 1
@@ -244,8 +256,6 @@ class Display:
         return raw_input('')
 
 
-
-
     def update(self):
         # Update the display
         white = (255, 255, 255)
@@ -254,11 +264,11 @@ class Display:
         pygame.display.flip()
 
 
-
-
     def placeRoad(self, node1, node2):
         # Place something to mark the node here
         # Assumes that the nodes passed in are valid locations
+        # x <=> screen width
+        # y <=> screen height
         print('Placing road')
         x11, y11, x12, y12 = self.nodeLocs[(node1.row, node1.col)]
         x21, y21, x22, y22 = self.nodeLocs[(node2.row, node2.col)]
@@ -282,6 +292,7 @@ class Display:
         self.permanentBlits.append((roadToBlit, locToBlit))
         self.update()
 
+
     def placeSettlement(self, node):
         # Takes in a node object
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
@@ -292,7 +303,7 @@ class Display:
 
 
     def placeCity(self, node):
-        x1, y1, x2, y2 = self.nodeLocs[node]
+        x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
         self.permanentBlits.append((self.city, (x1, y1)))
         self.update()
 
@@ -313,8 +324,6 @@ class Display:
                         print('clicked node ' + str(node))
                         return node
         return None 
-
-
 
 
 
