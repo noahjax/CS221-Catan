@@ -12,6 +12,7 @@ class Node:
         self.isOccupied = False
         self.occupyingPiece = None
 
+
     def get_occupying_piece(self):
         return self.occupyingPiece
 
@@ -26,4 +27,9 @@ class Node:
         self.occupyingPiece = piece
 
     def set_neighbours(self, board):
-        self.neighbours = board.getNeighborNodes(self.row, self.col)
+        neighbours = board.getNeighborNodes(self.row, self.col)
+        toSet = []
+        for coord in neighbours:
+            toSet.append(board.nodes[coord[0]][coord[1]])
+        self.neighbours = toSet
+        

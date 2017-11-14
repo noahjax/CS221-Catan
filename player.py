@@ -56,7 +56,8 @@ class Player:
         card = self.devCards[devCardString].pop(0)
         card.play()
 
-    def place_road(self, roadLoc, firstTurn=False):
+    #roadLoc should be a pair of node objects
+    def place_road(self, roadLoc, game, firstTurn=False):
         self.roads.append(roadLoc)
         game.roads.append(roadLoc)
         if not firstTurn:
