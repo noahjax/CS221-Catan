@@ -4,7 +4,8 @@ import random
 from collections import deque, defaultdict
 from devcards import *
 from player import *
-from enum import Enum
+# from enum import Enum
+from log import *
 
 class Game(object):
     """
@@ -29,6 +30,8 @@ class Game(object):
         self.gameStart = False
         self.robber_location = robber_tile
         self.roads = []
+
+        catan_log.log("Game class intitialized")
 
     #Function to handle pregame placing of pieces
     # def run_pregame():
@@ -89,10 +92,19 @@ class Game(object):
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
+            #Checks if you already have devCard, may be redundant with defaultdict()
             if dev_card in self.devCards.keys():
                 self.devCards[dev_card].append(card_to_add)
             else:
                 self.devCards[dev_card] = [card_to_add]
+
+            #Log purchase
+            name = cur_player.name
+            catan_log.log(name + " bought " + dev_card)
+
+        else:
+            catan_log.log("Couldn't buy devCard")
+        
 
     #Handle moving the robber
     def set_robber_location(self, location):
@@ -101,6 +113,8 @@ class Game(object):
         currPosition.has_robber = False
         self.robber_location = location
         location.has_robber = True
+
+        catan_log.log("Robber location moved to " + location)
 
 
 
@@ -264,6 +278,9 @@ class Game(object):
         ans = []
         pieces = defaultdict(int)
         self.findResourceCombos(player_resources, pieces, ans)
+
+        catan_log.log("Found pieces purchasable for " + player.name)
+
         return ans
 
     #Simple test
@@ -278,71 +295,6 @@ class Game(object):
         x = self.piecesPurchasable(player)
         print(len(x))
         
-
-    
-
-
-    # #Check if player can buy a particular piece
-    # def canBuyPiece(self, player_num, piecetype):
-    #     resources_needed = defaultdict(str)
-    #     #Put values in resources needed based on the piece type
-    #     if piecetype == "Settlement":
-    #         resources_needed['Brick'] = 1
-    #         resources_needed['Wood'] = 1
-    #         resources_needed['Wool'] = 1
-    #         resources_needed['Grain'] = 1
-    #     elif piecetype == "City":
-    #         resources_needed['Ore'] = 3
-    #         resources_needed['Grain'] = 2
-    #     elif piecetype == "Road":
-    #         resources_needed['Brick'] = 1
-    #         resources_needed['Wood'] = 1
-    
-    #     #Get resources the player has
-    #     cur_resources = self.players[player_num].resources
-
-    #     #Check if player has required resources
-    #     for key in resources_needed:
-    #         if cur_resources[key] < resources_needed[key]:
-    #             return False
-        
-    #     return True
-
-    # #Buy piece
-    # def buyPiece(self, player_num, piecetype):
-    #     if not self.canBuyPiece(player_num, piecetype): 
-    #         print("You don't have enough resources to buy this piece")
-    #         return
-    #     resources_needed = defaultdict(str)
-    #     #Put values in resources needed based on the piece type
-    #     if piecetype == "Settlement":
-    #         resources_needed['Brick'] = 1
-    #         resources_needed['Wood'] = 1
-    #         resources_needed['Wool'] = 1
-    #         resources_needed['Grain'] = 1
-    #     elif piecetype == "City":
-    #         resources_needed['Ore'] = 3
-    #         resources_needed['Grain'] = 2
-    #     elif piecetype == "Road":
-    #         resources_needed['Brick'] = 1
-    #         resources_needed['Wood'] = 1
-    
-    #     #Get resources the player has
-    #     cur_resources = self.players[player_num].resources
-
-    #     #Update players resources
-    #     for key in resources_needed:
-    #         cur_resources[key] -= resources_needed[key]
-
-    #     #Give piece to player
-    #     self.players[player_num].pieces[piecetype] += 1
-
-    ###Need better understanding of board architecture to implement these
-    # def canPlacePiece()
-    # def getAvailableLocations()        
-    # def placePiece():
-
-# Given a roll, what do we do?
     ################################################################
     ######################   Get Actions   ########################
     ################################################################
@@ -372,7 +324,7 @@ class Game(object):
     This section handles getting possible locations for different types of pieces and given a 
     certian player. 
     '''
-    
+
     #Get valid road locations
     def getRoadLocations(self, player):
         possible_locations = []
@@ -387,6 +339,11 @@ class Game(object):
             for neighbour in first_node.neighbours:
                 if not (first_node, neighbour) in game.roads:
                     possible_locations.append((first_node, neighbour))
+
+        for node in player.occupyingNodes:
+            for neighbour in node.neighbours:
+                if not (node, neighbour) in game.roads and not (neighbour, node) in game.roads:
+                    possible_locations.append((node, neighbour))
     
         return possible_locations
     
@@ -467,6 +424,8 @@ class Game(object):
                 cur_action[(piece, count)] = locations
             #Add this dict to the list of possible actions
             actions.append(cur_action)
+        
+        catan_log.log("Found possible actions for " + player.name)
 
         return actions
 
@@ -474,9 +433,6 @@ class Game(object):
 #############################################################################
 #####################   Handle Distributing Resources    ####################
 #############################################################################
-
-    '''This code is slightly less incomplete'''
-    #Can access board through self, so really just need roll
     """
     This code is slightly less incomplete
     """
@@ -499,6 +455,7 @@ class Game(object):
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
                     
+        catan_log.log("Distributed resources to players")
 
         # #Loop over all tiles in game
         # for i in range(19):
@@ -516,7 +473,6 @@ class Game(object):
         #                 piece.player.numResources[tile] += 2
                         
 
-
 #############################################################################
 ###################################   End    ################################
 #############################################################################
@@ -524,4 +480,3 @@ class Game(object):
 
 #Random test code
 game = Game(None,None,None)
-game.testPiecesPurchasable()

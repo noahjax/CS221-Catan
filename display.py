@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import*
-import numpy as np
+# import numpy as np
 import board as bd 
 
 class Display:
