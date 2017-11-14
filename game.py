@@ -349,7 +349,7 @@ class Game(object):
     
     '''Missing test for settlement being at end of road'''
     #Helper to test if node is valid for a settlment. 
-    def isValidSettlement(self, node, player):
+    def isValidSettlement(self, node, firstTurn):
         # If node is occupied we can't place anything there
         if node.isOccupied:
             return False
@@ -361,6 +361,7 @@ class Game(object):
 
         # Check if the node is currently on a players road
         '''
+        if not firstTurn:
         for (node_one, node_two) in player.roads:
             if node_one == node or node_two == node:
                 return True
@@ -368,7 +369,7 @@ class Game(object):
         return True
 
         # If we get here we can not use the given node
-        return False
+        # return False
 
     #Get all possible locations to place a settlement
     def getSettlementLocations(self, player, firstTurn=False):
@@ -377,10 +378,7 @@ class Game(object):
         #Loop over all nodes, check if is empty and neighbors are appropriate
         for li in self.board.nodes.values():
             for node in li:
-                if firstTurn:
-                    if not node.isOccupied:
-                        possible_locations.append(node)
-                elif self.isValidSettlement(node, player):
+               if self.isValidSettlement(node, player, firstTurn):
                     possible_locations.append(node)
 
         return possible_locations
