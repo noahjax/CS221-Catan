@@ -90,6 +90,8 @@ class Play:
         """
         self.display.update() # Show the display in its initialized state
 
+        self.firstTwoTurns()
+
         # self.firstTwoTurns()
         while True:
             # game.currMaxScore is not implemented
@@ -112,18 +114,33 @@ class Play:
     
     #Handle placements during the first 2 turns
     def initial_placements(self, player):
-        #Get possible locations and place at a location
+        #Get all possible options (should be same for human or AI)
         possible_settlements = self.game.getSettlementLocations(player, True)
-        settlementLoc = player.place_settlement(possible_settlements, True)
 
-        #Get road locations and place (road locations must be adjacent to respective settlement)
-        possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
-        player.place_road(possible_roads)
+        if player.isAI:
+            #Get possible locations and place at a location
+            settlementLoc = player.pick_settlement_position(possible_settlements)
+            player.place_settlement(settlementLoc, True)
+
+            # #Get road locations and place (road locations must be adjacent to respective settlement)
+            possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
+            roadLoc = player.pick_road_position(possible_roads)
+            player.place_road(roadLoc)
+        else:
+            #Find where the human wants to place the settlement
+            settlementLoc = self.getCitySettlementLoc(possible_settlements)
+            player.place_settlement(settlementLoc, self.game, True)
+
+            #Find where human wants to place road
+            possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
+            roadLoc = self.getRoadLoc(possible_roads)
+            player.place_road(roadLoc, self.game, True)
     
     # Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
         #Snake forwards through players
         for i in range(4):
+            print "snake:", i
             self.initial_placements(self.players[i])
 
         #Snake backwards through players
@@ -176,10 +193,19 @@ class Play:
 
     def getRoadLoc(self, possiblePlacement):
         # For the human player to select the location of a road they want to build 
+        print("Click on the nodes you would like to build a road on")
         while True:
-            node1 = self.display.getNode()
-            node2 = self.display.getNode()
+            #Convert from node coordinates used in display to Node objects
+            r,c = self.display.getNode()
+            node1 = self.board.getNodeFromCoords(r,c)
+            r, c = self.display.getNode()
+            node2 = self.board.getNodeFromCoords(r,c)
+            # node1 = self.display.getNode()
+            # node2 = self.display.getNode()
+            print(possiblePlacement)
+            print(node1,node2)
             if (node1, node2) in possiblePlacement or (node2, node1) in possiblePlacement:
+                print "Leaving get Road Loc"
                 return node1, node2 
             print('nodes ' + str(node1) + ' ' + str(node2) + ' are not valid')
             try_again = raw_input("Please type \'t\' to try again or enter to exit")
@@ -285,7 +311,6 @@ class Play:
                         break
             elif option == '':
                 return
-
 
 
 
