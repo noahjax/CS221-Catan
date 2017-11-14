@@ -106,6 +106,8 @@ class Play:
                 #    self.run_human_turn(curr_player)
                 #else:
                 #    self.run_AI_turn(curr_player)
+                if curr_player.score > game.currMaxScore:
+                    game.currMaxScore = curr_player.score
                 self.turnNum += 1
     
     #Handle placements during the first 2 turns
@@ -152,13 +154,14 @@ class Play:
                 curr_player.pickDevCard(key, val)
 
     def printResources(self, currPlayer):
-        print('You have the following resources: \n')
+        print('You have the following resources: ')
         for resource in currPlayer.resources:
-            print(resource + ": " + str(currPlayer.resources[resource]) + "\n")
+            print(resource + ": " + str(currPlayer.resources[resource]))
 
     def printDevCards(self, currPlayer):
+        print('You have the following development cards: ')
         for devCard in currPlayer.devCards:
-            print (devCard.type + ": " + str(currPlayer.devCards[devCard]) + "\n")
+            print (devCard.type + ": " + str(currPlayer.devCards[devCard]))
 
     def getCitySettlementLoc(self, possiblePlacement):
         print("Please click on the node where you would like to build")
