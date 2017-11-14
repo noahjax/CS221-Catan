@@ -24,10 +24,27 @@ class Board:
         return self.nodes[r][c]
 
     def getNeighborNodes(self, r, c):
-        if c % 2 == 0:
-            neighbors = [(r, c - 1), (r, c + 1), (r + 1, c + 1)]
+        if r < 2:
+            if c % 2 == 0:
+                neighbors = [(r, c - 1), (r, c + 1), (r + 1, c + 1)]
+            else:
+                neighbors = [(r - 1, c - 1), (r, c - 1), (r, c + 1)] 
+        elif r == 2:
+            if c % 2 == 0:
+                neighbors = [(r, c - 1), (r, c + 1), (r + 1, c)]
+            else:
+                neighbors = [(r, c - 1), (r, c + 1), (r - 1, c - 1)] 
+        elif r == 3:
+            if c % 2 == 0:
+                neighbors = [(r, c - 1), (r, c + 1), (r - 1, c)]
+            else:
+                neighbors = [(r, c + 1), (r, c - 1), (r + 1, c - 1)] 
         else:
-            neighbors = [(r - 1, c - 1), (r, c - 1), (r, c + 1)] 
+            if c % 2 == 0:
+                neighbors = [(r, c - 1), (r, c + 1), (r - 1, c + 1)]
+            else:
+                neighbors = [(r - 1, c - 1), (r, c - 1), (r, c + 1)] 
+            
         inBoundsNeighbors = []
         for n in neighbors:
             if self.inBounds(n):
