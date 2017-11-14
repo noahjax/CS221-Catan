@@ -106,6 +106,8 @@ class Play:
                 #    self.run_human_turn(curr_player)
                 #else:
                 #    self.run_AI_turn(curr_player)
+                if curr_player.score > game.currMaxScore:
+                    game.currMaxScore = curr_player.score
                 self.turnNum += 1
     
     #Handle placements during the first 2 turns
@@ -166,13 +168,14 @@ class Play:
                 curr_player.pickDevCard(key, val)
 
     def printResources(self, currPlayer):
-        print('You have the following resources: \n')
+        print('You have the following resources: ')
         for resource in currPlayer.resources:
-            print(resource + ": " + currPlayer.resources[resource] + "\n")
+            print(resource + ": " + str(currPlayer.resources[resource]))
 
     def printDevCards(self, currPlayer):
+        print('You have the following development cards: ')
         for devCard in currPlayer.devCards:
-            print (devCard.type + ": " + currPlayer.devCards[devCard] + "\n")
+            print (devCard.type + ": " + str(currPlayer.devCards[devCard]))
 
     def getCitySettlementLoc(self, possiblePlacement):
         print("Please click on the node where you would like to build")
@@ -199,105 +202,10 @@ class Play:
         return False
 
     def get_and_play_devcard(self, type, currPlayer):
+        print ("You have the following development cards: ")
         if type in currPlayer.devCards:
             card = currPlayer.devCards[type].pop(0)
             card.play()
-
-    '''
-    Interacts with the command line and the graphical display to determine what move the human
-    '''
-    def getHumanMove(self, curr_player):
-        option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
-        if option == 'b':
-            while True:
-                buyType = raw_input(
-                    'type (s, c, r, d) to buy something, or hit enter to return: ')
-
-                if buyType == 's':
-                    if self.game.canBuySettlement(curr_player.resources):
-                        possiblePlacement = self.game.getSettlementLocations(
-                            curr_player, False)  # array of possible nodes
-                        if len(possiblePlacement) == 0:
-                            print(
-                                "Sorry there are no open settlement locations")
-                            continue
-
-                        ###Here is where I want to move code to player
-                        node = self.getCitySettlementLoc(possiblePlacement)
-                        if not node:
-                            continue
-                        curr_player.place_settlement_human(
-                            node, self.game, False)
-                        self.display.placeSettlement(node)
-                        print(curr_player.score)
-                        ################################################
-                    else:
-                        print(
-                            "Sorry you do not have the resources to buy a settlement")
-
-                elif buyType == 'c':
-                    if self.game.canBuyCity(curr_player.resources):
-                        possiblePlacement = self.game.getCityLocations(
-                            curr_player)
-                        if len(possiblePlacement) == 0:
-                            print("Sorry there are no valid city locations")
-                            continue
-                        node = self.getCitySettlementLoc(possiblePlacement)
-                        if not node:
-                            continue
-                        curr_player.place_city_human(node, self.game)
-                        self.display.placeCity(node)
-                        print(curr_player.score)
-
-                elif buyType == 'r':
-                    if self.game.canBuyRoad(curr_player.resources):
-                        possiblePlacements = self.game.getRoadLocations(
-                            curr_player)
-                        if len(possiblePlacements) == 0:
-                            print("Sorry there are no valid road locations")
-                            continue
-                        roadLoc = self.getRoadLoc(possiblePlacements)
-                        if not roadLoc:
-                            continue
-                        curr_player.place_road_human(roadLoc, False)
-                        self.display.placeRoad(roadLoc[0], roadLoc[1])
-
-                elif buyType == 'd':
-                    if self.game.canBuyDevCard(curr_player.resources):
-                        if len(game.devCards) > 0:
-                            curr_player.get_dev_card()
-                        else:
-                            print("Sorry there are no devcards left to buy")
-
-        elif option == 'p':
-            while True:
-                if len(curr_player.devCards) != 0:
-                    type = raw_input(
-                        "Type (k, v, r, m, yp) to choose what you want to play, or hit enter to return: ")
-                    if type == 'k':
-                        self.get_and_play_devcard('Knight', curr_player)
-                    elif type == 'v':
-                        self.get_and_play_devcard(
-                            'Victory Point', curr_player)
-                    elif type == 'r':
-                        self.get_and_play_devcard(
-                            'Road Building', curr_player)
-                    elif type == 'm':
-                        self.get_and_play_devcard('Monopoly', curr_player)
-                    elif type == 'yp':
-                        self.get_and_play_devcard(
-                            'Year of Plenty', curr_player)
-                    elif type == '':
-                        break
-                    else:
-                        print("Sorry this type is not specified")
-                else:
-                    print("You have no devcards left to play")
-                    break
-        elif option == '':
-            return False
-    
-        return True
 
     def run_human_turn(self, curr_player):
         """
@@ -305,13 +213,94 @@ class Play:
         have a graphical interface
         """
         # Options are to buy something or end turn
-        print('It is ' + curr_player.name + '\s turn \n')
+        print('It is ' + curr_player.name + '\'s turn \n')
 
         self.printResources(curr_player)
+
         self.printDevCards(curr_player)
         while True:
-            if not self.getHumanMove(curr_player):
-                break
+            option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
+            if option == 'b':
+                while True:
+                    buyType = raw_input('type (s, c, r, d) to buy something, or hit enter to return: ')
+
+                    if buyType == 's':
+                        if self.game.canBuySettlement(curr_player.resources):
+                            possiblePlacement = self.game.getSettlementLocations(curr_player, False) # array of possible nodes
+                            if len(possiblePlacement) == 0:
+                                print("Sorry there are no open settlement locations")
+                                continue
+                            node = self.getCitySettlementLoc(possiblePlacement)
+                            if not node: continue
+                            curr_player.place_settlement_human(node, self.game, False)
+                            self.display.placeSettlement(node)
+                            print(curr_player.score)
+                        else:
+                            print("Sorry you do not have the resources to buy a Settlement")
+
+                    elif buyType == 'c':
+                        if self.game.canBuyCity(curr_player.resources):
+                            possiblePlacement = self.game.getCityLocations(curr_player)
+                            if len(possiblePlacement) == 0:
+                                print("Sorry there are no valid city locations")
+                                continue
+                            node = self.getCitySettlementLoc(possiblePlacement)
+                            if not node: continue
+                            curr_player.place_city_human(node, self.game)
+                            self.display.placeCity(node)
+                            print(curr_player.score)
+                        else:
+                            print("Sorry you do not have the resources to buy a City")
+
+                    elif buyType == 'r':
+                        if self.game.canBuyRoad(curr_player.resources):
+                            possiblePlacements = self.game.getRoadLocations(curr_player)
+                            if len(possiblePlacements) == 0:
+                                print("Sorry there are no valid road locations")
+                                continue
+                            roadLoc = self.getRoadLoc(possiblePlacements)
+                            if not roadLoc: continue
+                            curr_player.place_road_human(roadLoc, False)
+                            self.display.placeRoad(roadLoc[0], roadLoc[1])
+                        else:
+                            print("Sorry you do not have the resources to buy a Road")
+
+                    elif buyType == 'd':
+                        if self.game.canBuyDevCard(curr_player.resources):
+                            if len(game.devCards) > 0:
+                                curr_player.get_dev_card()
+                            else:
+                                print("Sorry there are no devcards left to buy")
+                        else:
+                            print("Sorry you do not have the resources to buy a dev card")
+                    elif buyType == "":
+                        break
+
+            elif option == 'p':
+                while True:
+                    if len(curr_player.devCards) != 0:
+                        type = raw_input("Type (k, v, r, m, yp) to choose what you want to play, or hit enter to return: ")
+                        if type == 'k':
+                            self.get_and_play_devcard('Knight', curr_player)
+                        elif type == 'v':
+                            self.get_and_play_devcard('Victory Point', curr_player)
+                        elif type == 'r':
+                            self.get_and_play_devcard('Road Building', curr_player)
+                        elif type == 'm':
+                            self.get_and_play_devcard('Monopoly', curr_player)
+                        elif type == 'yp':
+                            self.get_and_play_devcard('Year of Plenty', curr_player)
+                        elif type == '':
+                            break
+                        else:
+                            print("Sorry this type is not specified")
+                    else:
+                        print("You have no devcards left to play")
+                        break
+            elif option == '':
+                return
+
+
 
         # print('run human turn')
         # # curPlayerPossMoves = self.game.getPossibleActions(curr_player)
