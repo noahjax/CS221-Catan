@@ -61,7 +61,7 @@ class Play:
         # Initialize the players
         self.players = []
         names = []
-        colors = ["blue", "red", "green", "yellow"]
+        colors = ["blue", "red", "green", "orange"]
 
         # Will need to comment out if we use AI
         for i in range(self.num_players):
@@ -245,7 +245,7 @@ class Play:
                             node = self.getCitySettlementLoc(possiblePlacement)
                             if not node: continue
                             curr_player.place_settlement_human(node, self.game, False)
-                            self.display.placeSettlement(node)
+                            self.display.placeSettlement(node, curr_player)
                             print(curr_player.score)
                         else:
                             print("Sorry you do not have the resources to buy a Settlement")
@@ -259,7 +259,7 @@ class Play:
                             node = self.getCitySettlementLoc(possiblePlacement)
                             if not node: continue
                             curr_player.place_city_human(node, self.game)
-                            self.display.placeCity(node)
+                            self.display.placeCity(node, curr_player)
                             print(curr_player.score)
                         else:
                             print("Sorry you do not have the resources to buy a City")

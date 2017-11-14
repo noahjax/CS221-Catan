@@ -1,6 +1,6 @@
 from game import *
 from pieces import *
-
+import display
 
 """
 Determines how devcards are created in game play, this will create
@@ -33,7 +33,8 @@ class Knight:
         self.type = 'Knight'
 
     # Plays the Knight card given a new position for the Robber
-    def play(self, position):
+    def play(self):
+        position = display.getTile()
         game.set_robber_location(position)
         players_to_give_cards = set()
 
