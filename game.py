@@ -108,12 +108,12 @@ class Game(object):
 
     #Handle moving the robber
     def set_robber_location(self, location):
-        # TODO: update robber location in display
         currPosition = self.robber_location
         currPosition.has_robber = False
         self.robber_location = location
         location.has_robber = True
 
+        self.display.placeRobber(location)
         catan_log.log("Robber location moved to " + location)
 
 

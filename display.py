@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import*
-# import numpy as np
+import numpy as np
 import board as bd 
 
 class Display:
@@ -129,7 +129,6 @@ class Display:
         # Add the robber to tempBlits at the center of the specified tile
         tx, ty = self.tileCenters[tile]
         self.tempBlits['robber'] = (self.robber, (tx - int(self.robberWidth / 2), ty - int(self.robberHeight / 2)))
-
 
 
 
@@ -293,22 +292,29 @@ class Display:
         self.update()
 
 
-    def placeSettlement(self, node):
+    def placeSettlement(self, node, player):
         # Takes in a node object
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
-        self.permanentBlits.append((self.town, (x1, y1)))
+        self.permanentBlits.append((self.getDotForPlayer(player), (x1, y1)))
         self.update()
 
 
 
-
-    def placeCity(self, node):
+    def placeCity(self, node, player):
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
         self.permanentBlits.append((self.city, (x1, y1)))
         self.update()
 
-
-
+    def getTile(self):
+        # Returns the (tuple) tile ID of the nearest tile clicked
+        tileFound = False
+        while True:
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    mouseX, mouseY = event.pos
+                    tileIndex = np.argmin(np.linalg.norm(np.subtract(tc, (mouseX, mouseY))) for tc in self.tileCenters)
+                    return self.board.tileIds[tileIndex] 
+        return None
 
     def getNode(self):
         # Takes in an action and updates the display accordingly
@@ -321,11 +327,20 @@ class Display:
                     node = self.getNodeAtXY(mouseX, mouseY)
                 
                     if node != None:
-                        print('clicked node ' + str(node))
+                        print('Clicked node ' + str(node))
                         return node
         return None 
 
-
+    def getDotForPlayer(self, player):
+        # Get the dot corresponding to the player's color
+        if player.color == 'red':
+            return self.redDot
+        elif player.color == 'green':
+            return self.greenDot
+        elif player.color == 'blue':
+            return self.blueDot
+        else:
+            return self.orangeDot 
 
 
     # Load some different colored nodes for different player, nodes, etc
