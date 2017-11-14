@@ -1,6 +1,8 @@
 from collections import defaultdict
 from pieces import *
 from game import *
+import random
+import copy
 #import all the stuff
 
 '''
@@ -60,6 +62,7 @@ class Player:
         card = self.devCards[devCardString].pop(0)
         card.play()
 
+    #Places road in desired location, updates necessary data structures
     #roadLoc should be a pair of node objects
     def place_road(self, roadLoc, game, firstTurn=False):
         self.roads.append(roadLoc)
@@ -68,6 +71,7 @@ class Player:
             game.updateRoadResources(self.resources)
         # TODO: Check longest road logic
 
+    #Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
@@ -82,6 +86,7 @@ class Player:
         else:
             game.updateSettlementResources(self.resources)
 
+    #Places city in desired location, updates necessary data structures
     def place_city(self, node, game):
         prev_settlement = node.get_occupying_piece()
         self.cities_and_settlements.remove(prev_settlement)
@@ -90,183 +95,16 @@ class Player:
         self.cities_and_settlements.append(city_to_add)
         self.incrementScore(1)
         game.updateCityResources(self.resources)
-    
-    
 
-
-#############################################################################
-#############################   Human Player    #############################
-#############################################################################
-
-
-class HumanPlayer(Player):
-    """
-    Class for each player 
-
-    (Add more stuff)
-    """
-    def __init__(self, turn_num, name, color):
-        Player.__init__(self, turn_num, name, color)
-        self.isAI = False
-
-    '''
-    Shouldn't need much code here because human actions are much more limited than the AI,
-    which needs to know all possible actions and respond
-    '''
-    # def place_settlement_human(self, node, game, firstTurn):
-    #     settlement_to_add = Settlement(self, node)
-    #     node.set_occupying_piece(settlement_to_add)
-    #     self.cities_and_settlements.append(settlement_to_add)
-    #     self.occupyingNodes.append(node)
-    #     self.incrementScore(1)
-
-    #     if firstTurn:
-    #         for tile in node.touchingTiles:
-    #             self.resources[tile.resource] += 1
-    #             self.numResources += 1
-    #     else:
-    #         game.updateSettlementResources(self.resources)
-
-    # Allows a player to discard a resource
+    #Allows a player to discard a resource
     def discard_resource(self, resource):
         if resource in self.resources and self.resources[resource] > 0:
             self.resources[resource] -= 1
         else:
-            print("Sorry you do not have one of these to discard")
+            print("Sorry you do not have any of these to discard")
 
-    # Deals with a player having more than 7 cards when a seven is rolled
-    def over_seven(self):
-        while len(self.resources) > 7:
-            print("You have more than 7 resources, they are as follows: ")
-            for resource in self.resources:
-                print(resource + ": " + str(self.resources[resource]))
-            to_discard = raw_input("Please type (o, g, wl, b, wd) to discard this resource: ")
-            if to_discard == 'o':
-                self.discard_resource('Ore')
-            elif to_discard == 'g':
-                self.discard_resource('Grain')
-            elif to_discard == 'wl':
-                self.discard_resource('Wool')
-            elif to_discard == 'b':
-                self.discard_resource('Brick')
-            elif to_discard == 'wd':
-                self.discard_resource('Wood')
-
-    # This will be an AI decision eventually
-    def pick_position_settlement(self, positions):
-        return positions[0]
-
-    # def place_city_human(self, node, player, game):
-    #     prev_settlement = node.get_occupying_piece()
-    #     player.cities_and_settlements.remove(prev_settlement)
-    #     city_to_add = City(player, node)
-    #     node.set_occupying_piece(city_to_add)
-    #     player.cities_and_settlements.append(city_to_add)
-    #     self.incrementScore(1)
-    #     game.updateCityResources(player.resources)
-
-    # # This will be an AI decision eventually
-    # def pick_position_settlement(self, positions):
-    #     return positions[0]
-
-    # # This will be an AI decision eventually
-    # def pick_road_position(self, positions):
-    #     return positions[0]
-
-    
-                       
-    # def place_road_human(self, roadLoc, firstTurn):
-    #     self.roads.append(roadLoc)
-    #     game.roads.append(roadLoc)
-    #     if not firstTurn:
-    #         game.updateRoadResources(self.resources)
-    #     # TODO: Check longest road logic
-
-    #Not sure when we would use this
-    # def give_card(self):
-    #     # Need to define this as an AI choice
-    #     if len(self.resources) != 0:
-    #         return self.resources.pop(0)
-    #     return 0
-
-
-#############################################################################
-#############################   AI Player    ################################
-#############################################################################
-
-
-class AiPlayer(Player):
-    """
-    Class for AI Player
-
-    (Add more stuff)
-    """
-
-    def __init__(self, turn_num, name, color):
-        Player.__init__(self, turn_num, name, color)
-        self.isAI = True
-
-    '''
-    Start of actual logic
-    '''
-
-    #Handles picking a road and building it. Assumes possible road locations isn't empty
-    def pick_road_position(self, possible_locations):
-        return possible_locations[0]
-        #AI stuff
-        #return roadLoc
-   
-    def pick_settlement_position(self, possible_locations):
-        return possible_locations[0]
-        #AI stuff
-        #return settlementLoc
-
-    def pick_city_position(self, possible_locations):
-        return possible_locations[0]
-        #AI stuff
-        #return settlementLoc
-    
-    # This will figure out how to place a road
-    # We will need to check that player has the resources before calling this
-    def place_road_AI(self, numRoads, firstTurn):
-        for i in range(numRoads):
-            possible_road_locations = game.getRoadLocations(self)
-            position = self.pick_road_position(possible_road_locations)
-            self.roads.append(position)
-            game.roads.append(position)
-            # Add logic for longest road/path stuff
-            if not firstTurn:
-                game.updateRoadResources(self.resources)
-            self.updateLongestRoad(position)
-
-    def place_road_human(self, roadLoc, firstTurn):
-        self.roads.append(roadLoc)
-        game.roads.append(roadLoc)
-        if not firstTurn:
-            game.updateRoadResources(self.resources)
-        self.updateLongestRoad(roadLoc)
-    
-    def getName(self):
-        return self.name
-
-    def get_dev_card(self):
-        card = game.devCards.pop(0)
-        print "You got a " + card.type
-        if card in self.devCards:
-            self.devCards[card] += 1
-        else:
-            self.devCards[card] = 1
-
-    def playDevCard(self, devCardString):
-        card = self.devCards[devCardString].pop(0)
-        card.play()
-
-    def give_card(self):
-        # Need to define this as an AI choice
-        if len(self.resources) != 0:
-            return self.resources.pop(0)
-        return 0
-
+    #Should be called whenever a road is built. 
+    #Needs board?
     def updateLongestRoad(self):
         # Get the maximum two paths leading away from the starting point
         # return their sum
@@ -276,13 +114,13 @@ class AiPlayer(Player):
             roadNodes.append(road.location[1])
         roadNodes = list(set(roadNodes))
 
-        finLongestPaths = [] # Store the longest path length from each settlement
+        finLongestPaths = []  # Store the longest path length from each settlement
 
-        for startPoint in self.initialSettlementCoords: 
+        for startPoint in self.initialSettlementCoords:
             # Starting from each settlement, compute the 0-3 path lengths
             pathLens = []
-            
-            for neighbor in board.getNodeNeighbors(startPoint): 
+
+            for neighbor in board.getNodeNeighbors(startPoint):
                 if neighbor in roadNodes:
                     alreadySearched = [startPoint]
 
@@ -309,43 +147,115 @@ class AiPlayer(Player):
         assert len(finLongestPaths) == 2
         self.roadLength = max(finLongestPaths)
         print('new longest path has length = ' + str(self.roadLength))
-'''
-class AiPlayer(object):
+
+    
+    
+
+
+#############################################################################
+#############################   Human Player    #############################
+#############################################################################
+
+
+class HumanPlayer(Player):
     """
-    Class for each player
+    Class for each player 
 
     (Add more stuff)
     """
     def __init__(self, turn_num, name, color):
-        pass
+        Player.__init__(self, turn_num, name, color)
+        self.isAI = False
 
-    def place_settlement(self, positions, firstTurn):
-        # To define with the AI but for now just pick first available
-        # will eventually need to add logic for either it being AI or human click
-        node = self.pick_settlement_position(positions)
+    '''
+    Shouldn't need much code here because human actions are much more limited than the AI,
+    which needs to know all possible actions and respond
+    '''
+    # Deals with a player having more than 7 cards when a seven is rolled
+    def over_seven(self):
+        while len(self.resources) > 7:
+            print("You have more than 7 resources, they are as follows: ")
+            for resource in self.resources:
+                print(resource + ": " + str(self.resources[resource]))
+            to_discard = raw_input("Please type (o, g, wl, b, wd) to discard this resource: ")
+            if to_discard == 'o':
+                self.discard_resource('Ore')
+            elif to_discard == 'g':
+                self.discard_resource('Grain')
+            elif to_discard == 'wl':
+                self.discard_resource('Wool')
+            elif to_discard == 'b':
+                self.discard_resource('Brick')
+            elif to_discard == 'wd':
+                self.discard_resource('Wood')
 
-        settlement_to_add = Settlement(self, node)
-        node.set_occupying_piece(settlement_to_add)
-        self.cities_and_settlements.append(settlement_to_add)
-        self.occupyingNodes.append(node)
-        self.score += 1
+#############################################################################
+#############################   AI Player    ################################
+#############################################################################
 
-        #Storing these in dict to make it easy to figure out how many they have. {"item": count}
-        self.resources = defaultdict(int)
-        self.devCards = defaultdict(int)
-        self.roads = []
-        self.occupyingNodes = []
-        self.cities_and_settlements = []      #Don't necessarily need to keep track of pieces for each player, but could be useful
-        self.numKnights = 0
-        self.roadLength = 0
-        self.numResources = 0
-        self.isAi = False
-        
-        if firstTurn:
-            for tile in node.touchingTiles:
-                self.resources[tile.resource] += 1
-                self.numResources += 1
-        else:
-            game.updateSettlementResources(self.resources)
-        return node
-'''
+
+class AiPlayer(Player):
+    """
+    Class for AI Player
+
+    Ideally we can create multiple subclasses of this with different ways of picking
+    moves to test what features work better in different scenarios. This class operates
+    as a random AI, and subsequent classes will need much more sophisticated implementations
+    of pick_*_position and other methods using real features
+    """
+
+    def __init__(self, turn_num, name, color):
+        Player.__init__(self, turn_num, name, color)
+        self.isAI = True
+
+    '''
+    Picking positions mostly useful for pregame when possible moves are limited and it's 
+    easier to simply pick a random position. Full gameplay uses more extensive methods
+    defined later.
+        -Leave these as seperate functions because subclasses may want to use different 
+         implementations even though this class doesn't. 
+    '''
+    #Handles picking a road and building it. Assumes possible road locations isn't empty
+    def pick_road_position(self, possible_locations):
+        return random.choice(possible_locations)
+   
+    def pick_settlement_position(self, possible_locations):
+        return random.choice(possible_locations)
+
+    #Don't think we need this considering that this is probably for pregame
+    # def pick_city_position(self, possible_locations):
+    #     return possible_locations[0]
+    #     #AI stuff
+    #     #return settlementLoc
+
+    '''
+    Given a list of all possible moves, pick a move. This simple implementation picks 
+    a random move and returns it. 
+        -possible_moves in format [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
+        -Move should be in dict format {(Piece, count): loc, (Piece, count): loc}
+        -Not sure how we will update this with devCards 
+        -Probably need check to make sure that you don't try to place two pieces in the same
+         location
+    '''
+    def pickMove(self, possible_moves):
+        #Get a random move 
+        move = random.choice(possible_moves)
+
+        #Copy so we don't edit as we iterate, then choose a random location for each 
+        #piece we are placing with this move
+        choice = copy.copy(move)
+        for action, locations in move.items():
+            piece, count = action
+            random.shuffle(choice[action])
+            choice[action] = choice[action][:count]
+
+        return choice
+    
+    #Random AI should still be able to do this at some point, even if not yet
+    def give_card(self):
+        # Need to define this as an AI choice
+        if len(self.resources) != 0:
+            return self.resources.pop(0) #Can you do this to a dict
+        return 0
+
+    

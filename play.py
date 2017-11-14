@@ -87,7 +87,11 @@ class Play:
         
         # Initialize the display with the generated tiles
         self.display = Display(self.board, initRobberTile) 
-        
+
+#############################################################################
+#################################  Main  ####################################
+#############################################################################
+
     def main(self):
         """
         Main function that manages the majority of the game play.
@@ -95,28 +99,33 @@ class Play:
         self.display.update() # Show the display in its initialized state
 
         for player in self.players:
-            player.resources['Ore'] = 10
-            player.resources['Brick'] = 10
-            player.resources['Wood'] = 10
-            player.resources['Grain'] = 10
-            player.resources['Wool'] = 10
+            player.resources['Ore'] = 3
+            player.resources['Brick'] = 3
+            player.resources['Wood'] = 3
+            player.resources['Grain'] = 3
+            player.resources['Wool'] = 3
 
         # self.firstTwoTurns()
 
         while True:
             # game.currMaxScore is not implemented
-            if self.game.currMaxScore >= 10:
+            if self.game.currMaxScore >= 5:
                 self.endGame()
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
-                roll = 8
-                #while roll == 7:
-                #    roll = self.game.rollDice()
+                roll = 7
+                while roll == 7:
+                   roll = self.game.rollDice()
                 self.game.distributeResources(roll, curr_player)
                 
                 # Working on the display functionality, so only run human turns for now
-                self.run_human_turn(curr_player)
+                if curr_player.isAI:
+                    print "Running AI turn"
+                    self.run_AI_turn(curr_player)
+                else: 
+                    print "Why tho"
+                    self.run_human_turn(curr_player)
 
                 #if curr_player.isAi:
                 #    self.run_human_turn(curr_player)
@@ -125,12 +134,16 @@ class Play:
                 if curr_player.score > self.game.currMaxScore:
                     self.game.currMaxScore = curr_player.score
                 self.turnNum += 1
-    
+
+#############################################################################
+############################  Pregame Logic  ################################
+#############################################################################
+
     #Handle placements during the first 2 turns
     def initial_placements(self, player):
         #Get all possible options (should be same for human or AI)
         possible_settlements = self.game.getSettlementLocations(player, True)
-        print('ps = ' + str(possible_settlements))
+        print('possible settlements = ' + str(possible_settlements))
         if player.isAI:
             #Get possible locations and place at a location
             settlementLoc = player.pick_settlement_position(possible_settlements)
@@ -156,7 +169,7 @@ class Play:
             player.place_road(roadLoc, self.game, True)
             self.display.placeRoad(roadLoc[0], roadLoc[1], player)
     
-    # Defines logic for the first two turns where players select their settlements
+    #Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
         #Snake forwards through players
         for i in range(4):
@@ -170,26 +183,51 @@ class Play:
 
         catan_log.log("Ran pregame")
 
-    def run_AI_turn(self, curr_player):
-        """
-        This will take a given player and allow them to pick all of their options
-        regardless of whether they are an AI or not.
-        :param curr_player:
-        :return:
-        """
-        curr_player_poss_moves = self.game.getPossibleActions(curr_player)
+#############################################################################
+########################  Functions for AI turns  ###########################
+#############################################################################
+    """
+    This will take an AI player and allow them to pick among all possible moves for a give gamestate
+    """
+    def run_AI_turn(self, player):
+        
+        #Get all possible moves player can make and send to AI for decision making
+        possible_moves = self.game.getPossibleActions(player)
 
-        # Get all the moves that the player can play, with the positions for each piece
-        moves = curr_player_poss_moves[0]
-        positions = curr_player_poss_moves[1]
+        #Get move from AI player
+        move = player.pickMove(possible_moves)
 
-        # This is where the AI would come in to choose best move
-        chosenMove = curr_player.pickMove(moves)
-        for key, val in chosenMove:
-            if not key == 'dev card':
-                curr_player.pickPosition(key, val, positions)
-            else:
-                curr_player.pickDevCard(key, val)
+        #Act on move by placing pieces and updating graphics
+        for action, locs in move.items():
+            piece, count = action
+            #Might want to flip structure of for loop and if statements
+            for loc in locs:
+                if isinstance(piece, Settlement):
+                    player.place_settlement(loc, self.game)
+                    self.display.placeSettlement(loc, player)
+                elif isinstance(piece, City):
+                    player.place_city(loc, self.game)
+                    self.display.placeCity(loc, player)
+                else:
+                    player.place_road(loc, self.game)
+                    self.display.placeRoad(loc[0], loc[1], player)
+
+        
+        # # Get all the moves that the player can play and pass to AI to select a move
+        # moves = [[possible_move.keys()] for possible_moves in possible_moves]
+        # positions = possible_moves[1]
+
+        # # This is where the AI would come in to choose best move
+        # chosenMove = curr_player.pickMove(moves)
+        # for key, val in chosenMove:
+        #     if not key == 'dev card':
+        #         curr_player.pickPosition(key, val, positions)
+        #     else:
+        #         curr_player.pickDevCard(key, val)
+
+#############################################################################
+###########################   Random Utils   ################################
+#############################################################################
 
     def printResources(self, currPlayer):
         print('You have the following resources: ')
@@ -201,6 +239,17 @@ class Play:
         for devCard in currPlayer.devCards:
             print (devCard.type + ": " + str(currPlayer.devCards[devCard]))
 
+    def get_and_play_devcard(self, type, currPlayer):
+        print ("You have the following development cards: ")
+        if type in currPlayer.devCards:
+            card = currPlayer.devCards[type].pop(0)
+            card.play()
+
+#############################################################################
+######################   Functions for Human Turns   ########################
+#############################################################################
+
+    #Read node clicks to get settlement/city location
     def getCitySettlementLoc(self, possiblePlacement, firstTurn = False):
         print("Please click on the node where you would like to build")
         while True:
@@ -213,6 +262,7 @@ class Play:
                 if try_again != 't':
                     return False
 
+    #Read node clicks to get road location
     def getRoadLoc(self, possiblePlacement, firstTurn=False):
         # For the human player to select the location of a road they want to build 
         print("Click on the nodes you would like to build a road on")
@@ -234,17 +284,10 @@ class Play:
                     break
         return False
 
-    def get_and_play_devcard(self, type, currPlayer):
-        print ("You have the following development cards: ")
-        if type in currPlayer.devCards:
-            card = currPlayer.devCards[type].pop(0)
-            card.play()
-
+    '''
+    Runs a hunan turn taking user input from both the command line and the graphical interface.
+    '''
     def run_human_turn(self, curr_player):
-        """
-        This will run a humans turn, not yet implemented will deal with this when we
-        have a graphical interface
-        """
         # Options are to buy something or end turn
         print('It is ' + curr_player.name + '\'s turn \n')
 
