@@ -135,7 +135,7 @@ class Play:
 
             #Find where human wants to place road
             possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
-            roadLoc = self.getRoadLoc(possible_roads)
+            roadLoc = self.getRoadLoc(possible_roads, True)
             player.place_road(roadLoc, self.game, True)
     
     # Defines logic for the first two turns where players select their settlements
@@ -194,7 +194,7 @@ class Play:
             if try_again != 't':
                 return False
 
-    def getRoadLoc(self, possiblePlacement):
+    def getRoadLoc(self, possiblePlacement, firstTurn=False):
         # For the human player to select the location of a road they want to build 
         print("Click on the nodes you would like to build a road on")
         while True:
@@ -211,9 +211,10 @@ class Play:
                 print "Leaving get Road Loc"
                 return node1, node2 
             print('nodes ' + str(node1) + ' ' + str(node2) + ' are not valid')
-            try_again = raw_input("Please type \'t\' to try again or enter to exit")
-            if try_again != 't':
-                break
+            if not firstTurn:
+                try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
+                if try_again != 't':
+                    break
         return False
 
     def get_and_play_devcard(self, type, currPlayer):
