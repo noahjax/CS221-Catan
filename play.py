@@ -34,8 +34,8 @@ class Play:
         for i in range(1, 7, 2): self.tileIds.append((0, i))
         for i in range(1, 9, 2): self.tileIds.append((1, i))
         for i in range(1, 11, 2): self.tileIds.append((2, i))
-        for i in range(1, 9, 2): self.tileIds.append((3, i))
-        for i in range(1, 7, 2): self.tileIds.append((4, i))
+        for i in range(2, 9, 2): self.tileIds.append((3, i))
+        for i in range(2, 7, 2): self.tileIds.append((4, i))
         assert len(self.tileIds) == 19
        
 
@@ -299,8 +299,8 @@ class Play:
 
                     elif buyType == 'd':
                         if self.game.canBuyDevCard(curr_player.resources):
-                            if len(game.devCards) > 0:
-                                curr_player.get_dev_card()
+                            if len(self.game.devCards) > 0:
+                                curr_player.get_dev_card(self.game)
                             else:
                                 print("Sorry there are no devcards left to buy")
                         else:
@@ -356,14 +356,14 @@ class Play:
                 print (player.name + " has won the game!")
                 print(player.name + " has won the game!")
 
-    def main2(self):    
-        self.display.update() # Show the display in its initialized state
-        while True:
-            r, c = self.display.getNode()
-            node = self.board.nodes[r][c]
-            for tile in node.touchingTiles:
-                print(tile.value, tile.resource)
+    # def main2(self):
+    #     self.display.update() # Show the display in its initialized state
+    #     while True:
+    #         r, c = self.display.getNode()
+    #         node = self.board.nodes[r][c]
+    #         for tile in node.touchingTiles:
+    #             print(tile.value, tile.resource)
 
 
 play = Play()
-play.main2()
+play.main()

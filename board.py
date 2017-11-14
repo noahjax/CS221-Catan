@@ -30,9 +30,8 @@ class Board:
             br, bc = (tr + 1, tc + 1)
         elif tr == 2:
             br, bc = (tr + 1, tc)
-
         else:
-            br, bc = (tr + 1, tc - 2)
+            br, bc = (tr + 1, tc - 1)
 
         for i in range(-1, 2):
             node = self.nodes[tr][tc + i]
