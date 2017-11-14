@@ -48,9 +48,9 @@ class Player:
     def incrementScore(self, value):
         self.score += value
 
-    def get_dev_card(self):
-        card = game.devCards.pop(0)
-        print "You got a " + card.type
+    def get_dev_card(self, game):
+        card = game.devCards.pop()
+        print "You got a " + card
         if card in self.devCards:
             self.devCards[card] += 1
         else:
