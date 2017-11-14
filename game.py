@@ -108,12 +108,12 @@ class Game(object):
 
     #Handle moving the robber
     def set_robber_location(self, location):
-        # TODO: update robber location in display
         currPosition = self.robber_location
         currPosition.has_robber = False
         self.robber_location = location
         location.has_robber = True
 
+        self.display.placeRobber(location)
         catan_log.log("Robber location moved to " + location)
 
 
@@ -371,7 +371,7 @@ class Game(object):
         return False
 
     #Get all possible locations to place a settlement
-    def getSettlementLocations(self, player, firstTurn):
+    def getSettlementLocations(self, player, firstTurn=False):
         possible_locations = []
         
         #Loop over all nodes, check if is empty and neighbors are appropriate
