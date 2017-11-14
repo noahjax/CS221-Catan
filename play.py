@@ -73,7 +73,7 @@ class Play:
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
             else:
-                new_player = AiPlayer(i, "AI", colors[i])
+                new_player = AiPlayer(i, "AI"+str(i), colors[i])
             self.players.append(new_player)
         
         # # Add the current player to players array
@@ -105,7 +105,7 @@ class Play:
             player.resources['Grain'] = 3
             player.resources['Wool'] = 3
 
-        # self.firstTwoTurns()
+        self.firstTwoTurns()
 
         while True:
             # game.currMaxScore is not implemented
@@ -122,10 +122,14 @@ class Play:
                 # Working on the display functionality, so only run human turns for now
                 if curr_player.isAI:
                     print "Running AI turn"
+                    print curr_player
                     self.run_AI_turn(curr_player)
                 else: 
                     print "Why tho"
                     self.run_human_turn(curr_player)
+
+                print curr_player.resources
+                option = raw_input("Press a key to continue")
 
                 #if curr_player.isAi:
                 #    self.run_human_turn(curr_player)
@@ -147,13 +151,13 @@ class Play:
         if player.isAI:
             #Get possible locations and place at a location
             settlementLoc = player.pick_settlement_position(possible_settlements)
-            player.place_settlement(settlementLoc, True)
+            player.place_settlement(settlementLoc, self.game, True)
             self.display.placeSettlement(settlementLoc, player)
 
             # #Get road locations and place (road locations must be adjacent to respective settlement)
             possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
             roadLoc = player.pick_road_position(possible_roads)
-            player.place_road(roadLoc, self.game)
+            player.place_road(roadLoc, self.game, True)
             self.display.placeRoad(roadLoc[0], roadLoc[1], player)
         else:
             #Find where the human wants to place the settlement
@@ -196,19 +200,23 @@ class Play:
 
         #Get move from AI player
         move = player.pickMove(possible_moves)
-
+        if not move:
+            print player.name,  "No move selected"
+            return
+        
+        print "move:",move
         #Act on move by placing pieces and updating graphics
         for action, locs in move.items():
             piece, count = action
             #Might want to flip structure of for loop and if statements
             for loc in locs:
-                if isinstance(piece, Settlement):
+                if piece == 'Settlement':
                     player.place_settlement(loc, self.game)
                     self.display.placeSettlement(loc, player)
-                elif isinstance(piece, City):
+                elif piece == 'City':
                     player.place_city(loc, self.game)
                     self.display.placeCity(loc, player)
-                else:
+                elif piece == 'Road':
                     player.place_road(loc, self.game)
                     self.display.placeRoad(loc[0], loc[1], player)
 

@@ -344,7 +344,7 @@ class Game(object):
             for neighbour in node.neighbours:
                 if not (node, neighbour) in self.roads and not (neighbour, node) in self.roads:
                     possible_locations.append((node, neighbour))
-    
+
         return possible_locations
     
     '''Missing test for settlement being at end of road'''
@@ -405,12 +405,12 @@ class Game(object):
         #Get possible purchases
         possiblePurchases = self.piecesPurchasable(player)
 
-        actions = []
+        actions = [None]
         #Loop over each purchase and define the locations for each piece in the purchase
         for purchase in possiblePurchases:
             #Dict to store {(piece,count) : [locations]} pairs
             cur_action = {}
-            locations = None
+            locations = []
             #Get locations for each piece
             for piece, count in purchase.items():
                 if piece == 'City':
@@ -419,10 +419,12 @@ class Game(object):
                     locations = self.getRoadLocations(player)
                 elif piece == 'Settlement':
                     locations = self.getSettlementLocations(player)
-                #Add to dict
+                
+                #Add to dict if there are enough valid locations
+                if len(locations) < count: continue
                 cur_action[(piece, count)] = locations
             #Add this dict to the list of possible actions
-            actions.append(cur_action)
+            if cur_action: actions.append(cur_action)
         
         catan_log.log("Found possible actions for " + player.name)
 
@@ -437,7 +439,7 @@ class Game(object):
     """
     # Can access board through self, so really just need roll
     def distributeResources(self, roll, curr_player):
-        print('player = ' + str(self.players)) 
+        # print('players = ' + str(self.players)) 
         #Check if roll is 7
         if roll == 7:
             print("Please move the robber. No resources to distribute")

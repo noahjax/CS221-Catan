@@ -73,6 +73,7 @@ class Player:
 
     #Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
+        print "placing settlement"
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
         self.cities_and_settlements.append(settlement_to_add)
@@ -240,13 +241,16 @@ class AiPlayer(Player):
     def pickMove(self, possible_moves):
         #Get a random move 
         move = random.choice(possible_moves)
+        if not move: return move
 
         #Copy so we don't edit as we iterate, then choose a random location for each 
         #piece we are placing with this move
         choice = copy.copy(move)
+
         for action, locations in move.items():
             piece, count = action
             random.shuffle(choice[action])
+            choice[action] = choice[action]
             choice[action] = choice[action][:count]
 
         return choice
