@@ -154,11 +154,11 @@ class Play:
     def printResources(self, currPlayer):
         print('You have the following resources: \n')
         for resource in currPlayer.resources:
-            print(resource + ": " + currPlayer.resources[resource] + "\n")
+            print(resource + ": " + str(currPlayer.resources[resource]) + "\n")
 
     def printDevCards(self, currPlayer):
         for devCard in currPlayer.devCards:
-            print (devCard.type + ": " + currPlayer.devCards[devCard] + "\n")
+            print (devCard.type + ": " + str(currPlayer.devCards[devCard]) + "\n")
 
     def getCitySettlementLoc(self, possiblePlacement):
         print("Please click on the node where you would like to build")
@@ -255,7 +255,7 @@ class Play:
                                 print("Sorry there are no devcards left to buy")
                         else:
                             print("Sorry you do not have the resources to buy a dev card")
-                    else:
+                    elif buyType == "":
                         break
 
             elif option == 'p':
