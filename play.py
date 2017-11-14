@@ -108,24 +108,27 @@ class Play:
                 #    self.run_AI_turn(curr_player)
                 self.turnNum += 1
     
+    #Handle placements during the first 2 turns
+    def initial_placements(self, player):
+        #Get possible locations and place at a location
+        possible_settlements = self.game.getSettlementLocations(player, True)
+        settlementLoc = player.place_settlement(possible_settlements, True)
+
+        #Get road locations and place (road locations must be adjacent to respective settlement)
+        possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
+        player.place_road(possible_roads)
+    
     # Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
+        #Snake forwards through players
         for i in range(4):
-            self.initial_settlement_placements(i)
+            self.initial_placements(self.players[i])
 
-        for i in range(3, 0, -1):
-            self.initial_settlement_placements(i)
-        return True
+        #Snake backwards through players
+        for i in range(3, -1, -1):
+            self.initial_placements(self.players[i])
 
-    # This will place the initial settlement given the current player
-    def initial_settlement_placements(self, playerIndex):
-        player = self.players[playerIndex]
-        playerName = player.getName()
-        print("It is " + playerName + "\'s turn:")
-        possible_placement = self.game.getSettlementLocations(player, True)
-        # May want to decompose this into "get location" using AI and then place afterwards
-        player.place_settlement(possible_placement, player, True)
-        player.place_road(2, True)
+        catan_log.log("Ran pregame")
 
     def run_AI_turn(self, curr_player):
         """
