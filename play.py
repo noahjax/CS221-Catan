@@ -182,6 +182,7 @@ class Play:
         return False
 
     def get_and_play_devcard(self, type, currPlayer):
+        print ("You have the following development cards: ")
         if type in currPlayer.devCards:
             card = currPlayer.devCards[type].pop(0)
             card.play()
@@ -192,7 +193,7 @@ class Play:
         have a graphical interface
         """
         # Options are to buy something or end turn
-        print('It is ' + curr_player.name + '\s turn \n')
+        print('It is ' + curr_player.name + '\'s turn \n')
 
         self.printResources(curr_player)
         self.printDevCards(curr_player)
@@ -214,7 +215,7 @@ class Play:
                             self.display.placeSettlement(node)
                             print(curr_player.score)
                         else:
-                            print("Sorry you do not have the resources to buy a settlement")
+                            print("Sorry you do not have the resources to buy a Settlement")
 
                     elif buyType == 'c':
                         if self.game.canBuyCity(curr_player.resources):
@@ -227,6 +228,8 @@ class Play:
                             curr_player.place_city_human(node, self.game)
                             self.display.placeCity(node)
                             print(curr_player.score)
+                        else:
+                            print("Sorry you do not have the resources to buy a City")
 
                     elif buyType == 'r':
                         if self.game.canBuyRoad(curr_player.resources):
@@ -238,6 +241,8 @@ class Play:
                             if not roadLoc: continue
                             curr_player.place_road_human(roadLoc, False)
                             self.display.placeRoad(roadLoc[0], roadLoc[1])
+                        else:
+                            print("Sorry you do not have the resources to buy a Road")
 
                     elif buyType == 'd':
                         if self.game.canBuyDevCard(curr_player.resources):
@@ -245,6 +250,10 @@ class Play:
                                 curr_player.get_dev_card()
                             else:
                                 print("Sorry there are no devcards left to buy")
+                        else:
+                            print("Sorry you do not have the resources to buy a dev card")
+                    else:
+                        break
 
             elif option == 'p':
                 while True:
