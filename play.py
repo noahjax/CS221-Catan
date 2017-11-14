@@ -142,11 +142,12 @@ class Play:
     def firstTwoTurns(self):
         #Snake forwards through players
         for i in range(4):
-            print "snake:", i
+            print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
 
         #Snake backwards through players
         for i in range(3, -1, -1):
+            print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
 
         catan_log.log("Ran pregame")
