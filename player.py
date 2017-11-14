@@ -317,7 +317,7 @@ class AiPlayer(object):
     (Add more stuff)
     """
     def __init__(self, turn_num, name, color):
-
+        pass
 
     def place_settlement(self, positions, firstTurn):
         # To define with the AI but for now just pick first available
