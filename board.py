@@ -25,12 +25,23 @@ class Board:
 
     def setTouchingTiles(self, tile):
         # Takes a tile object
-        #tr, tc = tile.id
-        #if r < 2:
-        #    nr, nc = (tr + 1, tc + 1)
-        #elif r == 3:
-        #    nr, nc = (
-        pass
+        tr, tc = tile.id
+        if tr < 2:
+            br, bc = (tr + 1, tc + 1)
+        elif tr == 2:
+            br, bc = (tr + 1, tc)
+
+        else:
+            br, bc = (tr + 1, tc - 2)
+
+        for i in range(-1, 2):
+            node = self.nodes[tr][tc + i]
+            node.touchingTiles.append(tile)
+
+        for i in range(-1, 2):
+            node = self.nodes[br][bc + i]
+            node.touchingTiles.append(tile)
+
 
     def getNeighborNodes(self, r, c):
         if r < 2:
