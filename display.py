@@ -11,10 +11,14 @@ class Display:
     dot = None
     tile = None
     robber = None
-    
+    tlbrRoad = None
+    trblRoad = None
+    lrRoad = None
+
     dotWidth, dotHeight = (None, None) 
     tileWidth, tileHeight = (None, None)
     robberWidth, robberHeight = (None, None)
+    roadWidth, roadHeight = (None, None)
 
     # Store the location that the image for each node occupies
     # Each location is mapped to by a key equivalent to the coordinate of the node in the
@@ -59,21 +63,46 @@ class Display:
         self.font = pygame.font.SysFont('Comic Sans MS', 10)
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
-        self.dot = pygame.image.load('dot.png')
-        self.dot = pygame.transform.scale(self.dot, (int(self.screenWidth / 30), int(self.screenHeight / 30)))
         
+        # Load the node png
+        self.dot = pygame.image.load('dot.png')
+        self.dot = pygame.transform.scale(self.dot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+
+        # Load the city and town pngs
+        self.city = pygame.image.load('castle.png')
+        self.city = pygame.transform.scale(self.city, (self.screenWidth / 25, self.screenHeight / 25))
+
+        self.town = pygame.image.load('town.png')
+        self.town = pygame.transform.scale(self.town, (self.screenWidth / 25, self.screenHeight / 25))
+
+        # Load a hexagon to use as a tile
         self.tile = pygame.image.load('hex.png')
         self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
 
+        # Set some variables to reference later on
         self.tileWidth = self.tile.get_rect().size[0]
         self.tileHeight = self.tile.get_rect().size[1]
 
         self.dotWidth = self.dot.get_rect().size[0]
         self.dotHeight = self.dot.get_rect().size[1]
 
+
+        # Load the three different road orientations
+        self.tlbrRoad = pygame.image.load('tlbr.png')
+        self.tlbrRoad = pygame.transform.scale(self.tile, (self.tileWidth / 2, self.tileHeight / 2))
+        
+        self.trblRoad = pygame.image.load('trbl.png')
+        self.trblRoad = pygame.transform.scale(self.tile, (self.tileWidth / 2, self.tileHeight / 2))
+        
+        self.lrRoad = pygame.image.load('lr.png')
+        self.lrRoad = pygame.transform.scale(self.tile, (self.tileWidth / 2, self.tileHeight / 2))
         # This should happen before loading any temp blits, as tileCenters are initialized here
         self.loadPermanentBlits()
 
+        self.roadWidth = self.lrRoad.get_rect().size[0]
+        self.roadHeight = self.lrRoad.get_rect().size[1]
+
+        # Load the robber
         self.robber = pygame.image.load('robber.png')
         self.robber = pygame.transform.scale(self.robber, (int(self.tileWidth / 2), int(self.tileHeight / 2)))
         self.robberWidth = self.robber.get_rect().size[0]
@@ -81,10 +110,16 @@ class Display:
 
         self.placeRobber(robberTile) 
 
+
+
+
     def placeRobber(self, tile):
         # Add the robber to tempBlits at the center of the specified tile
         tx, ty = self.tileCenters[tile]
         self.tempBlits['robber'] = (self.robber, (tx - int(self.robberWidth / 2), ty - int(self.robberHeight / 2)))
+
+
+
 
     def getTextSurface(self, tile):
         # Returns a surface containing the resource, value string of the given tile
@@ -93,6 +128,8 @@ class Display:
         # Scale according to the size of the tiles
         textSurface = pygame.transform.scale(textSurface, (int(self.tileWidth * 4 / 5), int(self.tileWidth / 4)))
         return textSurface
+
+
 
 
     def loadPermanentBlits(self):    
@@ -175,6 +212,9 @@ class Display:
        
         print('done in init')
 
+
+
+
     def getNodeAtXY(self, x, y):
         # If a node is at the coordinates x, y, return the coordinates of the node in the game logic
         # Return None if no node is at the specified coords
@@ -182,25 +222,10 @@ class Display:
             if minmaxTuple[0] <= x <= minmaxTuple[2] and minmaxTuple[1] <= y <= minmaxTuple[3]:
                 return coords
         return None
-    
-    '''
-    def handleClick(self, event, playerCommand):
-        if event.button == 1:
-            if playerCommand == 'gn':
-                mouseX, mouseY = event.pos
-                node = self.getNodeAtXY(mouseX, mouseY)
-                
-                if node != None:
-                    print('clicked node ' + str(node))
-                    #TODO: what do we want to do once we have the node?
 
-                else:
-                    raise Exception('No node clicked. Unspecified behaviour')
-            elif playerCommand == 'mr':
-                # Get the nearest tile to the clicked point, and send the robber there
-                destTile = np.argmin([np.linalg.norm(np.subtract(event.pos, tc)) for tc in self.tileCenters])
-                self.placeRobber(destTile)
-    '''  
+
+
+
     def blitAll(self):
         # Blit all available objects to the screen
         # Currently blits all objects in 
@@ -209,11 +234,17 @@ class Display:
         for blit in (self.permanentBlits + list(self.tempBlits.values())):
             self.screen.blit(blit[0], blit[1])
 
+
+
+
     def getUserAction(self):
         # Put some kinds of possible commands in here at the moment
         # I'm guessing that this kind of thing will be moved elsewhere long-term 
         print('Possible commands:\ngetNode (gn) moveRobber (mr)')
         return raw_input('')
+
+
+
 
     def update(self):
         # Update the display
@@ -222,25 +253,51 @@ class Display:
         self.blitAll()
         pygame.display.flip()
 
+
+
+
     def placeRoad(self, node1, node2):
         # Place something to mark the node here
         # Assumes that the nodes passed in are valid locations
-        x11, y11, x12, y12 = self.nodeLocs[node1]
-        x21, y21, x22, y22 = self.nodeLocs[node1]
+        print('Placing road')
+        x11, y11, x12, y12 = self.nodeLocs[(node1.row, node1.col)]
+        x21, y21, x22, y22 = self.nodeLocs[(node2.row, node2.col)]
+        
+        startNodeCenter = ((x11 + x12) / 2, (y11 + y12) / 2)
 
-        pass
+        roadToBlit = None
+        locToBlit = (startNodeCenter[0], startNodeCenter[1] - self.roadWidth / 2)
+        # Determine which road we should use
+        if node1.col == node2.col and node1.row != node2.row:
+            ### | ###
+            roadToBlit = self.lrRoad
+        elif node1.col < node2.col:
+            if y11 < y21:
+                ### / ###
+                roadToBlit = self.tlbrRoad
+            elif y11 > y21:
+                ### \ ###
+                roadToBlit = self.trblRoad
+        assert roadToBlit is not None
+        self.permanentBlits.append((roadToBlit, locToBlit))
+        self.update()
 
     def placeSettlement(self, node):
-        # x1, y1, x2, y2 = self.nodeLocs[node]
-        # self.update()
-        # raise Exception('Not yet implemented')
-        pass
+        # Takes in a node object
+        x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
+        self.permanentBlits.append((self.town, (x1, y1)))
+        self.update()
+
+
+
 
     def placeCity(self, node):
         x1, y1, x2, y2 = self.nodeLocs[node]
+        self.permanentBlits.append((self.city, (x1, y1)))
         self.update()
-        # raise Exception('Not yet implemented')
-        pass
+
+
+
 
     def getNode(self):
         # Takes in an action and updates the display accordingly
@@ -257,26 +314,11 @@ class Display:
                         return node
         return None 
 
+
+
+
+
+
     # Load some different colored nodes for different player, nodes, etc
     # Four default colors
 
-    
-    # Know they can buy that, have all possible positions
-    # Once we get possible positions, wait for click, highlight possible positions and wait for one of them to be clicked
-    '''
-    def execute(self, action):
-        # Takes in an action and updates the display accordingly
-        actionExecuted = False
-        while True:
-            # Wait until the user clicks something
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    exit(0)
-                elif event.type == MOUSEBUTTONDOWN:
-                    # Something to return the node clicked
-                    self.handleClick(event, action)
-                    actionExecuted = True
-            self.update()
-            if actionExecuted:
-                break
-    '''

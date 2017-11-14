@@ -199,6 +199,7 @@ class Play:
         print('It is ' + curr_player.name + '\'s turn \n')
 
         self.printResources(curr_player)
+
         self.printDevCards(curr_player)
         while True:
             option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
