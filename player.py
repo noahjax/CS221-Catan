@@ -281,7 +281,7 @@ class AiPlayer(Player):
         assert len(finLongestPaths) == 2
         self.roadLength = max(finLongestPaths)
         print('new longest path has length = ' + str(self.roadLength))
-
+'''
 class AiPlayer(object):
     """
     Class for each player
@@ -289,7 +289,7 @@ class AiPlayer(object):
     (Add more stuff)
     """
     def __init__(self, turn_num, name, color):
-
+        pass
 
     def place_settlement(self, positions, firstTurn):
         # To define with the AI but for now just pick first available
@@ -320,3 +320,4 @@ class AiPlayer(object):
         else:
             game.updateSettlementResources(self.resources)
         return node
+'''

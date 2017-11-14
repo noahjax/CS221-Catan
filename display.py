@@ -9,11 +9,10 @@ class Display:
     screenWidth, screenHeight = (640, 480)
 
     redDot, blueDot, greenDot, orangeDot, blackDot = (None, None, None, None, None)
+    redRoad, blueRoad, greenRoad, orangeRoad, blackRoad = (None, None, None, None, None)
+    
     tile = None
     robber = None
-    tlbrRoad = None
-    trblRoad = None
-    lrRoad = None
 
     dotWidth, dotHeight = (None, None) 
     tileWidth, tileHeight = (None, None)
@@ -91,6 +90,19 @@ class Display:
         self.tile = pygame.image.load('hex.png')
         self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
 
+        # Load triangles to use as roads
+        self.redRoad = pygame.image.load('red_triangle.png')
+        self.redRoad = pygame.transform.scale(self.redRoad, (self.screenWidth / 25, self.screenHeight / 25))
+        
+        self.blueRoad = pygame.image.load('blue_triangle.png')
+        self.blueRoad = pygame.transform.scale(self.blueRoad, (self.screenWidth / 25, self.screenHeight / 25))
+
+        self.greenRoad = pygame.image.load('green_triangle.png')
+        self.greenRoad = pygame.transform.scale(self.greenRoad, (self.screenWidth / 25, self.screenHeight / 25))
+        
+        self.orangeRoad = pygame.image.load('orange_triangle.png')
+        self.orangeRoad = pygame.transform.scale(self.orangeRoad, (self.screenWidth / 25, self.screenHeight / 25))
+        
         # Set some variables to reference later on
         self.tileWidth = self.tile.get_rect().size[0]
         self.tileHeight = self.tile.get_rect().size[1]
@@ -98,21 +110,11 @@ class Display:
         self.dotWidth = self.redDot.get_rect().size[0]
         self.dotHeight = self.redDot.get_rect().size[1]
 
+        self.roadWidth = self.redRoad.get_rect().size[0]
+        self.roadHeight = self.redRoad.get_rect().size[1]
 
-        # Load the three different road orientations
-        self.tlbrRoad = pygame.image.load('tlbr.png')
-        self.tlbrRoad = pygame.transform.scale(self.tile, (self.tileWidth / 2, self.tileHeight / 2))
-        
-        self.trblRoad = pygame.image.load('trbl.png')
-        self.trblRoad = pygame.transform.scale(self.tile, (self.tileWidth / 2, self.tileHeight / 2))
-        
-        self.lrRoad = pygame.image.load('lr.png')
-        self.lrRoad = pygame.transform.scale(self.tile, (self.tileWidth / 2, self.tileHeight / 2))
         # This should happen before loading any temp blits, as tileCenters are initialized here
         self.loadPermanentBlits()
-
-        self.roadWidth = self.lrRoad.get_rect().size[0]
-        self.roadHeight = self.lrRoad.get_rect().size[1]
 
         # Load the robber
         self.robber = pygame.image.load('robber.png')
@@ -121,7 +123,6 @@ class Display:
         self.robberHeight = self.robber.get_rect().size[1]
 
         self.placeRobber(robberTile) 
-
 
 
 
@@ -263,37 +264,31 @@ class Display:
         pygame.display.flip()
 
 
-    def placeRoad(self, node1, node2):
+    def placeRoad(self, node1, node2, curPlayer):
         # Place something to mark the node here
         # Assumes that the nodes passed in are valid locations
         # x <=> screen width
         # y <=> screen height
-        print('Placing road')
         x11, y11, x12, y12 = self.nodeLocs[(node1.row, node1.col)]
         x21, y21, x22, y22 = self.nodeLocs[(node2.row, node2.col)]
         
-        startNodeCenter = ((x11 + x12) / 2, (y11 + y12) / 2)
-
         roadToBlit = None
-        locToBlit = (startNodeCenter[0], startNodeCenter[1] - self.roadWidth / 2)
-        # Determine which road we should use
-        if node1.col == node2.col and node1.row != node2.row:
-            ### | ###
-            roadToBlit = self.lrRoad
-        elif node1.col < node2.col:
-            if y11 < y21:
-                ### / ###
-                roadToBlit = self.tlbrRoad
-            elif y11 > y21:
-                ### \ ###
-                roadToBlit = self.trblRoad
-        assert roadToBlit is not None
+        locToBlit = ((x11 + x21) / 2, (y11 + y21) / 2) 
+        if curPlayer.color == 'red':
+            roadToBlit = self.redRoad
+        elif curPlayer.color == 'orange':
+            roadToBlit = self.orangeRoad
+        elif curPlayer.color == 'green':
+            roadToBlit = self.greenRoad
+        else:
+            roadToBlit = self.blueRoad
         self.permanentBlits.append((roadToBlit, locToBlit))
         self.update()
 
 
     def placeSettlement(self, node, player):
         # Takes in a node object
+        print('placing settlement')
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
         self.permanentBlits.append((self.getDotForPlayer(player), (x1, y1)))
         self.update()

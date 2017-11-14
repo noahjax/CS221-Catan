@@ -121,20 +121,24 @@ class Play:
             #Get possible locations and place at a location
             settlementLoc = player.pick_settlement_position(possible_settlements)
             player.place_settlement(settlementLoc, True)
+            self.display.placeSettlement(settlementLoc, player)
 
             # #Get road locations and place (road locations must be adjacent to respective settlement)
             possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
             roadLoc = player.pick_road_position(possible_roads)
             player.place_road(roadLoc)
+            self.display.placeRoad(roadLoc[0], roadLoc[1], player)
         else:
             #Find where the human wants to place the settlement
             settlementLoc = self.getCitySettlementLoc(possible_settlements)
             player.place_settlement(settlementLoc, self.game, True)
+            self.display.placeSettlement(settlementLoc, player)
 
             #Find where human wants to place road
             possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
             roadLoc = self.getRoadLoc(possible_roads)
             player.place_road(roadLoc, self.game, True)
+            self.display.placeRoad(roadLoc[0], roadLoc[1], player)
     
     # Defines logic for the first two turns where players select their settlements
     def firstTwoTurns(self):
@@ -273,7 +277,7 @@ class Play:
                             roadLoc = self.getRoadLoc(possiblePlacements)
                             if not roadLoc: continue
                             curr_player.place_road_human(roadLoc, False)
-                            self.display.placeRoad(roadLoc[0], roadLoc[1])
+                            self.display.placeRoad(roadLoc[0], roadLoc[1], curr_player)
                         else:
                             print("Sorry you do not have the resources to buy a Road")
 
