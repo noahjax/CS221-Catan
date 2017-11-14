@@ -90,6 +90,13 @@ class Play:
         """
         self.display.update() # Show the display in its initialized state
 
+        for player in self.players:
+            player.resources['Ore'] = 10
+            player.resources['Brick'] = 10
+            player.resources['Wood'] = 10
+            player.resources['Grain'] = 10
+            player.resources['Wool'] = 10
+
         self.firstTwoTurns()
 
         # self.firstTwoTurns()
@@ -100,7 +107,9 @@ class Play:
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
-                roll = self.game.rollDice()
+                roll = 7
+                while roll == 7:
+                    roll = self.game.rollDice()
                 game.distributeResources(roll, curr_player)
                 
                 # Working on the display functionality, so only run human turns for now
@@ -132,9 +141,9 @@ class Play:
             self.display.placeRoad(roadLoc[0], roadLoc[1], player)
         else:
             #Find where the human wants to place the settlement
-            settlementLoc = self.getCitySettlementLoc(possible_settlements)
-            for s in settlementLoc.neighbours:
-                print(s.row, s.col)
+            settlementLoc = self.getCitySettlementLoc(possible_settlements, True)
+            for neighbour in settlementLoc.neighbours:
+                print neighbour.row, neighbour.col
             player.place_settlement(settlementLoc, self.game, True)
             self.display.placeSettlement(settlementLoc, player)
 
@@ -189,16 +198,17 @@ class Play:
         for devCard in currPlayer.devCards:
             print (devCard.type + ": " + str(currPlayer.devCards[devCard]))
 
-    def getCitySettlementLoc(self, possiblePlacement):
+    def getCitySettlementLoc(self, possiblePlacement, firstTurn = False):
         print("Please click on the node where you would like to build")
         while True:
             nc = self.display.getNode()
             if self.board.nodes[nc[0]][nc[1]] in possiblePlacement:
                 return self.board.nodes[nc[0]][nc[1]] 
             print('node ' + str(nc) + ' is not a valid location')
-            try_again = raw_input("Please type \'t\' to try again or enter to exit")
-            if try_again != 't':
-                return False
+            try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
+            if not firstTurn:
+                if try_again != 't':
+                    return False
 
     def getRoadLoc(self, possiblePlacement, firstTurn=False):
         # For the human player to select the location of a road they want to build 
@@ -236,7 +246,6 @@ class Play:
         print('It is ' + curr_player.name + '\'s turn \n')
 
         self.printResources(curr_player)
-
         self.printDevCards(curr_player)
         while True:
             option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
