@@ -127,6 +127,34 @@ class HumanPlayer(Player):
     #     else:
     #         game.updateSettlementResources(self.resources)
 
+    # Allows a player to discard a resource
+    def discard_resource(self, resource):
+        if resource in self.resources and self.resources[resource] > 0:
+            self.resources[resource] -= 1
+        else:
+            print("Sorry you do not have one of these to discard")
+
+    # Deals with a player having more than 7 cards when a seven is rolled
+    def over_seven(self):
+        while len(self.resources) > 7:
+            print("You have more than 7 resources, they are as follows: ")
+            for resource in self.resources:
+                print(resource + ": " + str(self.resources[resource]))
+            to_discard = raw_input("Please type (o, g, wl, b, wd) to discard this resource: ")
+            if to_discard == 'o':
+                self.discard_resource('Ore')
+            elif to_discard == 'g':
+                self.discard_resource('Grain')
+            elif to_discard == 'wl':
+                self.discard_resource('Wool')
+            elif to_discard == 'b':
+                self.discard_resource('Brick')
+            elif to_discard == 'wd':
+                self.discard_resource('Wood')
+
+    # This will be an AI decision eventually
+    def pick_position_settlement(self, positions):
+        return positions[0]
 
     # def place_city_human(self, node, player, game):
     #     prev_settlement = node.get_occupying_piece()

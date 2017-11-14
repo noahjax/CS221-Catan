@@ -246,8 +246,6 @@ class Display:
             self.screen.blit(blit[0], blit[1])
 
 
-
-
     def getUserAction(self):
         # Put some kinds of possible commands in here at the moment
         # I'm guessing that this kind of thing will be moved elsewhere long-term 

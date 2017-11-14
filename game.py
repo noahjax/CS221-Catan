@@ -437,12 +437,15 @@ class Game(object):
     This code is slightly less incomplete
     """
     # Can access board through self, so really just need roll
-    def distributeResources(self, roll):
+    def distributeResources(self, roll, curr_player):
 
         #Check if roll is 7
         if roll == 7:
-            print("Move robber. No resources to distribute")
-            return
+            print("Please move the robber. No resources to distribute")
+            # TODO: Need to ask player to move the robber
+            for player in self.players:
+                if len(player.resources) > 7:
+                    player.over_seven()
 
         #Could loop over all tiles in the game, but for now implementing by looping over all nodes.
         for row in self.board.nodes:

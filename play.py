@@ -100,6 +100,8 @@ class Play:
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+                roll = self.game.rollDice()
+                game.distributeResources(roll, curr_player)
                 
                 # Working on the display functionality, so only run human turns for now
                 self.run_human_turn(curr_player)
