@@ -436,7 +436,7 @@ class Game(object):
     """
     # Can access board through self, so really just need roll
     def distributeResources(self, roll, curr_player):
-
+        print('player = ' + str(self.players)) 
         #Check if roll is 7
         if roll == 7:
             print("Please move the robber. No resources to distribute")
@@ -480,4 +480,4 @@ class Game(object):
 
 
 #Random test code
-game = Game(None,None,None)
+# game = Game(None,None,None)
