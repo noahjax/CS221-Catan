@@ -71,7 +71,7 @@ class Play:
             else:
                 new_player = AiPlayer(i, "AI", colors[i])
             self.players.append(new_player)
-
+        
         # # Add the current player to players array
         # for i in range(self.num_players):
         #     new_player = Player(i+1, names[i], colors[i])
@@ -127,7 +127,7 @@ class Play:
     def initial_placements(self, player):
         #Get all possible options (should be same for human or AI)
         possible_settlements = self.game.getSettlementLocations(player, True)
-
+        print('ps = ' + str(possible_settlements))
         if player.isAI:
             #Get possible locations and place at a location
             settlementLoc = player.pick_settlement_position(possible_settlements)
@@ -219,8 +219,6 @@ class Play:
             node1 = self.board.getNodeFromCoords(r,c)
             r, c = self.display.getNode()
             node2 = self.board.getNodeFromCoords(r,c)
-            # node1 = self.display.getNode()
-            # node2 = self.display.getNode()
             print(possiblePlacement)
             print(node1,node2)
             if (node1, node2) in possiblePlacement or (node2, node1) in possiblePlacement:
