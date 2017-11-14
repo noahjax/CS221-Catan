@@ -378,7 +378,7 @@ class Game(object):
         #Loop over all nodes, check if is empty and neighbors are appropriate
         for li in self.board.nodes.values():
             for node in li:
-               if self.isValidSettlement(node, player, firstTurn):
+               if self.isValidSettlement(node, firstTurn):
                     possible_locations.append(node)
 
         return possible_locations
