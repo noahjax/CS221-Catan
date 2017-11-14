@@ -333,16 +333,16 @@ class Game(object):
             second_node = road[1]
             first_node = road[0]
             for neighbour in second_node.neighbours:
-                if not (second_node, neighbour) in game.roads:
+                if not (second_node, neighbour) in self.roads:
                     possible_locations.append((second_node, neighbour))
 
             for neighbour in first_node.neighbours:
-                if not (first_node, neighbour) in game.roads:
+                if not (first_node, neighbour) in self.roads:
                     possible_locations.append((first_node, neighbour))
 
         for node in player.occupyingNodes:
             for neighbour in node.neighbours:
-                if not (node, neighbour) in game.roads and not (neighbour, node) in game.roads:
+                if not (node, neighbour) in self.roads and not (neighbour, node) in self.roads:
                     possible_locations.append((node, neighbour))
     
         return possible_locations
@@ -388,7 +388,8 @@ class Game(object):
 
         # Loop over all nodes, check if there is already a Settlement there with the right owner
         for node in player.occupyingNodes:
-            if node.occupyingPiece is Settlement:
+            print('n = ' + str(node.occupyingPiece))
+            if isinstance(node.occupyingPiece, Settlement):
                 possible_locations.append(node)
 
         return possible_locations
@@ -446,10 +447,11 @@ class Game(object):
                     player.over_seven()
 
         #Could loop over all tiles in the game, but for now implementing by looping over all nodes.
-        for row in self.board.nodes:
-            for node in row.values:
+        for row in self.board.nodes.values():
+            for node in row:
                 if node.isOccupied:
                     #Look at all tiles touching node
+                    print('node is occupied')
                     for tile in node.touchingTiles:
                         #If tile value was rolled and its not blocked, give out resources
                         if tile.value == roll and not tile.hasRobber:

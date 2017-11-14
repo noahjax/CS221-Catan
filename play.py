@@ -37,7 +37,8 @@ class Play:
         for i in range(1, 9, 2): self.tileIds.append((3, i))
         for i in range(1, 7, 2): self.tileIds.append((4, i))
         assert len(self.tileIds) == 19
-        
+       
+
         # Select random values and resource for each tile and create it
         # Flatten the tile_types list so that popping works
         tilePool = [tile for tileType in tile_types for tile in tileType]
@@ -97,20 +98,19 @@ class Play:
             player.resources['Grain'] = 10
             player.resources['Wool'] = 10
 
-        self.firstTwoTurns()
-
         # self.firstTwoTurns()
+
         while True:
             # game.currMaxScore is not implemented
-            if game.currMaxScore >= 10:
+            if self.game.currMaxScore >= 10:
                 self.endGame()
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
-                roll = 7
-                while roll == 7:
-                    roll = self.game.rollDice()
-                game.distributeResources(roll, curr_player)
+                roll = 8
+                #while roll == 7:
+                #    roll = self.game.rollDice()
+                self.game.distributeResources(roll, curr_player)
                 
                 # Working on the display functionality, so only run human turns for now
                 self.run_human_turn(curr_player)
@@ -119,8 +119,8 @@ class Play:
                 #    self.run_human_turn(curr_player)
                 #else:
                 #    self.run_AI_turn(curr_player)
-                if curr_player.score > game.currMaxScore:
-                    game.currMaxScore = curr_player.score
+                if curr_player.score > self.game.currMaxScore:
+                    self.game.currMaxScore = curr_player.score
                 self.turnNum += 1
     
     #Handle placements during the first 2 turns
@@ -137,7 +137,7 @@ class Play:
             # #Get road locations and place (road locations must be adjacent to respective settlement)
             possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
             roadLoc = player.pick_road_position(possible_roads)
-            player.place_road(roadLoc)
+            player.place_road(roadLoc, self.game)
             self.display.placeRoad(roadLoc[0], roadLoc[1], player)
         else:
             #Find where the human wants to place the settlement
@@ -261,7 +261,7 @@ class Play:
                                 continue
                             node = self.getCitySettlementLoc(possiblePlacement)
                             if not node: continue
-                            curr_player.place_settlement_human(node, self.game, False)
+                            curr_player.place_settlement(node, self.game, False)
                             self.display.placeSettlement(node, curr_player)
                             print(curr_player.score)
                         else:
@@ -275,7 +275,7 @@ class Play:
                                 continue
                             node = self.getCitySettlementLoc(possiblePlacement)
                             if not node: continue
-                            curr_player.place_city_human(node, self.game)
+                            curr_player.place_city(node, self.game)
                             self.display.placeCity(node, curr_player)
                             print(curr_player.score)
                         else:
@@ -289,7 +289,7 @@ class Play:
                                 continue
                             roadLoc = self.getRoadLoc(possiblePlacements)
                             if not roadLoc: continue
-                            curr_player.place_road_human(roadLoc, False)
+                            curr_player.place_road(roadLoc, self.game)
                             self.display.placeRoad(roadLoc[0], roadLoc[1], curr_player)
                         else:
                             print("Sorry you do not have the resources to buy a Road")
@@ -327,9 +327,10 @@ class Play:
                         print("You have no devcards left to play")
                         break
             elif option == '':
-                return
-
-
+                break 
+        print('exited')
+        self.printResources(curr_player)
+        self.printDevCards(curr_player)
 
         # print('run human turn')
         # # curPlayerPossMoves = self.game.getPossibleActions(curr_player)
