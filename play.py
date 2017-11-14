@@ -34,8 +34,8 @@ class Play:
         for i in range(1, 7, 2): self.tileIds.append((0, i))
         for i in range(1, 9, 2): self.tileIds.append((1, i))
         for i in range(1, 11, 2): self.tileIds.append((2, i))
-        for i in range(1, 9, 2): self.tileIds.append((3, i))
-        for i in range(1, 7, 2): self.tileIds.append((4, i))
+        for i in range(2, 9, 2): self.tileIds.append((3, i))
+        for i in range(2, 7, 2): self.tileIds.append((4, i))
         assert len(self.tileIds) == 19
        
 
