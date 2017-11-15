@@ -111,12 +111,14 @@ class Play:
             # game.currMaxScore is not implemented
             if self.game.currMaxScore >= 2:
                 self.endGame()
+                return
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
 
                 print curr_player.color
                 print curr_player.resources
+                print curr_player.score
                 option = raw_input("")
 
                 roll = 7
@@ -405,6 +407,7 @@ class Play:
         """
         Ends the game and returns the winner
         """
+        print "game ending"
         for player in self.players:
             if player.score >= 10:
                 print (player.name + " has won the game!")
