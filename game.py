@@ -64,24 +64,22 @@ class Game(object):
         return deque(devCards)
 
     #Check to see if you can buy a devCard
-    def canBuyDevCard(self, player_num):
+    def canBuyDevCard(self, resources):
         #Make sure there are devCards left 
         if not self.devCards:
-            print("No dev cards left sorry")    ###Probably want to handle this better
+            print("Sorry there are no devcards left to buy")   ###Probably want to handle this better
             return False
         #Get current player
-        cur_player = self.players[player_num]
         #Check if you have the resources to buy a devCard
-        if cur_player.resources['Ore'] < 1 or cur_player.resources['Wool'] < 1 or cur_player.resources['Grain'] < 1:
+        if resources['Ore'] < 1 or resources['Wool'] < 1 or resources['Grain'] < 1:
             print("You don't have enough resources to buy a devCard")
             return False
         
         return True
 
     #Handle buying a devCard. Update player to have this devCard, remove resources from player    
-    def buyDevCard(self, player_num):
-        if self.canBuyDevCard(player_num):
-            cur_player = self.players[player_num]
+    def buyDevCard(self, cur_player):
+        if self.canBuyDevCard(cur_player.resources):
             #Update player resources
             cur_player.resources['Ore'] -= 1
             cur_player.resources['Wool'] -= 1
@@ -89,14 +87,17 @@ class Game(object):
 
             #Get devCard and give to player
             dev_card = self.devCards.pop()
+            print("You got a " + dev_card)
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
             #Checks if you already have devCard, may be redundant with defaultdict()
-            if dev_card in self.devCards.keys():
-                self.devCards[dev_card].append(card_to_add)
+            if dev_card in cur_player.devCards.keys():
+                cur_player.devCards[dev_card].append(card_to_add)
             else:
-                self.devCards[dev_card] = [card_to_add]
+                cur_player.devCards[dev_card] = [card_to_add]
+
+            print(cur_player.devCards)
 
             #Log purchase
             name = cur_player.name
@@ -107,14 +108,16 @@ class Game(object):
         
 
     #Handle moving the robber
-    def set_robber_location(self, location):
-        currPosition = self.robber_location
+    def set_robber_location(self, location, display):
+        currPosition = self.board.getTileForNode(self.robber_location[0], self.robber_location[1])
         currPosition.has_robber = False
         self.robber_location = location
-        location.has_robber = True
+        newRobberTile = self.board.getTileForNode(self.robber_location[0], self.robber_location[1])
+        # location.has_robber = True
+        newRobberTile.has_robber = True
 
-        self.display.placeRobber(location)
-        catan_log.log("Robber location moved to " + location)
+        display.placeRobber(location)
+        catan_log.log("Robber location moved to " + str(location))
 
 
 
@@ -349,7 +352,7 @@ class Game(object):
     
     '''Missing test for settlement being at end of road'''
     #Helper to test if node is valid for a settlment. 
-    def isValidSettlement(self, node, firstTurn):
+    def isValidSettlement(self, node, player, firstTurn):
         # If node is occupied we can't place anything there
         if node.isOccupied:
             return False
@@ -360,12 +363,12 @@ class Game(object):
                 return False
 
         # Check if the node is currently on a players road
-        '''
         if not firstTurn:
-        for (node_one, node_two) in player.roads:
-            if node_one == node or node_two == node:
-                return True
-        '''
+            for (node_one, node_two) in player.roads:
+                if node_one == node or node_two == node:
+                    return True
+            return False
+
         return True
 
         # If we get here we can not use the given node
@@ -378,7 +381,7 @@ class Game(object):
         #Loop over all nodes, check if is empty and neighbors are appropriate
         for li in self.board.nodes.values():
             for node in li:
-               if self.isValidSettlement(node, firstTurn):
+                if self.isValidSettlement(node, player, firstTurn):
                     possible_locations.append(node)
 
         return possible_locations

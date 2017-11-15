@@ -82,7 +82,7 @@ class Play:
         #     self.players.append(new_player)
 
         # Initialize the game 
-        initRobberTile = 9
+        initRobberTile = (2, 5)
         self.game = Game(self.players, self.board, initRobberTile)
         
         # Initialize the display with the generated tiles
@@ -123,7 +123,8 @@ class Play:
 
                 roll = 7
                 while roll == 7:
-                   roll = self.game.rollDice()
+                    roll = self.game.rollDice()
+                    print("the roll was a " + str(roll))
                 self.game.distributeResources(roll, curr_player)
                 
                 # Working on the display functionality, so only run human turns for now
@@ -182,6 +183,7 @@ class Play:
         for i in range(4):
             print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
+            self.printResources(self.players[i])
 
         #Snake backwards through players
         for i in range(3, -1, -1):
@@ -250,28 +252,36 @@ class Play:
     def printDevCards(self, currPlayer):
         print('You have the following development cards: ')
         for devCard in currPlayer.devCards:
-            print (devCard.type + ": " + str(currPlayer.devCards[devCard]))
+            print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
     def get_and_play_devcard(self, type, currPlayer):
-        print ("You have the following development cards: ")
-        if type in currPlayer.devCards:
+        if type in currPlayer.devCards and currPlayer.devCards[type] != 0:
             card = currPlayer.devCards[type].pop(0)
-            card.play()
+            if type == 'Knight':
+                card.play(self.display, self.game)
+            elif type == 'Road':
+                return
+            else:
+                card.play()
+        else:
+            print("Sorry you do not have that dev card")
+
+
 
 #############################################################################
 ######################   Functions for Human Turns   ########################
 #############################################################################
 
     #Read node clicks to get settlement/city location
-    def getCitySettlementLoc(self, possiblePlacement, firstTurn = False):
+    def getCitySettlementLoc(self, possiblePlacement, firstTurn=False):
         print("Please click on the node where you would like to build")
         while True:
             nc = self.display.getNode()
             if self.board.nodes[nc[0]][nc[1]] in possiblePlacement:
                 return self.board.nodes[nc[0]][nc[1]] 
             print('node ' + str(nc) + ' is not a valid location')
-            try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
             if not firstTurn:
+                try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
                 if try_again != 't':
                     return False
 
@@ -286,7 +296,7 @@ class Play:
             r, c = self.display.getNode()
             node2 = self.board.getNodeFromCoords(r,c)
             print(possiblePlacement)
-            print(node1,node2)
+            print(node1, node2)
             if (node1, node2) in possiblePlacement or (node2, node1) in possiblePlacement:
                 print "Leaving get Road Loc"
                 return node1, node2 
@@ -354,19 +364,16 @@ class Play:
                             print("Sorry you do not have the resources to buy a Road")
 
                     elif buyType == 'd':
-                        if self.game.canBuyDevCard(curr_player.resources):
-                            if len(self.game.devCards) > 0:
-                                curr_player.get_dev_card(self.game)
-                            else:
-                                print("Sorry there are no devcards left to buy")
-                        else:
-                            print("Sorry you do not have the resources to buy a dev card")
+                        self.game.buyDevCard(curr_player)
+
                     elif buyType == "":
                         break
 
             elif option == 'p':
                 while True:
-                    if len(curr_player.devCards) != 0:
+                    if curr_player.hasDevCards:
+                        print ("You have the following development cards: ")
+                        self.printDevCards(curr_player)
                         type = raw_input("Type (k, v, r, m, yp) to choose what you want to play, or hit enter to return: ")
                         if type == 'k':
                             self.get_and_play_devcard('Knight', curr_player)

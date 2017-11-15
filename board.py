@@ -62,7 +62,7 @@ class Board:
             if c % 2 == 0:
                 neighbors = [(r, c - 1), (r, c + 1), (r - 1, c + 1)]
             else:
-                neighbors = [(r - 1, c - 1), (r, c - 1), (r, c + 1)] 
+                neighbors = [(r + 1, c - 1), (r, c - 1), (r, c + 1)]
             
         inBoundsNeighbors = []
         for n in neighbors:
@@ -88,6 +88,12 @@ class Board:
 
     def getNodeFromCoords(self, r, c):
         return self.nodes[r][c]
+
+    def getTileForNode(self, r, c):
+        for tile in self.tiles:
+            if tile.id == (r, c):
+                return tile
+        return None
 
 class Tile:
 

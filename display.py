@@ -81,7 +81,7 @@ class Display:
 
         # Load the city and town pngs
         self.city = pygame.image.load('castle.png')
-        self.city = pygame.transform.scale(self.city, (self.screenWidth / 25, self.screenHeight / 25))
+        self.city = pygame.transform.scale(self.city, (self.screenWidth / 40, self.screenHeight / 40))
 
         self.town = pygame.image.load('town.png')
         self.town = pygame.transform.scale(self.town, (self.screenWidth / 25, self.screenHeight / 25))
@@ -126,11 +126,11 @@ class Display:
 
 
 
-    def placeRobber(self, tile):
+    def placeRobber(self, node):
         # Add the robber to tempBlits at the center of the specified tile
-        tx, ty = self.tileCenters[tile]
-        self.tempBlits['robber'] = (self.robber, (tx - int(self.robberWidth / 2), ty - int(self.robberHeight / 2)))
-
+        x, y, z, w = self.nodeLocs[node]
+        self.tempBlits['robber'] = (self.robber, (x - self.dotWidth / 2, y + int(self.tileHeight / 2) - self.dotHeight / 2))
+        self.update()
 
 
     def getTextSurface(self, tile):
@@ -295,7 +295,7 @@ class Display:
 
     def placeCity(self, node, player):
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
-        self.permanentBlits.append((self.city, (x1, y1)))
+        self.permanentBlits.append((self.city, (x1 + self.city.get_rect().size[0] / 2, y1 + self.city.get_rect().size[1] / 2)))
         self.update()
 
     def getTile(self):
