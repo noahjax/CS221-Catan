@@ -50,18 +50,6 @@ class Player:
     def incrementScore(self, value):
         self.score += value
 
-    def playDevCard(self, devCardString):
-        card = self.devCards[devCardString].pop(0)
-        card.play()
-
-    def hasDevCards(self):
-        if not self.devCards:
-            return False
-
-        for card in self.devCards:
-            if self.devCards[card] != 0:
-                return True
-
         return False
 
     #Places road in desired location, updates necessary data structures

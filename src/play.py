@@ -107,7 +107,7 @@ class Play:
         self.first_two_turns()
 
         while True:
-            # TODO: game.currMaxScore is not implemented
+            #Check if game is over
             if self.game.currMaxScore >= 10:
                 self.endGame()
                 return
@@ -116,12 +116,11 @@ class Play:
                 curr_player = self.players[curr_turn % self.num_players]
 
                 print_player_stats(curr_player)
-
-                # TODO: roll correctly
-                roll = 7
+                
+                # TODO: Doesn't handle moving robber yet
+                roll = rollDice()
                 while roll == 7:
                     roll = rollDice()
-                    print("the roll was a " + str(roll))
 
                 # Distribute resources given the last roll
                 self.game.distributeResources(roll)
@@ -132,15 +131,16 @@ class Play:
                 else: 
                     self.run_human_turn(curr_player)
 
-                # Check end game logic
+                # Update curMaxScore
                 if curr_player.score > self.game.currMaxScore:
                     self.game.currMaxScore = curr_player.score
+                
                 self.turnNum += 1
 
                 print "-----End Turn-----"
 
 #############################################################################
-############################  First Two Turns  ################################
+############################  First Two Turns  ##############################
 #############################################################################
 
     # Main function for first two turns logic
@@ -200,22 +200,24 @@ class Play:
 ########################  Functions for AI turns  ###########################
 #############################################################################
     """
-    This will take an AI player and allow them to pick among all possible moves for a give gamestate
+    This will take an AI player and allow them to pick among all possible moves for a given gamestate
     """
     def run_AI_turn(self, player):
         # Get all possible moves player can make and send to AI for decision making
         possible_moves = self.game.getPossibleActions(player)
 
-        # print "possible moves:", possible_moves
-
         # Get move from AI player
         move = player.pickMove(possible_moves)
+        
+        #Print move for debugging purposes
         if not move:
             print player.color,  "No move selected"
             return
         
         print "move:",move
+
         # Act on move by placing pieces and updating graphics
+        # TODO: Handle devCards and other possible actions
         for action, locs in move.items():
             piece, count = action
             # Might want to flip structure of for loop and if statements
@@ -230,21 +232,9 @@ class Play:
                     player.place_road(loc, self.game)
                     self.display.placeRoad(loc[0], loc[1], player)
 
-        
-        # # Get all the moves that the player can play and pass to AI to select a move
-        # moves = [[possible_move.keys()] for possible_moves in possible_moves]
-        # positions = possible_moves[1]
-
-        # # This is where the AI would come in to choose best move
-        # chosenMove = curr_player.pickMove(moves)
-        # for key, val in chosenMove:
-        #     if not key == 'dev card':
-        #         curr_player.pickPosition(key, val, positions)
-        #     else:
-        #         curr_player.pickDevCard(key, val)
 
 #############################################################################
-########### Location finders for city, settlement and road   ################
+############ Location finders for city, settlement and road #################
 #############################################################################
 
     # Read node clicks to get settlement/city location
@@ -254,9 +244,13 @@ class Play:
         # Waits for user to click a node, and then returns location
         while True:
             nc = self.display.getNode()
+            
+            # Check if node is valid
             if self.board.nodes[nc[0]][nc[1]] in possiblePlacement:
                 return self.board.nodes[nc[0]][nc[1]] 
             print('node ' + str(nc) + ' is not a valid location')
+
+            # Give player option to give up selecting a node (if not first turn)
             if not firstTurn:
                 try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
                 if try_again != 't':
@@ -264,7 +258,6 @@ class Play:
 
     # Read node clicks to get road location, and verify if it is allowed
     def getRoadLoc(self, possiblePlacement, firstTurn=False):
-        # For the human player to select the location of a road they want to build 
         print("Click on the nodes you would like to build a road on")
 
         # Wait for clicks which define the road
@@ -275,11 +268,13 @@ class Play:
             r, c = self.display.getNode()
             node2 = self.board.getNodeFromCoords(r,c)
 
+            # Check if valid nodes for a road
             if (node1, node2) in possiblePlacement or (node2, node1) in possiblePlacement:
                 print "Leaving get Road Loc"
                 return node1, node2
-
             print('nodes ' + str(node1) + ' ' + str(node2) + ' are not valid')
+
+            # Give player option to give up selecting nodes (if not first turn)
             if not firstTurn:
                 try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
                 if try_again != 't':
@@ -297,11 +292,16 @@ class Play:
         # Options are to buy something or end turn
         print('It is ' + curr_player.name + '\'s turn \n')
 
+        #Debug print statements
         printResources(curr_player)
         printDevCards(curr_player)
+        
+        #Loop until user indicates to exit and end turn
         while True:
             option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
             if option == 'b':
+                
+                #Loop until player is done buying things
                 while True:
                     buyType = raw_input('type (s, c, r, d) to buy something, or hit enter to return: ')
 
@@ -326,31 +326,22 @@ class Play:
                         break
 
             elif option == 'p':
-                while True:
-                    if curr_player.hasDevCards:
-                        toBreak = self.buy_dev_card(curr_player)
-                        if toBreak:
-                            break
-                    else:
-                        print("You have no devcards left to play")
-                        break
+                
+                # Loop until player is done playing devCards
+                devCardString = get_devcard_prompt()
+                
+                #Wait until player 
+                while not self.play_devcard(devCardString, curr_player):
+                    if devCardString == '': break
+                    devCardString = get_devcard_prompt()
+                
             elif option == '':
                 break 
+        
+        #More debug print statements
         print('exited')
         printResources(curr_player)
         printDevCards(curr_player)
-
-        # print('run human turn')
-        # # curPlayerPossMoves = self.game.getPossibleActions(curr_player)
-        # curPlayerPossMoves = ['gn', 'mr'] # Testing only. Should be replaced with getPossibleActions
-        # while True:
-        #     # Loop until the user enters a valid action
-        #     action = self.display.getUserAction()
-        #     print('action = ' + str(action))
-        #     if action in curPlayerPossMoves:
-        #         break
-        #     print('I\'m sorry Dave, I\'m afraid I can\'t do that')
-        # self.display.execute(action)
 
 #############################################################################
 ################# Buy and place Settlement, City, or Road   #################
@@ -409,18 +400,21 @@ class Play:
 
     # Initiate the logic that plays a given devcard
     def play_devcard(self, type, currPlayer):
-        if type in currPlayer.devCards and currPlayer.devCards[type] != 0:
+        if type in currPlayer.devCards and currPlayer.devCards[type] >= 0:
             card = currPlayer.devCards[type].pop(0)
             if type == 'Knight':
                 card.play(self.display, self.game)
+            # TODO: What does this check do? Why would type be road
             elif type == 'Road':
-                return
+                return True
             else:
                 card.play()
         else:
             print("Sorry you do not have that dev card")
+            return False
 
-    # Buy a dev card
+    ''' TODO: Do we need this? We have game.buyDevCard that updates resources
+
     def buy_dev_card(self, curr_player):
         print ("You have the following development cards: ")
         printDevCards(curr_player)
@@ -430,14 +424,15 @@ class Play:
             return True
         else:
             return False
+    '''
 
 #############################################################################
 ###########################   End Game  #####################################
 #############################################################################
+    """
+    Ends the game and returns the winner
+    """
     def endGame(self):
-        """
-        Ends the game and returns the winner
-        """
         print "game ending"
         for player in self.players:
             if player.score >= 10:
