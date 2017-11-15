@@ -1,7 +1,7 @@
-import pygame
-from pygame.locals import*
 import numpy as np
-import board as bd 
+import pygame
+from pygame.locals import *
+
 
 class Display:
  
@@ -59,48 +59,48 @@ class Display:
         # local board, as well as the board stored elsewhere. Should really discuss this
         self.board = board
         
-        self.font = pygame.font.SysFont('Comic Sans MS', 10)
+        self.font = pygame.font.SysFont('../res/Comic Sans MS', 10)
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
         
         # Dots on dots on dots on dots on dots on ... 
-        self.redDot = pygame.image.load('red_dot.png')
+        self.redDot = pygame.image.load('../res/red_dot.png')
         self.redDot = pygame.transform.scale(self.redDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
         
-        self.blueDot = pygame.image.load('blue_dot.png')
+        self.blueDot = pygame.image.load('../res/blue_dot.png')
         self.blueDot = pygame.transform.scale(self.blueDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
         
-        self.greenDot = pygame.image.load('green_dot.png')
+        self.greenDot = pygame.image.load('../res/green_dot.png')
         self.greenDot = pygame.transform.scale(self.greenDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
         
-        self.orangeDot = pygame.image.load('orange_dot.png')
+        self.orangeDot = pygame.image.load('../res/orange_dot.png')
         self.orangeDot = pygame.transform.scale(self.orangeDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
         
-        self.blackDot = pygame.image.load('black_dot.png')
+        self.blackDot = pygame.image.load('../res/black_dot.png')
         self.blackDot = pygame.transform.scale(self.blackDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
 
         # Load the city and town pngs
-        self.city = pygame.image.load('castle.png')
+        self.city = pygame.image.load('../res/castle.png')
         self.city = pygame.transform.scale(self.city, (self.screenWidth / 40, self.screenHeight / 40))
 
-        self.town = pygame.image.load('town.png')
+        self.town = pygame.image.load('../res/town.png')
         self.town = pygame.transform.scale(self.town, (self.screenWidth / 25, self.screenHeight / 25))
 
         # Load a hexagon to use as a tile
-        self.tile = pygame.image.load('hex.png')
+        self.tile = pygame.image.load('../res/hex.png')
         self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
 
         # Load triangles to use as roads
-        self.redRoad = pygame.image.load('red_triangle.png')
+        self.redRoad = pygame.image.load('../res/red_triangle.png')
         self.redRoad = pygame.transform.scale(self.redRoad, (self.screenWidth / 25, self.screenHeight / 25))
         
-        self.blueRoad = pygame.image.load('blue_triangle.png')
+        self.blueRoad = pygame.image.load('../res/blue_triangle.png')
         self.blueRoad = pygame.transform.scale(self.blueRoad, (self.screenWidth / 25, self.screenHeight / 25))
 
-        self.greenRoad = pygame.image.load('green_triangle.png')
+        self.greenRoad = pygame.image.load('../res/green_triangle.png')
         self.greenRoad = pygame.transform.scale(self.greenRoad, (self.screenWidth / 25, self.screenHeight / 25))
         
-        self.orangeRoad = pygame.image.load('orange_triangle.png')
+        self.orangeRoad = pygame.image.load('../res/orange_triangle.png')
         self.orangeRoad = pygame.transform.scale(self.orangeRoad, (self.screenWidth / 25, self.screenHeight / 25))
         
         # Set some variables to reference later on
@@ -117,7 +117,7 @@ class Display:
         self.loadPermanentBlits()
 
         # Load the robber
-        self.robber = pygame.image.load('robber.png')
+        self.robber = pygame.image.load('../res/robber.png')
         self.robber = pygame.transform.scale(self.robber, (int(self.tileWidth / 2), int(self.tileHeight / 2)))
         self.robberWidth = self.robber.get_rect().size[0]
         self.robberHeight = self.robber.get_rect().size[1]

@@ -1,9 +1,9 @@
+from util import *
 from collections import defaultdict
 from pieces import *
 from game import *
 import random
 import copy
-#import all the stuff
 
 '''
 Player superclass for shared functionality across human and AI players. Should be 
@@ -158,8 +158,6 @@ class Player:
 #############################################################################
 #############################   Human Player    #############################
 #############################################################################
-
-
 class HumanPlayer(Player):
     """
     Class for each player 

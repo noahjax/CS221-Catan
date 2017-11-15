@@ -1,4 +1,3 @@
-#Need a ton of imports
 from pieces import *
 import random
 from collections import deque, defaultdict
@@ -16,7 +15,7 @@ class Game(object):
     (Add more stuff)
     """
 
-    #Need to handle cases where board or players aren't initialized at some point
+    # Need to handle cases where board or players aren't initialized at some point
     # def __init__(self, players=None, board=None):
     def __init__(self, players, board, robber_tile):
 
@@ -25,7 +24,7 @@ class Game(object):
         self.players = players
         self.currMaxScore = 0
         self.board = board
-        self.turn_num = 0       #Starts at 0 so it can easily access player list
+        self.turn_num = 0
         self.devCards = self.initialize_dev_cards()
         self.gameStart = False
         self.robber_location = robber_tile
@@ -33,15 +32,8 @@ class Game(object):
 
         catan_log.log("Game class intitialized")
 
-    #Function to handle pregame placing of pieces
-    # def run_pregame():
-
-    #Rolls dice, returns value
-    #Might just make a util.py for this type of stuff
-    def rollDice(self):
-        die1 = random.randint(1,6)
-        die2 = random.randint(1,6)
-        return die1 + die2
+    # Rolls dice, returns value
+    # Might just make a util.py for this type of stuff
 
     #Return possible locations where a piece can be placed. Board and cur_player can be accessed through self
     # def getPossibleLocations(self, piece):
@@ -104,6 +96,7 @@ class Game(object):
             catan_log.log(name + " bought " + dev_card)
 
         else:
+            print("Sorry you don't have the resources to buy a dev card")
             catan_log.log("Couldn't buy devCard")
         
 
@@ -232,7 +225,7 @@ class Game(object):
 
     #Handles recursion to explore items you can buy
     def findResourceCombos(self, resources, pieces, ans):
-
+        print("hi")
         #Copy pieces so we don't modify it as we recur
         cur_pieces = pieces.copy()
 
@@ -302,9 +295,8 @@ class Game(object):
     ######################   Get Actions   ########################
     ################################################################
     '''
-    Returns a list of all possible actions for a given game.
-    Pretty much all of the information needed should be stored in the game class.
-    Makes use of helpers for different types of actions.
+    Returns valid locations for settlements, roads, and cities, as well as 
+    a full list of the possible actions that an AI could take.
     Possible action types:
         -buyPiece: (placing a piece is incorporated as part of buying a piece)
             -Road
@@ -323,12 +315,7 @@ class Game(object):
         [(piece, location)]
     '''
 
-    '''
-    This section handles getting possible locations for different types of pieces and given a 
-    certian player. 
-    '''
-
-    #Get valid road locations
+    # Get valid road locations
     def getRoadLocations(self, player):
         possible_locations = []
 
@@ -438,12 +425,10 @@ class Game(object):
 #####################   Handle Distributing Resources    ####################
 #############################################################################
     """
-    This code is slightly less incomplete
+    Function to distribute resources after every roll
     """
     # Can access board through self, so really just need roll
-    def distributeResources(self, roll, curr_player):
-        # print('players = ' + str(self.players)) 
-        #Check if roll is 7
+    def distributeResources(self, roll):
         if roll == 7:
             print("Please move the robber. No resources to distribute")
             # TODO: Need to ask player to move the robber
@@ -451,33 +436,18 @@ class Game(object):
                 if len(player.resources) > 7:
                     player.over_seven()
 
-        #Could loop over all tiles in the game, but for now implementing by looping over all nodes.
+        # Loop over nodes and see if they are touching a tile with the rolled value
         for row in self.board.nodes.values():
             for node in row:
                 if node.isOccupied:
-                    #Look at all tiles touching node
+                    # Look at all tiles touching node
                     for tile in node.touchingTiles:
-                        #If tile value was rolled and its not blocked, give out resources
+                        # If tile value was rolled and its not blocked, give out resources
                         if tile.value == roll and not tile.hasRobber:
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
                     
         catan_log.log("Distributed resources to players")
-
-        # #Loop over all tiles in game
-        # for i in range(19):
-        #     tile = self.board.board[i]
-        #     #Get nodes if this tile gives out resources
-        #     if tile == roll:
-        #         nodes = self.board.getPieceCoords(i)
-        #         for piece in nodes:
-        #             #Check if node has a piece that gives resources
-        #             if type(piece) == Settlement:
-        #                 piece.player.resources[tile] += 1
-        #                 piece.player.numResources[tile] += 1
-        #             elif type(piece) == City:
-        #                 piece.player.resources[tile] += 2
-        #                 piece.player.numResources[tile] += 2
                         
 
 #############################################################################

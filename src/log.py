@@ -1,7 +1,3 @@
-from pieces import *
-from devcards import *
-from player import *
-
 class Log:
 
     def __init__(self):

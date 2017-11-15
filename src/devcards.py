@@ -2,14 +2,14 @@ from game import *
 from pieces import *
 import display
 import board
+from util import *
 
 """
 Determines how devcards are created in game play, this will create
 the given class and then return an instance of it with the correct 
 parameters. 
 """
-
-
+# Allow user to buy a devcard
 def buyDevCard(player, type, players):
     if type == 'Knight':
         return Knight(player, players)
@@ -21,22 +21,6 @@ def buyDevCard(player, type, players):
         return RoadBuilding(player)
     elif type == 'Year of Plenty':
         return YearOfPlenty(player, players)
-
-def getResourceInput():
-    while True:
-        to_get = raw_input("Please type (o, g, wl, b, wd) to choose a resource: ")
-        if to_get == 'o':
-            return 'Ore'
-        elif to_get == 'g':
-            return 'Grain'
-        elif to_get == 'wl':
-            return 'Wool'
-        elif to_get == 'b':
-            return 'Brick'
-        elif to_get == 'wd':
-            return 'Wood'
-        else:
-            print("That was not a valid resource try again")
 
 # Defines the Knight dev card from Catan
 class Knight:
