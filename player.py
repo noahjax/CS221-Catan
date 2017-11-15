@@ -50,14 +50,6 @@ class Player:
     def incrementScore(self, value):
         self.score += value
 
-    def get_dev_card(self, game):
-        card = game.devCards.pop()
-        print "You got a " + card
-        if card in self.devCards:
-            self.devCards[card] += 1
-        else:
-            self.devCards[card] = 1
-
     def playDevCard(self, devCardString):
         card = self.devCards[devCardString].pop(0)
         card.play()
@@ -73,7 +65,7 @@ class Player:
 
     #Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
-        print "placing settlement"
+        # print "placing settlement"
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
         self.cities_and_settlements.append(settlement_to_add)
@@ -121,7 +113,7 @@ class Player:
             # Starting from each settlement, compute the 0-3 path lengths
             pathLens = []
 
-            for neighbor in board.getNodeNeighbors(startPoint):
+            for neighbor in self.board.getNodeNeighbors(startPoint):
                 if neighbor in roadNodes:
                     alreadySearched = [startPoint]
 

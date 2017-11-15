@@ -62,7 +62,7 @@ class Board:
             if c % 2 == 0:
                 neighbors = [(r, c - 1), (r, c + 1), (r - 1, c + 1)]
             else:
-                neighbors = [(r - 1, c - 1), (r, c - 1), (r, c + 1)] 
+                neighbors = [(r + 1, c - 1), (r, c - 1), (r, c + 1)]
             
         inBoundsNeighbors = []
         for n in neighbors:

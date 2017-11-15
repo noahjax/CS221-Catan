@@ -105,7 +105,7 @@ class Play:
             player.resources['Grain'] = 3
             player.resources['Wool'] = 3
 
-        self.firstTwoTurns()
+        # self.firstTwoTurns()
 
         while True:
             # game.currMaxScore is not implemented
@@ -116,7 +116,8 @@ class Play:
                 curr_player = self.players[curr_turn % self.num_players]
                 roll = 7
                 while roll == 7:
-                   roll = self.game.rollDice()
+                    roll = self.game.rollDice()
+                    print("the roll was a " + str(roll))
                 self.game.distributeResources(roll, curr_player)
                 
                 # Working on the display functionality, so only run human turns for now
@@ -128,7 +129,7 @@ class Play:
                     print "Why tho"
                     self.run_human_turn(curr_player)
 
-                print curr_player.resources
+                self.printResources(curr_player)
                 option = raw_input("Press a key to continue")
 
                 #if curr_player.isAi:
@@ -147,7 +148,7 @@ class Play:
     def initial_placements(self, player):
         #Get all possible options (should be same for human or AI)
         possible_settlements = self.game.getSettlementLocations(player, True)
-        print('possible settlements = ' + str(possible_settlements))
+        # print('possible settlements = ' + str(possible_settlements))
         if player.isAI:
             #Get possible locations and place at a location
             settlementLoc = player.pick_settlement_position(possible_settlements)
@@ -162,8 +163,8 @@ class Play:
         else:
             #Find where the human wants to place the settlement
             settlementLoc = self.getCitySettlementLoc(possible_settlements, True)
-            for neighbour in settlementLoc.neighbours:
-                print neighbour.row, neighbour.col
+            # for neighbour in settlementLoc.neighbours:
+            #     print neighbour.row, neighbour.col
             player.place_settlement(settlementLoc, self.game, True)
             self.display.placeSettlement(settlementLoc, player)
 
@@ -179,6 +180,7 @@ class Play:
         for i in range(4):
             print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
+            self.printResources(self.players[i])
 
         #Snake backwards through players
         for i in range(3, -1, -1):
@@ -245,28 +247,34 @@ class Play:
     def printDevCards(self, currPlayer):
         print('You have the following development cards: ')
         for devCard in currPlayer.devCards:
-            print (devCard.type + ": " + str(currPlayer.devCards[devCard]))
+            print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
     def get_and_play_devcard(self, type, currPlayer):
-        print ("You have the following development cards: ")
         if type in currPlayer.devCards:
             card = currPlayer.devCards[type].pop(0)
-            card.play()
+            if type == 'Knight':
+                card.play(self.display, self.game)
+            else:
+                card.play()
+        else:
+            print("Sorry you do not have that dev card")
+
+
 
 #############################################################################
 ######################   Functions for Human Turns   ########################
 #############################################################################
 
     #Read node clicks to get settlement/city location
-    def getCitySettlementLoc(self, possiblePlacement, firstTurn = False):
+    def getCitySettlementLoc(self, possiblePlacement, firstTurn=False):
         print("Please click on the node where you would like to build")
         while True:
             nc = self.display.getNode()
             if self.board.nodes[nc[0]][nc[1]] in possiblePlacement:
                 return self.board.nodes[nc[0]][nc[1]] 
             print('node ' + str(nc) + ' is not a valid location')
-            try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
             if not firstTurn:
+                try_again = raw_input("Please type \'t\' to try again or enter to exit: ")
                 if try_again != 't':
                     return False
 
@@ -349,19 +357,16 @@ class Play:
                             print("Sorry you do not have the resources to buy a Road")
 
                     elif buyType == 'd':
-                        if self.game.canBuyDevCard(curr_player.resources):
-                            if len(self.game.devCards) > 0:
-                                curr_player.get_dev_card(self.game)
-                            else:
-                                print("Sorry there are no devcards left to buy")
-                        else:
-                            print("Sorry you do not have the resources to buy a dev card")
+                        self.game.buyDevCard(curr_player)
+
                     elif buyType == "":
                         break
 
             elif option == 'p':
                 while True:
                     if len(curr_player.devCards) != 0:
+                        print ("You have the following development cards: ")
+                        self.printDevCards(curr_player)
                         type = raw_input("Type (k, v, r, m, yp) to choose what you want to play, or hit enter to return: ")
                         if type == 'k':
                             self.get_and_play_devcard('Knight', curr_player)
