@@ -19,6 +19,7 @@ def getResourceInput():
         else:
             print("That was not a valid resource try again")
 
+# Prompt user to identify a devcard
 def get_devcard_prompt():
     while True:
         type = raw_input("Type (k, v, r, m, yp) to choose what you want to play, or hit enter to return: ")

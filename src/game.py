@@ -5,6 +5,7 @@ from devcards import *
 from player import *
 # from enum import Enum
 from log import *
+from util import *
 
 class Game(object):
     """
@@ -57,46 +58,43 @@ class Game(object):
 
     #Check to see if you can buy a devCard
     def canBuyDevCard(self, resources):
-        #Make sure there are devCards left 
+        # Make sure there are devCards left
         if not self.devCards:
-            print("Sorry there are no devcards left to buy")   ###Probably want to handle this better
+            print("Sorry there are no devcards left to buy")
             return False
-        #Get current player
-        #Check if you have the resources to buy a devCard
+
+        # Check if player has the resources to buy a devCard
         if resources['Ore'] < 1 or resources['Wool'] < 1 or resources['Grain'] < 1:
             print("You don't have enough resources to buy a devCard")
             return False
         
         return True
 
-    #Handle buying a devCard. Update player to have this devCard, remove resources from player    
+    # Handle buying a devCard. Update player to have this devCard, remove resources from player
     def buyDevCard(self, cur_player):
-        if self.canBuyDevCard(cur_player.resources):
-            #Update player resources
-            cur_player.resources['Ore'] -= 1
-            cur_player.resources['Wool'] -= 1
-            cur_player.resources['Grain'] -= 1
+        can_buy = self.canBuyDevCard(cur_player.resources)
+        if can_buy:
+            # Update player resources
+            self.updateDevCardResources(cur_player.resources)
 
-            #Get devCard and give to player
+            # Get devCard and give to player
             dev_card = self.devCards.pop()
             print("You got a " + dev_card)
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
-            #Checks if you already have devCard, may be redundant with defaultdict()
+            # Checks if you already have devCard, may be redundant with defaultdict()
             if dev_card in cur_player.devCards.keys():
                 cur_player.devCards[dev_card].append(card_to_add)
             else:
                 cur_player.devCards[dev_card] = [card_to_add]
 
-            print(cur_player.devCards)
+            printDevCards(cur_player)
 
-            #Log purchase
+            # Log purchase
             name = cur_player.name
             catan_log.log(name + " bought " + dev_card)
 
-        else:
-            print("Sorry you don't have the resources to buy a dev card")
             catan_log.log("Couldn't buy devCard")
         
 
