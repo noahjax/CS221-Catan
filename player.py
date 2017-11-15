@@ -170,17 +170,17 @@ class HumanPlayer(Player):
             print("You have more than 7 resources, they are as follows: ")
             for resource in self.resources:
                 print(resource + ": " + str(self.resources[resource]))
-            to_discard = raw_input("Please type (o, g, wl, b, wd) to discard this resource: ")
-            if to_discard == 'o':
-                self.discard_resource('Ore')
-            elif to_discard == 'g':
-                self.discard_resource('Grain')
-            elif to_discard == 'wl':
-                self.discard_resource('Wool')
-            elif to_discard == 'b':
-                self.discard_resource('Brick')
-            elif to_discard == 'wd':
-                self.discard_resource('Wood')
+            to_discard = getResourceInput()
+            self.discard_resource(to_discard)
+
+    def give_Card(self, oppPlayer):
+        print("You need to give a card to your opponent, please select one")
+        resource = getResourceInput()
+        self.resources[resource] -= 1
+        self.numResources -= 1
+        oppPlayer.resources[resource] += 1
+        oppPlayer.resources += 1
+
 
 #############################################################################
 #############################   AI Player    ################################

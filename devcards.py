@@ -24,7 +24,7 @@ def buyDevCard(player, type, players):
 
 def getResourceInput():
     while True:
-        to_get = raw_input("Please type (o, g, wl, b, wd) to get a resource: ")
+        to_get = raw_input("Please type (o, g, wl, b, wd) to choose a resource: ")
         if to_get == 'o':
             return 'Ore'
         elif to_get == 'g':
@@ -59,16 +59,14 @@ class Knight:
         # Check all players that need to give a card
         for oppPlayer in self.players:
             if not oppPlayer == self.player:
-                for node in self.player.nodes:
-                    for tile in node.tiles:
-                        if tile == position:
+                for node in self.player.occupyingNodes:
+                    for tile in node.touchingTiles:
+                        if tile.hasRobber:
                             players_to_give_cards.add(oppPlayer)
 
         # For each of those players make them give a card
         for player in players_to_give_cards:
-            resource = player.give_card()
-            if resource != 0:
-                self.player.resources[resource] += 1
+            player.give_card(self.player)
 
         # Increment the current players army
         self.player.numKnights += 1
