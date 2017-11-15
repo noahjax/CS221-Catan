@@ -99,21 +99,26 @@ class Play:
         self.display.update() # Show the display in its initialized state
 
         for player in self.players:
-            player.resources['Ore'] = 3
-            player.resources['Brick'] = 3
-            player.resources['Wood'] = 3
-            player.resources['Grain'] = 3
-            player.resources['Wool'] = 3
+            player.resources['Ore'] = 0
+            player.resources['Brick'] = 0
+            player.resources['Wood'] = 0
+            player.resources['Grain'] = 0
+            player.resources['Wool'] = 0
 
         self.firstTwoTurns()
 
         while True:
             # game.currMaxScore is not implemented
-            if self.game.currMaxScore >= 5:
+            if self.game.currMaxScore >= 2:
                 self.endGame()
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+
+                print curr_player.color
+                print curr_player.resources
+                option = raw_input("")
+
                 roll = 7
                 while roll == 7:
                    roll = self.game.rollDice()
@@ -121,15 +126,9 @@ class Play:
                 
                 # Working on the display functionality, so only run human turns for now
                 if curr_player.isAI:
-                    print "Running AI turn"
-                    print curr_player
                     self.run_AI_turn(curr_player)
                 else: 
-                    print "Why tho"
                     self.run_human_turn(curr_player)
-
-                print curr_player.resources
-                option = raw_input("Press a key to continue")
 
                 #if curr_player.isAi:
                 #    self.run_human_turn(curr_player)
@@ -139,6 +138,8 @@ class Play:
                     self.game.currMaxScore = curr_player.score
                 self.turnNum += 1
 
+                print "-----End Turn-----"
+
 #############################################################################
 ############################  Pregame Logic  ################################
 #############################################################################
@@ -147,7 +148,7 @@ class Play:
     def initial_placements(self, player):
         #Get all possible options (should be same for human or AI)
         possible_settlements = self.game.getSettlementLocations(player, True)
-        print('possible settlements = ' + str(possible_settlements))
+        # print('possible settlements = ' + str(possible_settlements))
         if player.isAI:
             #Get possible locations and place at a location
             settlementLoc = player.pick_settlement_position(possible_settlements)
@@ -162,8 +163,8 @@ class Play:
         else:
             #Find where the human wants to place the settlement
             settlementLoc = self.getCitySettlementLoc(possible_settlements, True)
-            for neighbour in settlementLoc.neighbours:
-                print neighbour.row, neighbour.col
+            # for neighbour in settlementLoc.neighbours:
+            #     print neighbour.row, neighbour.col
             player.place_settlement(settlementLoc, self.game, True)
             self.display.placeSettlement(settlementLoc, player)
 
@@ -198,10 +199,12 @@ class Play:
         #Get all possible moves player can make and send to AI for decision making
         possible_moves = self.game.getPossibleActions(player)
 
+        print "possible moves:", possible_moves
+
         #Get move from AI player
         move = player.pickMove(possible_moves)
         if not move:
-            print player.name,  "No move selected"
+            print player.color,  "No move selected"
             return
         
         print "move:",move

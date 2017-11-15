@@ -453,7 +453,6 @@ class Game(object):
             for node in row:
                 if node.isOccupied:
                     #Look at all tiles touching node
-                    print('node is occupied')
                     for tile in node.touchingTiles:
                         #If tile value was rolled and its not blocked, give out resources
                         if tile.value == roll and not tile.hasRobber:
