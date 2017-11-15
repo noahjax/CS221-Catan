@@ -336,11 +336,11 @@ class Game(object):
             second_node = road[1]
             first_node = road[0]
             for neighbour in second_node.neighbours:
-                if not (second_node, neighbour) in self.roads:
+                if not (second_node, neighbour) in self.roads and not (neighbour, second_node) in self.roads:
                     possible_locations.append((second_node, neighbour))
 
             for neighbour in first_node.neighbours:
-                if not (first_node, neighbour) in self.roads:
+                if not (first_node, neighbour) in self.roads and not (neighbour, first_node) in self.roads:
                     possible_locations.append((first_node, neighbour))
 
         for node in player.occupyingNodes:
