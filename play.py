@@ -105,7 +105,7 @@ class Play:
             player.resources['Grain'] = 3
             player.resources['Wool'] = 3
 
-        # self.firstTwoTurns()
+        self.firstTwoTurns()
 
         while True:
             # game.currMaxScore is not implemented
