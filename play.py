@@ -82,7 +82,7 @@ class Play:
         #     self.players.append(new_player)
 
         # Initialize the game 
-        initRobberTile = 9
+        initRobberTile = (2, 5)
         self.game = Game(self.players, self.board, initRobberTile)
         
         # Initialize the display with the generated tiles

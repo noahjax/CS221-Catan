@@ -1,6 +1,7 @@
 from game import *
 from pieces import *
 import display
+import board
 
 """
 Determines how devcards are created in game play, this will create
@@ -52,7 +53,7 @@ class Knight:
         print("Please click on the top central node of the tile where you would like to place the robber")
         position = display.getNode()
         display.placeRobber(position)
-        game.set_robber_location(position)
+        game.set_robber_location(position, display)
         players_to_give_cards = set()
 
         # Check all players that need to give a card

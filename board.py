@@ -89,6 +89,12 @@ class Board:
     def getNodeFromCoords(self, r, c):
         return self.nodes[r][c]
 
+    def getTileForNode(self, r, c):
+        for tile in self.tiles:
+            if tile.id == (r, c):
+                return tile
+        return None
+
 class Tile:
 
     def __init__(self, resource, value, has_robber, id):
