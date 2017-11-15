@@ -6,7 +6,7 @@ import board as bd
 class Display:
  
     screen = None
-    screenWidth, screenHeight = (640, 480)
+    screenWidth, screenHeight = (1280, 960)
 
     redDot, blueDot, greenDot, orangeDot, blackDot = (None, None, None, None, None)
     redRoad, blueRoad, greenRoad, orangeRoad, blackRoad = (None, None, None, None, None)
@@ -286,7 +286,7 @@ class Display:
 
     def placeSettlement(self, node, player):
         # Takes in a node object
-        print('placing settlement')
+        # print('placing settlement')
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
         self.permanentBlits.append((self.getDotForPlayer(player), (x1, y1)))
         self.update()

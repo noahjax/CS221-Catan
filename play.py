@@ -99,21 +99,28 @@ class Play:
         self.display.update() # Show the display in its initialized state
 
         for player in self.players:
-            player.resources['Ore'] = 3
-            player.resources['Brick'] = 3
-            player.resources['Wood'] = 3
-            player.resources['Grain'] = 3
-            player.resources['Wool'] = 3
+            player.resources['Ore'] = 0
+            player.resources['Brick'] = 0
+            player.resources['Wood'] = 0
+            player.resources['Grain'] = 0
+            player.resources['Wool'] = 0
 
         self.firstTwoTurns()
 
         while True:
             # game.currMaxScore is not implemented
-            if self.game.currMaxScore >= 5:
+            if self.game.currMaxScore >= 2:
                 self.endGame()
+                return
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+
+                print curr_player.color
+                print curr_player.resources
+                print curr_player.score
+                option = raw_input("")
+
                 roll = 7
                 while roll == 7:
                     roll = self.game.rollDice()
@@ -122,15 +129,9 @@ class Play:
                 
                 # Working on the display functionality, so only run human turns for now
                 if curr_player.isAI:
-                    print "Running AI turn"
-                    print curr_player
                     self.run_AI_turn(curr_player)
                 else: 
-                    print "Why tho"
                     self.run_human_turn(curr_player)
-
-                self.printResources(curr_player)
-                option = raw_input("Press a key to continue")
 
                 #if curr_player.isAi:
                 #    self.run_human_turn(curr_player)
@@ -139,6 +140,8 @@ class Play:
                 if curr_player.score > self.game.currMaxScore:
                     self.game.currMaxScore = curr_player.score
                 self.turnNum += 1
+
+                print "-----End Turn-----"
 
 #############################################################################
 ############################  Pregame Logic  ################################
@@ -200,10 +203,12 @@ class Play:
         #Get all possible moves player can make and send to AI for decision making
         possible_moves = self.game.getPossibleActions(player)
 
+        print "possible moves:", possible_moves
+
         #Get move from AI player
         move = player.pickMove(possible_moves)
         if not move:
-            print player.name,  "No move selected"
+            print player.color,  "No move selected"
             return
         
         print "move:",move
@@ -409,6 +414,7 @@ class Play:
         """
         Ends the game and returns the winner
         """
+        print "game ending"
         for player in self.players:
             if player.score >= 10:
                 print (player.name + " has won the game!")

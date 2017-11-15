@@ -13,7 +13,7 @@
 #     Brick = 'Brick'
 #     Grain = 'Grain'
 
-
+'''We should update the printing so that it prints node locations instead of the node objects'''
 class Settlement:
     """
     Represents the settlement piece
