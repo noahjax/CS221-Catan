@@ -108,14 +108,16 @@ class Game(object):
         
 
     #Handle moving the robber
-    def set_robber_location(self, location):
-        currPosition = self.robber_location
+    def set_robber_location(self, location, display):
+        currPosition = self.board.getTileForNode(self.robber_location[0], self.robber_location[1])
         currPosition.has_robber = False
         self.robber_location = location
-        location.has_robber = True
+        newRobberTile = self.board.getTileForNode(self.robber_location[0], self.robber_location[1])
+        # location.has_robber = True
+        newRobberTile.has_robber = True
 
-        self.display.placeRobber(location)
-        catan_log.log("Robber location moved to " + location)
+        display.placeRobber(location)
+        catan_log.log("Robber location moved to " + str(location))
 
 
 

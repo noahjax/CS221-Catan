@@ -126,11 +126,10 @@ class Display:
 
 
 
-    def placeRobber(self, tile):
+    def placeRobber(self, node):
         # Add the robber to tempBlits at the center of the specified tile
-        tx, ty = self.tileCenters[tile]
-        self.tempBlits['robber'] = (self.robber, (tx - int(self.robberWidth / 2), ty - int(self.robberHeight / 2)))
-
+        x, y, z, w = self.nodeLocs[node]
+        self.tempBlits['robber'] = (self.robber, (x, y + int(self.tileHeight / 2)))
 
 
     def getTextSurface(self, tile):
