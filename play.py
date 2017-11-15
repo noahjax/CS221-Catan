@@ -250,10 +250,12 @@ class Play:
             print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
     def get_and_play_devcard(self, type, currPlayer):
-        if type in currPlayer.devCards:
+        if type in currPlayer.devCards and currPlayer.devCards[type] != 0:
             card = currPlayer.devCards[type].pop(0)
             if type == 'Knight':
                 card.play(self.display, self.game)
+            elif type == 'Road':
+                return
             else:
                 card.play()
         else:
@@ -289,7 +291,7 @@ class Play:
             r, c = self.display.getNode()
             node2 = self.board.getNodeFromCoords(r,c)
             print(possiblePlacement)
-            print(node1,node2)
+            print(node1, node2)
             if (node1, node2) in possiblePlacement or (node2, node1) in possiblePlacement:
                 print "Leaving get Road Loc"
                 return node1, node2 
@@ -364,7 +366,7 @@ class Play:
 
             elif option == 'p':
                 while True:
-                    if len(curr_player.devCards) != 0:
+                    if curr_player.hasDevCards:
                         print ("You have the following development cards: ")
                         self.printDevCards(curr_player)
                         type = raw_input("Type (k, v, r, m, yp) to choose what you want to play, or hit enter to return: ")

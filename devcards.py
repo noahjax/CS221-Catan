@@ -64,6 +64,9 @@ class Knight:
                         if tile.hasRobber:
                             players_to_give_cards.add(oppPlayer)
 
+        if len(players_to_give_cards) == 0:
+            print("No players need to give cards")
+
         # For each of those players make them give a card
         for player in players_to_give_cards:
             player.give_card(self.player)
@@ -103,11 +106,8 @@ class RoadBuilding:
             Game.currMaxRoad = self.player.resources['Road']
             self.player.incrementScore(2)
 
-    def play(self, positions):
-        # Need to pick the two positions before this point (AI again)
-        for position in positions:
-            newRoad = Road(self.player, position)
-            self.player.roads.append(newRoad)
+    def play(self):
+        pass
 
 
 class Monopoly:

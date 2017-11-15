@@ -54,6 +54,16 @@ class Player:
         card = self.devCards[devCardString].pop(0)
         card.play()
 
+    def hasDevCards(self):
+        if not self.devCards:
+            return False
+
+        for card in self.devCards:
+            if self.devCards[card] != 0:
+                return True
+
+        return False
+
     #Places road in desired location, updates necessary data structures
     #roadLoc should be a pair of node objects
     def place_road(self, roadLoc, game, firstTurn=False):
@@ -173,13 +183,14 @@ class HumanPlayer(Player):
             to_discard = getResourceInput()
             self.discard_resource(to_discard)
 
-    def give_Card(self, oppPlayer):
+    def give_card(self, oppPlayer):
         print("You need to give a card to your opponent, please select one")
         resource = getResourceInput()
         self.resources[resource] -= 1
         self.numResources -= 1
         oppPlayer.resources[resource] += 1
         oppPlayer.resources += 1
+        print(self.name + " gave one " + resource + " to " + oppPlayer.name)
 
 
 #############################################################################
