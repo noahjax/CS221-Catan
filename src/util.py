@@ -60,3 +60,10 @@ def printDevCards(currPlayer):
     print('You have the following development cards: ')
     for devCard in currPlayer.devCards:
         print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
+
+# Move the robber
+def moveRobber(game, display):
+    print("Please click on the top central node of the tile where you would like to place the robber")
+    position = display.getNode()
+    display.placeRobber(position)
+    game.set_robber_location(position, display)
