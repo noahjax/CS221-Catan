@@ -97,11 +97,11 @@ class Play:
 
         # Initialize player resources
         for player in self.players:
-            player.resources['Ore'] = 5
-            player.resources['Brick'] = 5
-            player.resources['Wood'] = 5
-            player.resources['Grain'] = 5
-            player.resources['Wool'] = 5
+            player.resources['Ore'] = 0
+            player.resources['Brick'] = 0
+            player.resources['Wood'] = 0
+            player.resources['Grain'] = 0
+            player.resources['Wool'] = 0
 
         # Run first two turns
         self.first_two_turns()
@@ -109,13 +109,14 @@ class Play:
         while True:
             # Check if game is over
             if self.game.currMaxScore >= 10:
+                print self.turnNum
                 self.endGame()
                 return
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
 
-                print_player_stats(curr_player)
+                # print_player_stats(curr_player)
                 
                 # TODO: Doesn't handle moving robber yet
                 roll = rollDice()
@@ -211,10 +212,10 @@ class Play:
         
         # Print move for debugging purposes
         if not move:
-            print player.color,  "No move selected"
+            # print player.color,  "No move selected"
             return
         
-        print "move:",move
+        # print "move:",move
 
         # Act on move by placing pieces and updating graphics
         # TODO: Handle devCards and other possible actions
@@ -240,6 +241,13 @@ class Play:
                     elif piece == 'Road':
                         player.place_road(loc, self.game)
                         self.display.placeRoad(loc[0], loc[1], player)
+                    elif piece == 'DevCard':
+                        self.game.buyDevCard(player)
+
+        #Pick and play a devCard. Often won't do anything
+        devCard = player.pickDevCard()
+        if devCard: self.play_devcard(devCard, player)
+
 
 
 #############################################################################
@@ -432,8 +440,7 @@ class Play:
         print "game ending"
         for player in self.players:
             if player.score >= 10:
-                print (player.name + " has won the game!")
-                print(player.name + " has won the game!")
+                print(player.color, player.name + " has won the game!")
         stall_end = raw_input("you sure you wanna end right now")
 
 

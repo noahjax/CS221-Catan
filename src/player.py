@@ -244,6 +244,17 @@ class AiPlayer(Player):
             move[action] = move[action][:count]
 
         return move 
+
+    #Randomly pick and play a devCard
+    def pickDevCard(self):
+        options = [None]
+        for card, count in self.devCards.items():
+            if count > 0:
+                options.append(card)
+
+        return random.choice(options)
+        
+        
     
     #Random AI should still be able to do this at some point, even if not yet
     def give_card(self):

@@ -13,6 +13,10 @@ class Node:
         self.occupyingPiece = None
 
 
+    def __str__(self):
+        printStr = "Node: (" + str(self.row) + ", " + str(self.col) + ")"
+        return printStr
+
     def get_occupying_piece(self):
         return self.occupyingPiece
 

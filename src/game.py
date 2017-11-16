@@ -100,7 +100,7 @@ class Game(object):
 
             # Get devCard and give to player
             dev_card = self.devCards.pop()
-            print("You got a " + dev_card)
+            print("You got a " + dev_card.type)
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
@@ -110,14 +110,12 @@ class Game(object):
             else:
                 cur_player.devCards[dev_card] = [card_to_add]
 
-            printDevCards(cur_player)
+            # printDevCards(cur_player)
 
             # Log purchase
             name = cur_player.name
             catan_log.log(name + " bought " + dev_card)
 
-            catan_log.log("Couldn't buy devCard")
-        
 
     #Handle moving the robber
     def set_robber_location(self, location, display):
@@ -197,9 +195,8 @@ class Game(object):
         resources['Grain'] -= 1 * i
 
     #Handles recursion to explore items you can buy
-    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=5):
+    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=4):
 
-        print depth
         #Only recurse 5 levels to limit running time
         if depth <= 0: return
 
@@ -238,13 +235,13 @@ class Game(object):
 
         #Check if you can buy a DevCard, if you can, recurse
         if self.canBuyDevCard(resources):
-            cur_pieces['DevCard'] += 1
+            cur_pieces['buyDevCard'] += 1
             # self.updateDevCardResources(resources)
             subtractResources(resources, self.devCard_cost)
             self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth - 1)
             addResources(resources, self.devCard_cost)
             # self.updateDevCardResources(resources, add=True)
-            cur_pieces['DevCard'] -= 1
+            cur_pieces['buyDevCard'] -= 1
 
         #Check if you can exchange any of your resources
         for resource, count in resources.items():
