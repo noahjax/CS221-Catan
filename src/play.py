@@ -105,7 +105,7 @@ class Play:
             player.numResources = 25
 
         # Run first two turns
-        self.first_two_turns()
+        # self.first_two_turns()
 
         while True:
             # Check if game is over
@@ -338,6 +338,8 @@ class Play:
         
         # More debug print statements
         print('exited')
+        self.updateDevCards(curr_player)
+
         printResources(curr_player)
         printDevCards(curr_player)
 
@@ -410,6 +412,15 @@ class Play:
         else:
             print("Sorry you do not have that dev card")
             return False
+
+    def updateDevCards(self, currPlayer):
+        for type_card in currPlayer.newDevCards.keys():
+            for num_cards in range(len(currPlayer.newDevCards[type_card])):
+                card_to_add = currPlayer.newDevCards[type_card].pop(0)
+                if type_card in currPlayer.devCards.keys():
+                    currPlayer.devCards[type_card].append(card_to_add)
+                else:
+                    currPlayer.devCards[type_card] = [card_to_add]
 
 #############################################################################
 ###########################   End Game  #####################################
