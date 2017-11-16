@@ -31,16 +31,37 @@ class Game(object):
         self.robber_location = robber_tile
         self.roads = []
 
+        '''Set up dicts for the resources in typical game purchases'''
+        self.settlement_cost = defaultdict(int)
+        self.city_cost = defaultdict(int)
+        self.road_cost = defaultdict(int)
+        self.devCard_cost = defaultdict(int)
+        self.initialize_resource_dicts()
+
         catan_log.log("Game class intitialized")
 
-    # Rolls dice, returns value
-    # Might just make a util.py for this type of stuff
+    ################################################################
+    ##################   Initialize Cost Dicts   ###################
+    ################################################################
+    def initialize_resource_dicts(self):
+        #Settlements
+        self.settlement_cost['Brick'] = 1
+        self.settlement_cost['Wool'] = 1
+        self.settlement_cost['Grain'] = 1
+        self.settlement_cost['Wool'] = 1
 
-    #Return possible locations where a piece can be placed. Board and cur_player can be accessed through self
-    # def getPossibleLocations(self, piece):
+        #Cities
+        self.city_cost['Ore'] = 3
+        self.city_cost['Grain'] = 2
 
-    #Handle buying a piece. cur_player can be accessed through self, and each player should store thier own available resource cards.
-    # def buyPiece(self, piece):
+        #Roads
+        self.road_cost['Brick'] = 1
+        self.road_cost['Wood'] = 1
+
+        #DevCards
+        self.devCard_cost['Ore'] = 1
+        self.devCard_cost['Wool'] = 1
+        self.devCard_cost['Grain'] = 1
 
     ################################################################
     #######################   Dev Cards   ##########################
@@ -109,55 +130,7 @@ class Game(object):
 
         display.placeRobber(location)
         catan_log.log("Robber location moved to " + str(location))
-
-
-
-    
-    ################################################################
-    #######################   Pieces   #############################
-    ################################################################
-   
-        
-
-    
-
-
-
-        
-
-    # #Buy piece
-    # def buyPiece(self, player_num, piecetype):
-    #     if not self.canBuyPiece(player_num, piecetype): 
-    #         print("You don't have enough resources to buy this piece")
-    #         return
-    #     resources_needed = defaultdict(str)
-    #     #Put values in resources needed based on the piece type
-    #     if piecetype == "Settlement":
-    #         resources_needed['Brick'] = 1
-    #         resources_needed['Wood'] = 1
-    #         resources_needed['Wool'] = 1
-    #         resources_needed['Grain'] = 1
-    #     elif piecetype == "City":
-    #         resources_needed['Ore'] = 3
-    #         resources_needed['Grain'] = 2
-    #     elif piecetype == "Road":
-    #         resources_needed['Brick'] = 1
-    #         resources_needed['Wood'] = 1
-    
-    #     #Get resources the player has
-    #     cur_resources = self.players[player_num].resources
-
-    #     #Update players resources
-    #     for key in resources_needed:
-    #         cur_resources[key] -= resources_needed[key]
-
-    #     #Give piece to player
-    #     self.players[player_num].pieces[piecetype] += 1
-
-    ###Need better understanding of board architecture to implement these
-    # def canPlacePiece()
-    # def getAvailableLocations()        
-    # def placePiece():
+      
 
     ################################################################
     ######################   Get Actions   #########################
@@ -180,6 +153,8 @@ class Game(object):
         -function piecesPurchasable(self,player) returns all possible things you can purchase
         -function getLocations returns possible placements for each piece
     '''
+    
+    
     # First group of helpers to determine if you can buy an item
     def canBuyRoad(self, resources):
         return resources['Brick'] >= 1 and resources['Wood'] >= 1
@@ -223,45 +198,55 @@ class Game(object):
 
     #Handles recursion to explore items you can buy
     def findResourceCombos(self, resources, pieces, ans):
-        print("hi")
+
         #Copy pieces so we don't modify it as we recur
         cur_pieces = pieces.copy()
 
         #Check if you can buy a road, if you can, recurse without road resources
         if self.canBuyRoad(resources):
             cur_pieces['Road'] += 1
-            self.updateRoadResources(resources)
+            # self.updateRoadResources(resources)
+            print resources
+            subtractResources(resources, self.road_cost)
+            print resources
+            return
             self.findResourceCombos(resources, cur_pieces, ans)
-            self.updateRoadResources(resources, add=True)
+            addResources(resources, self.road_cost)
+            # self.updateRoadResources(resources, add=True)
             cur_pieces['Road'] -= 1
 
         #Check if you can buy a settlement, if you can, recurse
         if self.canBuySettlement(resources):
             cur_pieces['Settlement'] += 1
-            self.updateSettlementResources(resources)
+            # self.updateSettlementResources(resources)
+            subtractResources(resources, self.settlement_cost)
             self.findResourceCombos(resources, cur_pieces, ans)
-            self.updateSettlementResources(resources, add=True)
+            addResources(resources, self.settlement_cost)
+            # self.updateSettlementResources(resources, add=True)
             cur_pieces['Settlement'] -= 1
 
         #Check if you can buy a city, if you can, recurse
         if self.canBuyCity(resources):
             cur_pieces['City'] += 1
-            self.updateSettlementResources(resources)
+            # self.updateSettlementResources(resources)
+            subtractResources(resources, self.city_cost)
             self.findResourceCombos(resources, cur_pieces, ans)
-            self.updateSettlementResources(resources, add=True)
+            addResources(resources, self.city_cost)            
+            # self.updateSettlementResources(resources, add=True)
             cur_pieces['City'] -= 1
 
         #Check if you can buy a DevCard, if you can, recurse
         if self.canBuyDevCard(resources):
             cur_pieces['DevCard'] += 1
-            self.updateDevCardResources(resources)
+            # self.updateDevCardResources(resources)
+            subtractResources(resources, self.devCard_cost)
             self.findResourceCombos(resources, cur_pieces, ans)
-            self.updateDevCardResources(resources, add=True)
+            addResources(resources, self.devCard_cost)
+            # self.updateDevCardResources(resources, add=True)
             cur_pieces['DevCard'] -= 1
 
         #Remove 0 values and add to answer
-        cur_pieces = defaultdict(int, dict((k, v)
-                                           for k, v in cur_pieces.items() if v))
+        cur_pieces = defaultdict(int, dict((k, v) for k, v in cur_pieces.items() if v))
         if cur_pieces not in ans:
             ans.append(cur_pieces)
 
@@ -269,13 +254,60 @@ class Game(object):
     #you can buy given a player with some resources
     def piecesPurchasable(self, player):
         player_resources = player.resources
+        exchange_rates = player.exchangeRates
+        
+        #Look at trades the person could make to get different resources
+        possible_resources = self.resource_exchanges(player_resources, exchange_rates)
+        
         ans = []
         pieces = defaultdict(int)
-        self.findResourceCombos(player_resources, pieces, ans)
+        self.findResourceCombos(player_resources, pieces, ans, 5)
+
+        for move, newResources in possible_resources:
+            newAns = []
+            newPieces = {}
+            self.findResourceCombos(newResources, newPieces, newAns, 4)
+            newAns 
 
         catan_log.log("Found pieces purchasable for " + player.name)
 
         return ans
+
+    '''
+    Returns dicts of resources you could have if you traded in your resources at the given exchange rate
+        -return format is a tuple [((traded_resource, count), [{resource: count, resource:count}, {res..}]), ...]
+    '''
+    def resource_exchanges(self, resources, exchange_rates):
+        q = deque(resources)
+        seen = [resources]
+        ans = []
+
+        #Number of loops determines recursive depth...shouldn't need to be high
+        for _ in range(3):
+            #Check if there are any options left to consider
+            if not q: break
+            #Get resources and make sure we haven't explored them before
+            cur_resources = q.pop()
+            if resources in seen: continue
+            
+            #Find resources we could exchange
+            for resource, count in cur_resources.items():
+                if count >= exchange_rates[resource]:
+                    left = (resource, exchange_rates[resource])
+                    right = []
+                    #Explore possible new resources to give yourself
+                    for new_resource, new_count in cur_resources:
+                        #Don't trade in for the resource you just had
+                        if new_resource != resource:
+                            appendRes = cur_resources.copy()
+                            appendRes[new_resource] += 1
+                            appendRes[resource] -= exchange_rates[resource]
+                            #Append to 
+                            right.append(appendRes)
+                            if appendRes not in q:
+                                q.appendleft(appendRes)
+
+                    ans.append((left, right))
 
     #Simple test
     def testPiecesPurchasable(self):
@@ -306,20 +338,61 @@ class Game(object):
             -Victory Point
             -etc
         -end turn
+        -Exchange resources
+            -Not quite trading because set exchange rates
         -trade (to be implemented later)
 
-
         Return format:
-        [(piece, location)]
+        List dicts of [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
+            -dict entries can be in form:
+                -(piece, count): [locs,...]
+                # Liable to change
+                -(resource, amount) : newResource (amount can be assumed to be 1)
+
+        TODO: DevCard related actions
     '''
 
+    #Returns a list lists of [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
+    #that represent buying and placing pieces.
+    def getPossibleActions(self, player):
+        #Get possible purchases
+        possiblePurchases = self.piecesPurchasable(player)
+
+        actions = [None]
+        #Loop over each purchase and define the locations for each piece in the purchase
+        for purchase in possiblePurchases:
+            #Dict to store {(piece,count) : [locations]} pairs
+            cur_action = {}
+            locations = []
+            #Get locations for each piece
+            for piece, count in purchase.items():
+                if piece == 'City':
+                    locations = self.getCityLocations(player)
+                elif piece == 'Road':
+                    locations = self.getRoadLocations(player)
+                elif piece == 'Settlement':
+                    locations = self.getSettlementLocations(player)
+
+                #Add to dict if there are enough valid locations
+                if len(locations) < count:
+                    continue
+                cur_action[(piece, count)] = locations
+            #Add this dict to the list of possible actions
+            if cur_action:
+                actions.append(cur_action)
+
+        catan_log.log("Found possible actions for " + player.name)
+
+        return actions
+    
     # Get valid road locations
     def getRoadLocations(self, player):
         possible_locations = []
 
+        #Check the ends of existing roads as a place to put new roads
         for road in player.roads:
-            second_node = road[1]
             first_node = road[0]
+            second_node = road[1]
             for neighbour in second_node.neighbours:
                 if not (second_node, neighbour) in self.roads and not (neighbour, second_node) in self.roads:
                     possible_locations.append((second_node, neighbour))
@@ -382,41 +455,7 @@ class Game(object):
 
         return possible_locations
 
-    '''
-    Put together possible purchases and possible locations to get all possible actions
-    TODO: devCard related actions
-    '''
-
-    #Returns a list lists of [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...] 
-    #that represent buying and placing pieces.
-    def getPossibleActions(self, player):
-        #Get possible purchases
-        possiblePurchases = self.piecesPurchasable(player)
-
-        actions = [None]
-        #Loop over each purchase and define the locations for each piece in the purchase
-        for purchase in possiblePurchases:
-            #Dict to store {(piece,count) : [locations]} pairs
-            cur_action = {}
-            locations = []
-            #Get locations for each piece
-            for piece, count in purchase.items():
-                if piece == 'City':
-                    locations = self.getCityLocations(player)
-                elif piece == 'Road':
-                    locations = self.getRoadLocations(player)
-                elif piece == 'Settlement':
-                    locations = self.getSettlementLocations(player)
-                
-                #Add to dict if there are enough valid locations
-                if len(locations) < count: continue
-                cur_action[(piece, count)] = locations
-            #Add this dict to the list of possible actions
-            if cur_action: actions.append(cur_action)
-        
-        catan_log.log("Found possible actions for " + player.name)
-
-        return actions
+   
 
 
 #############################################################################

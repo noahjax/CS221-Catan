@@ -60,3 +60,21 @@ def printDevCards(currPlayer):
     print('You have the following development cards: ')
     for devCard in currPlayer.devCards:
         print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
+
+# Helper function to add resources. Assumes use of defaultdicts
+def addResources(resources, toAdd):
+    for resource, count in toAdd.items():
+        resources[resource] += count
+
+# Helper function to subtract resources. Assumes use of defaultdicts
+def subtractResources(resources, toSub):
+    for resource, count in toSub.items():
+        print resource,count
+        resources[resource] -= count
+
+# Helper function to check if resource amounts are valid. Helpful for canBuy(x)
+### May not be useful ###
+def areValidResources(resources):
+    for count in resources.values():
+        if count < 0: return False
+    return True

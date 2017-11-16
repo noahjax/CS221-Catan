@@ -28,6 +28,9 @@ class Player:
         self.roads = []
         self.occupyingNodes = []
 
+        #Rates that you can swap cards in at. Currently 4 for all cards but can change as we introduce ports
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4}
+
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []
         self.numKnights = 0
