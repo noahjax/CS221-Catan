@@ -66,6 +66,23 @@ def printDevCards(currPlayer, endTurn = False):
     for devCard in currPlayer.devCards:
         print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
+# Helper function to add resources. Assumes use of defaultdicts
+def addResources(resources, toAdd):
+    for resource, count in toAdd.items():
+        resources[resource] += count
+
+# Helper function to subtract resources. Assumes use of defaultdicts
+def subtractResources(resources, toSub):
+    for resource, count in toSub.items():
+        resources[resource] -= count
+
+# Helper function to check if resource amounts are valid. Helpful for canBuy(x)
+### May not be useful ###
+def areValidResources(resources):
+    for count in resources.values():
+        if count < 0: return False
+    return True
+
 # Move the robber
 def moveRobber(game, display):
     print("Please click on the top central node of the tile where you would like to place the robber")

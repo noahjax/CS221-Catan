@@ -29,6 +29,10 @@ class Player:
         self.roads = []
         self.occupyingNodes = []
 
+        #Rates that you can swap cards in at. Currently 4 for all cards but can change as we introduce ports
+        #At some point we should make it so desert doesn't get distributed to people at all
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':100000}
+
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []
         self.numKnights = 0
@@ -255,6 +259,17 @@ class AiPlayer(Player):
             move[action] = move[action][:count]
 
         return move 
+
+    #Randomly pick and play a devCard
+    def pickDevCard(self):
+        options = [None]
+        for card, count in self.devCards.items():
+            if count > 0:
+                options.append(card)
+
+        return random.choice(options)
+        
+        
     
     #Random AI should still be able to do this at some point, even if not yet
     def give_card(self):
