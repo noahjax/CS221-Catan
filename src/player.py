@@ -9,6 +9,8 @@ import copy
 Player superclass for shared functionality across human and AI players. Should be 
 mostly useful for initialization and establishing values that the player stores.
 '''
+
+
 class Player:
     def __init__(self, turn_num, name, color):
 
@@ -20,11 +22,12 @@ class Player:
         self.color = color
         self.score = 0
 
-        #Storing these in dict to make it easy to figure out how many they have. {"item": count}
+        # Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(int)
         self.devCards = defaultdict(int)
         self.roads = []
         self.occupyingNodes = []
+
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []
         self.numKnights = 0
@@ -35,7 +38,7 @@ class Player:
         # Store the two tuples of coordinates where the initial settlements are placed
         self.initialSettlementCoords = [] 
 
-    #Allows you to check if two players are equal...Not sure if we need it, but may come in handy
+    # Allows you to check if two players are equal...Not sure if we need it, but may come in handy
     def __eq__(self, other):
         if other is None:
             return False
@@ -47,13 +50,12 @@ class Player:
                 and self.devCards == other.devCards
                 and self.resources == other.resources)
 
+    # Increment a players score by a certain amount
     def incrementScore(self, value):
         self.score += value
 
-        return False
-
-    #Places road in desired location, updates necessary data structures
-    #roadLoc should be a pair of node objects
+    # Places road in desired location, updates necessary data structures
+    # roadLoc should be a tuple of node objects
     def place_road(self, roadLoc, game, firstTurn=False):
         self.roads.append(roadLoc)
         game.roads.append(roadLoc)
@@ -61,7 +63,7 @@ class Player:
             game.updateRoadResources(self.resources)
         # TODO: Check longest road logic
 
-    #Places settlement in desired location, updates necessary data structures
+    # Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
         print "placing settlement", node.row, node.col
         settlement_to_add = Settlement(self, node)
@@ -77,7 +79,7 @@ class Player:
         else:
             game.updateSettlementResources(self.resources)
 
-    #Places city in desired location, updates necessary data structures
+    # Places city in desired location, updates necessary data structures
     def place_city(self, node, game):
         prev_settlement = node.get_occupying_piece()
         self.cities_and_settlements.remove(prev_settlement)
@@ -87,15 +89,15 @@ class Player:
         self.incrementScore(1)
         game.updateCityResources(self.resources)
 
-    #Allows a player to discard a resource
+    # Allows a player to discard a resource
     def discard_resource(self, resource):
         if resource in self.resources and self.resources[resource] > 0:
             self.resources[resource] -= 1
         else:
             print("Sorry you do not have any of these to discard")
 
-    #Should be called whenever a road is built. 
-    #Needs board?
+    # Should be called whenever a road is built.
+    # Needs board?
     def updateLongestRoad(self):
         # Get the maximum two paths leading away from the starting point
         # return their sum

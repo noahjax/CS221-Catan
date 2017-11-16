@@ -107,7 +107,7 @@ class Play:
         self.first_two_turns()
 
         while True:
-            #Check if game is over
+            # Check if game is over
             if self.game.currMaxScore >= 10:
                 self.endGame()
                 return
@@ -209,7 +209,7 @@ class Play:
         # Get move from AI player
         move = player.pickMove(possible_moves)
         
-        #Print move for debugging purposes
+        # Print move for debugging purposes
         if not move:
             print player.color,  "No move selected"
             return
@@ -263,7 +263,7 @@ class Play:
         # Wait for clicks which define the road
         while True:
             # Convert from node coordinates used in display to Node objects
-            r,c = self.display.getNode()
+            r, c = self.display.getNode()
             node1 = self.board.getNodeFromCoords(r,c)
             r, c = self.display.getNode()
             node2 = self.board.getNodeFromCoords(r,c)
@@ -292,16 +292,16 @@ class Play:
         # Options are to buy something or end turn
         print('It is ' + curr_player.name + '\'s turn \n')
 
-        #Debug print statements
+        # Debug print statements
         printResources(curr_player)
         printDevCards(curr_player)
         
-        #Loop until user indicates to exit and end turn
+        # Loop until user indicates to exit and end turn
         while True:
             option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
             if option == 'b':
                 
-                #Loop until player is done buying things
+                # Loop until player is done buying things
                 while True:
                     buyType = raw_input('type (s, c, r, d) to buy something, or hit enter to return: ')
 
@@ -330,7 +330,7 @@ class Play:
                 # Loop until player is done playing devCards
                 devCardString = get_devcard_prompt()
                 
-                #Wait until player 
+                # Wait until player
                 while not self.play_devcard(devCardString, curr_player):
                     if devCardString == '': break
                     devCardString = get_devcard_prompt()
@@ -338,7 +338,7 @@ class Play:
             elif option == '':
                 break 
         
-        #More debug print statements
+        # More debug print statements
         print('exited')
         printResources(curr_player)
         printDevCards(curr_player)
@@ -412,19 +412,6 @@ class Play:
         else:
             print("Sorry you do not have that dev card")
             return False
-
-    ''' TODO: Do we need this? We have game.buyDevCard that updates resources
-
-    def buy_dev_card(self, curr_player):
-        print ("You have the following development cards: ")
-        printDevCards(curr_player)
-        dev_card = get_devcard_prompt()
-        if dev_card != "":
-            self.play_devcard(dev_card, curr_player)
-            return True
-        else:
-            return False
-    '''
 
 #############################################################################
 ###########################   End Game  #####################################
