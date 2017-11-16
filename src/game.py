@@ -197,20 +197,21 @@ class Game(object):
         resources['Grain'] -= 1 * i
 
     #Handles recursion to explore items you can buy
-    def findResourceCombos(self, resources, pieces, ans):
+    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=5):
 
-        #Copy pieces so we don't modify it as we recur
+        print depth
+        #Only recurse 5 levels to limit running time
+        if depth <= 0: return
+
+        #Copy pieces so we don't modify it as we recurse
         cur_pieces = pieces.copy()
 
         #Check if you can buy a road, if you can, recurse without road resources
         if self.canBuyRoad(resources):
             cur_pieces['Road'] += 1
             # self.updateRoadResources(resources)
-            print resources
             subtractResources(resources, self.road_cost)
-            print resources
-            return
-            self.findResourceCombos(resources, cur_pieces, ans)
+            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-1)
             addResources(resources, self.road_cost)
             # self.updateRoadResources(resources, add=True)
             cur_pieces['Road'] -= 1
@@ -220,7 +221,7 @@ class Game(object):
             cur_pieces['Settlement'] += 1
             # self.updateSettlementResources(resources)
             subtractResources(resources, self.settlement_cost)
-            self.findResourceCombos(resources, cur_pieces, ans)
+            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans,depth - 1)
             addResources(resources, self.settlement_cost)
             # self.updateSettlementResources(resources, add=True)
             cur_pieces['Settlement'] -= 1
@@ -230,7 +231,7 @@ class Game(object):
             cur_pieces['City'] += 1
             # self.updateSettlementResources(resources)
             subtractResources(resources, self.city_cost)
-            self.findResourceCombos(resources, cur_pieces, ans)
+            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth - 1)
             addResources(resources, self.city_cost)            
             # self.updateSettlementResources(resources, add=True)
             cur_pieces['City'] -= 1
@@ -240,10 +241,25 @@ class Game(object):
             cur_pieces['DevCard'] += 1
             # self.updateDevCardResources(resources)
             subtractResources(resources, self.devCard_cost)
-            self.findResourceCombos(resources, cur_pieces, ans)
+            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth - 1)
             addResources(resources, self.devCard_cost)
             # self.updateDevCardResources(resources, add=True)
             cur_pieces['DevCard'] -= 1
+
+        #Check if you can exchange any of your resources
+        for resource, count in resources.items():
+            if count >= exchange_rates[resource]:
+                resources[resource] -= exchange_rates[resource]
+                #Add a new resource
+                for addResource in resources:
+                    if addResource != resource:
+                        resources[addResource] += 1
+                        # Store exchanges in form (trade in, recieve): exchange rate
+                        cur_pieces[(resource, addResource)] = exchange_rates[resource]
+                        self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-2)
+                        resources[addResource] += 1
+
+                resources[resource] += exchange_rates[resource]
 
         #Remove 0 values and add to answer
         cur_pieces = defaultdict(int, dict((k, v) for k, v in cur_pieces.items() if v))
@@ -257,17 +273,17 @@ class Game(object):
         exchange_rates = player.exchangeRates
         
         #Look at trades the person could make to get different resources
-        possible_resources = self.resource_exchanges(player_resources, exchange_rates)
+        # possible_resources = self.resource_exchanges(player_resources, exchange_rates)
         
         ans = []
         pieces = defaultdict(int)
-        self.findResourceCombos(player_resources, pieces, ans, 5)
+        self.findResourceCombos(exchange_rates, player_resources, pieces, ans)
 
-        for move, newResources in possible_resources:
-            newAns = []
-            newPieces = {}
-            self.findResourceCombos(newResources, newPieces, newAns, 4)
-            newAns 
+        # for move, newResources in possible_resources:
+        #     newAns = []
+        #     newPieces = {}
+        #     self.findResourceCombos(newResources, newPieces, newAns, 4)
+        #     newAns 
 
         catan_log.log("Found pieces purchasable for " + player.name)
 
@@ -277,37 +293,37 @@ class Game(object):
     Returns dicts of resources you could have if you traded in your resources at the given exchange rate
         -return format is a tuple [((traded_resource, count), [{resource: count, resource:count}, {res..}]), ...]
     '''
-    def resource_exchanges(self, resources, exchange_rates):
-        q = deque(resources)
-        seen = [resources]
-        ans = []
+    # def resource_exchanges(self, resources, exchange_rates):
+    #     q = deque(resources)
+    #     seen = [resources]
+    #     ans = []
 
-        #Number of loops determines recursive depth...shouldn't need to be high
-        for _ in range(3):
-            #Check if there are any options left to consider
-            if not q: break
-            #Get resources and make sure we haven't explored them before
-            cur_resources = q.pop()
-            if resources in seen: continue
+    #     #Number of loops determines recursive depth...shouldn't need to be high
+    #     for _ in range(3):
+    #         #Check if there are any options left to consider
+    #         if not q: break
+    #         #Get resources and make sure we haven't explored them before
+    #         cur_resources = q.pop()
+    #         if resources in seen: continue
             
-            #Find resources we could exchange
-            for resource, count in cur_resources.items():
-                if count >= exchange_rates[resource]:
-                    left = (resource, exchange_rates[resource])
-                    right = []
-                    #Explore possible new resources to give yourself
-                    for new_resource, new_count in cur_resources:
-                        #Don't trade in for the resource you just had
-                        if new_resource != resource:
-                            appendRes = cur_resources.copy()
-                            appendRes[new_resource] += 1
-                            appendRes[resource] -= exchange_rates[resource]
-                            #Append to 
-                            right.append(appendRes)
-                            if appendRes not in q:
-                                q.appendleft(appendRes)
+    #         #Find resources we could exchange
+    #         for resource, count in cur_resources.items():
+    #             if count >= exchange_rates[resource]:
+    #                 left = (resource, exchange_rates[resource])
+    #                 right = []
+    #                 #Explore possible new resources to give yourself
+    #                 for new_resource, new_count in cur_resources:
+    #                     #Don't trade in for the resource you just had
+    #                     if new_resource != resource:
+    #                         appendRes = cur_resources.copy()
+    #                         appendRes[new_resource] += 1
+    #                         appendRes[resource] -= exchange_rates[resource]
+    #                         #Append to 
+    #                         right.append(appendRes)
+    #                         if appendRes not in q:
+    #                             q.appendleft(appendRes)
 
-                    ans.append((left, right))
+    #                 ans.append((left, right))
 
     #Simple test
     def testPiecesPurchasable(self):
@@ -480,7 +496,7 @@ class Game(object):
                     # Look at all tiles touching node
                     for tile in node.touchingTiles:
                         # If tile value was rolled and its not blocked, give out resources
-                        if tile.value == roll and not tile.hasRobber:
+                        if tile.value == roll and not tile.hasRobber and tile.resource != 'Desert':
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
                     

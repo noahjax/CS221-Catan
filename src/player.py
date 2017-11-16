@@ -29,7 +29,8 @@ class Player:
         self.occupyingNodes = []
 
         #Rates that you can swap cards in at. Currently 4 for all cards but can change as we introduce ports
-        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4}
+        #At some point we should make it so desert doesn't get distributed to people at all
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':100000}
 
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []

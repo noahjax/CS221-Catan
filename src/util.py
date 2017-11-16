@@ -69,7 +69,6 @@ def addResources(resources, toAdd):
 # Helper function to subtract resources. Assumes use of defaultdicts
 def subtractResources(resources, toSub):
     for resource, count in toSub.items():
-        print resource,count
         resources[resource] -= count
 
 # Helper function to check if resource amounts are valid. Helpful for canBuy(x)
