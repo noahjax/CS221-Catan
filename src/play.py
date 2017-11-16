@@ -220,17 +220,26 @@ class Play:
         # TODO: Handle devCards and other possible actions
         for action, locs in move.items():
             piece, count = action
-            # Might want to flip structure of for loop and if statements
-            for loc in locs:
-                if piece == 'Settlement':
-                    player.place_settlement(loc, self.game)
-                    self.display.placeSettlement(loc, player)
-                elif piece == 'City':
-                    player.place_city(loc, self.game)
-                    self.display.placeCity(loc, player)
-                elif piece == 'Road':
-                    player.place_road(loc, self.game)
-                    self.display.placeRoad(loc[0], loc[1], player)
+
+            #Exchange resources
+            if isinstance(piece, tuple):
+                oldResource, newResource = piece
+                player.resources[oldResource] -= count
+                player.resources[newResource] += 1
+                
+            #Place piece
+            else:
+                # Might want to flip structure of for loop and if statements
+                for loc in locs:
+                    if piece == 'Settlement':
+                        player.place_settlement(loc, self.game)
+                        self.display.placeSettlement(loc, player)
+                    elif piece == 'City':
+                        player.place_city(loc, self.game)
+                        self.display.placeCity(loc, player)
+                    elif piece == 'Road':
+                        player.place_road(loc, self.game)
+                        self.display.placeRoad(loc[0], loc[1], player)
 
 
 #############################################################################
