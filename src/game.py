@@ -60,12 +60,10 @@ class Game(object):
     def canBuyDevCard(self, resources):
         # Make sure there are devCards left
         if not self.devCards:
-            print("Sorry there are no devcards left to buy")
             return False
 
         # Check if player has the resources to buy a devCard
         if resources['Ore'] < 1 or resources['Wool'] < 1 or resources['Grain'] < 1:
-            print("You don't have enough resources to buy a devCard")
             return False
         
         return True
@@ -94,6 +92,12 @@ class Game(object):
             # Log purchase
             name = cur_player.name
             catan_log.log(name + " bought " + dev_card)
+
+        else:
+            if not self.devCards:
+                print("Sorry there are no devcards left to buy")
+            else:
+                print("You don't have enough resources to buy a devCard")
 
             catan_log.log("Couldn't buy devCard")
         
@@ -426,12 +430,12 @@ class Game(object):
     Function to distribute resources after every roll
     """
     # Can access board through self, so really just need roll
-    def distributeResources(self, roll):
+    def distributeResources(self, roll, display):
         if roll == 7:
             print("Please move the robber. No resources to distribute")
-            # TODO: Need to ask player to move the robber
+            moveRobber(self, display)
             for player in self.players:
-                if len(player.resources) > 7:
+                if player.numResources > 7:
                     player.over_seven()
 
         # Loop over nodes and see if they are touching a tile with the rolled value

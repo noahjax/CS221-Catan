@@ -102,6 +102,7 @@ class Play:
             player.resources['Wood'] = 5
             player.resources['Grain'] = 5
             player.resources['Wool'] = 5
+            player.numResources = 25
 
         # Run first two turns
         self.first_two_turns()
@@ -116,14 +117,11 @@ class Play:
                 curr_player = self.players[curr_turn % self.num_players]
 
                 print_player_stats(curr_player)
-                
-                # TODO: Doesn't handle moving robber yet
+
                 roll = rollDice()
-                while roll == 7:
-                    roll = rollDice()
 
                 # Distribute resources given the last roll
-                self.game.distributeResources(roll)
+                self.game.distributeResources(roll, self.display)
                 
                 # Play the given turn
                 if curr_player.isAI:
@@ -380,8 +378,8 @@ class Play:
             print("Sorry you do not have the resources to buy a City")
 
     # Initiates logic to buy and place a road
-    def buy_and_place_road(self, curr_player):
-        if self.game.canBuyRoad(curr_player.resources):
+    def buy_and_place_road(self, curr_player, devCard = False):
+        if self.game.canBuyRoad(curr_player.resources) or devCard:
             possiblePlacements = self.game.getRoadLocations(curr_player)
             if len(possiblePlacements) == 0:
                 print("Sorry there are no valid road locations")
@@ -404,9 +402,9 @@ class Play:
             card = currPlayer.devCards[type].pop(0)
             if type == 'Knight':
                 card.play(self.display, self.game)
-            # TODO: What does this check do? Why would type be road
-            elif type == 'Road':
-                return True
+            elif type == 'Road Building':
+                for i in range(2):
+                    self.buy_and_place_road(currPlayer, True)
             else:
                 card.play()
         else:
