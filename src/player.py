@@ -1,9 +1,9 @@
-from util import *
 from collections import defaultdict
 from pieces import *
 from game import *
 import random
 import copy
+import util
 
 '''
 Player superclass for shared functionality across human and AI players. Should be 
@@ -25,6 +25,7 @@ class Player:
         # Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(int)
         self.devCards = defaultdict(int)
+        self.newDevCards = defaultdict(int)
         self.roads = []
         self.occupyingNodes = []
 
@@ -97,6 +98,7 @@ class Player:
     def discard_resource(self, resource):
         if resource in self.resources and self.resources[resource] > 0:
             self.resources[resource] -= 1
+            self.numResources -= 1
         else:
             print("Sorry you do not have any of these to discard")
 
@@ -168,16 +170,16 @@ class HumanPlayer(Player):
     '''
     # Deals with a player having more than 7 cards when a seven is rolled
     def over_seven(self):
-        while len(self.resources) > 7:
+        while self.numResources > 7:
             print("You have more than 7 resources, they are as follows: ")
             for resource in self.resources:
                 print(resource + ": " + str(self.resources[resource]))
-            to_discard = getResourceInput()
+            to_discard = util.getResourceInput()
             self.discard_resource(to_discard)
 
     def give_card(self, oppPlayer):
         print("You need to give a card to your opponent, please select one")
-        resource = getResourceInput()
+        resource = util.getResourceInput()
         self.resources[resource] -= 1
         self.numResources -= 1
         oppPlayer.resources[resource] += 1
@@ -217,6 +219,19 @@ class AiPlayer(Player):
    
     def pick_settlement_position(self, possible_locations):
         return random.choice(possible_locations)
+
+    def moveRobber(self, game, display):
+        # TODO: write logic for the AI to get the possible robber locations
+        pass
+
+    # If the AI has over seven cards currently just discard all until you get a
+    def over_seven(self):
+        while self.numResources > 7:
+           for resource in self.resources:
+               if self.resources[resource] > 0:
+                   self.resources[resource] -= 1
+                   self.numResources -= 1
+
 
     #Don't think we need this considering that this is probably for pregame
     # def pick_city_position(self, possible_locations):
@@ -263,4 +278,3 @@ class AiPlayer(Player):
             return self.resources.pop(0) #Can you do this to a dict
         return 0
 
-    

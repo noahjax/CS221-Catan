@@ -104,7 +104,7 @@ class Play:
             player.resources['Wool'] = 0
 
         # Run first two turns
-        self.first_two_turns()
+        # self.first_two_turns()
 
         while True:
             # Check if game is over
@@ -115,16 +115,12 @@ class Play:
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+                print_player_stats(curr_player)
 
-                # print_player_stats(curr_player)
-                
-                # TODO: Doesn't handle moving robber yet
                 roll = rollDice()
-                while roll == 7:
-                    roll = rollDice()
 
                 # Distribute resources given the last roll
-                self.game.distributeResources(roll)
+                self.game.distributeResources(roll, self.display)
                 
                 # Play the given turn
                 if curr_player.isAI:
@@ -357,6 +353,8 @@ class Play:
         
         # More debug print statements
         print('exited')
+        self.updateDevCards(curr_player)
+
         printResources(curr_player)
         printDevCards(curr_player)
 
@@ -397,8 +395,8 @@ class Play:
             print("Sorry you do not have the resources to buy a City")
 
     # Initiates logic to buy and place a road
-    def buy_and_place_road(self, curr_player):
-        if self.game.canBuyRoad(curr_player.resources):
+    def buy_and_place_road(self, curr_player, devCard = False):
+        if self.game.canBuyRoad(curr_player.resources) or devCard:
             possiblePlacements = self.game.getRoadLocations(curr_player)
             if len(possiblePlacements) == 0:
                 print("Sorry there are no valid road locations")
@@ -421,14 +419,23 @@ class Play:
             card = currPlayer.devCards[type].pop(0)
             if type == 'Knight':
                 card.play(self.display, self.game)
-            # TODO: What does this check do? Why would type be road
-            elif type == 'Road':
-                return True
+            elif type == 'Road Building':
+                for i in range(2):
+                    self.buy_and_place_road(currPlayer, True)
             else:
                 card.play()
         else:
             print("Sorry you do not have that dev card")
             return False
+
+    def updateDevCards(self, currPlayer):
+        for type_card in currPlayer.newDevCards.keys():
+            for num_cards in range(len(currPlayer.newDevCards[type_card])):
+                card_to_add = currPlayer.newDevCards[type_card].pop(0)
+                if type_card in currPlayer.devCards.keys():
+                    currPlayer.devCards[type_card].append(card_to_add)
+                else:
+                    currPlayer.devCards[type_card] = [card_to_add]
 
 #############################################################################
 ###########################   End Game  #####################################

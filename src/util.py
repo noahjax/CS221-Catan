@@ -56,8 +56,13 @@ def printResources(currPlayer):
         print(resource + ": " + str(currPlayer.resources[resource]))
 
 # Print a players dev cards
-def printDevCards(currPlayer):
-    print('You have the following development cards: ')
+def printDevCards(currPlayer, endTurn = False):
+    print('You recently purchased the following development cards: ')
+    if not endTurn:
+        for devCard in currPlayer.newDevCards:
+            print(devCard + ": " + str(len(currPlayer.newDevCards[devCard])))
+
+    print('You can play the following development cards: ')
     for devCard in currPlayer.devCards:
         print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
@@ -77,3 +82,10 @@ def areValidResources(resources):
     for count in resources.values():
         if count < 0: return False
     return True
+
+# Move the robber
+def moveRobber(game, display):
+    print("Please click on the top central node of the tile where you would like to place the robber")
+    position = display.getNode()
+    display.placeRobber(position)
+    game.set_robber_location(position, display)

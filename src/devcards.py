@@ -34,10 +34,11 @@ class Knight:
 
     # Plays the Knight card given a new position for the Robber
     def play(self, display, game):
-        print("Please click on the top central node of the tile where you would like to place the robber")
-        position = display.getNode()
-        display.placeRobber(position)
-        game.set_robber_location(position, display)
+        if not self.player.isAi:
+            moveRobber(game, display)
+        else:
+            self.player.moveRobber(game, display)
+
         players_to_give_cards = set()
 
         # Check all players that need to give a card
@@ -84,14 +85,6 @@ class RoadBuilding:
     def __init__(self, player):
         self.player = player
         self.type = 'Road Building'
-
-        # Defines the logic for longest road, needs to be updated when we figure out path logic
-        if len(self.player.roads) >= 9 and len(self.player.roads) > Game.currMaxRoad:
-            Game.currMaxRoad = self.player.resources['Road']
-            self.player.incrementScore(2)
-
-    def play(self):
-        pass
 
 
 class Monopoly:
