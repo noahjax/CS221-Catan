@@ -82,10 +82,10 @@ class Game(object):
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
             # Checks if you already have devCard, may be redundant with defaultdict()
-            if dev_card in cur_player.devCards.keys():
-                cur_player.devCards[dev_card].append(card_to_add)
+            if dev_card in cur_player.newDevCards.keys():
+                cur_player.newDevCards[dev_card].append(card_to_add)
             else:
-                cur_player.devCards[dev_card] = [card_to_add]
+                cur_player.newDevCards[dev_card] = [card_to_add]
 
             printDevCards(cur_player)
 

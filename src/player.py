@@ -25,6 +25,7 @@ class Player:
         # Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(int)
         self.devCards = defaultdict(int)
+        self.newDevCards = defaultdict(int)
         self.roads = []
         self.occupyingNodes = []
 
@@ -262,4 +263,3 @@ class AiPlayer(Player):
             return self.resources.pop(0) #Can you do this to a dict
         return 0
 
-    

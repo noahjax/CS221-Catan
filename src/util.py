@@ -56,8 +56,13 @@ def printResources(currPlayer):
         print(resource + ": " + str(currPlayer.resources[resource]))
 
 # Print a players dev cards
-def printDevCards(currPlayer):
-    print('You have the following development cards: ')
+def printDevCards(currPlayer, endTurn = False):
+    print('You recently purchased the following development cards: ')
+    if not endTurn:
+        for devCard in currPlayer.newDevCards:
+            print(devCard + ": " + str(len(currPlayer.newDevCards[devCard])))
+
+    print('You can play the following development cards: ')
     for devCard in currPlayer.devCards:
         print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
