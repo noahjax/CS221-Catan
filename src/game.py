@@ -38,7 +38,7 @@ class Game(object):
         self.devCard_cost = defaultdict(int)
         self.initialize_resource_dicts()
 
-        catan_log.log("Game class intitialized")
+        # catan_log.log("Game class intitialized")
 
     ################################################################
     ##################   Initialize Cost Dicts   ###################
@@ -98,7 +98,7 @@ class Game(object):
 
             # Get devCard and give to player
             dev_card = self.devCards.pop()
-            print("You got a " + dev_card.type)
+            # print("You got a " + dev_card.type)
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
 
@@ -112,7 +112,7 @@ class Game(object):
 
             # Log purchase
             name = cur_player.name
-            catan_log.log(name + " bought " + dev_card)
+            # catan_log.log(name + " bought " + dev_card)
 
 
         else:
@@ -121,7 +121,7 @@ class Game(object):
             else:
                 print("You don't have enough resources to buy a devCard")
 
-            catan_log.log("Couldn't buy devCard")
+            # catan_log.log("Couldn't buy devCard")
         
 
     #Handle moving the robber
@@ -134,7 +134,7 @@ class Game(object):
         newRobberTile.has_robber = True
 
         display.placeRobber(location)
-        catan_log.log("Robber location moved to " + str(location))
+        # catan_log.log("Robber location moved to " + str(location))
       
 
     ################################################################
@@ -202,7 +202,7 @@ class Game(object):
         resources['Grain'] -= 1 * i
 
     #Handles recursion to explore items you can buy
-    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=4):
+    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=3):
 
         #Only recurse 5 levels to limit running time
         if depth <= 0: return
@@ -289,7 +289,7 @@ class Game(object):
         #     self.findResourceCombos(newResources, newPieces, newAns, 4)
         #     newAns 
 
-        catan_log.log("Found pieces purchasable for " + player.name)
+        # catan_log.log("Found pieces purchasable for " + player.name)
 
         return ans
 
@@ -401,7 +401,7 @@ class Game(object):
             if cur_action:
                 actions.append(cur_action)
 
-        catan_log.log("Found possible actions for " + player.name)
+        # catan_log.log("Found possible actions for " + player.name)
 
         return actions
     
@@ -469,7 +469,7 @@ class Game(object):
 
         # Loop over all nodes, check if there is already a Settlement there with the right owner
         for node in player.occupyingNodes:
-            print('n = ' + str(node.occupyingPiece))
+            # print('n = ' + str(node.occupyingPiece))
             if isinstance(node.occupyingPiece, Settlement):
                 possible_locations.append(node)
 
@@ -487,6 +487,7 @@ class Game(object):
     # Can access board through self, so really just need roll
     def distributeResources(self, roll, display):
         if roll == 7:
+            return  #Don't want to do this for now
             print("Please move the robber. No resources to distribute")
             moveRobber(self, display)
             for player in self.players:
@@ -504,7 +505,7 @@ class Game(object):
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
                     
-        catan_log.log("Distributed resources to players")
+        # catan_log.log("Distributed resources to players")
                         
 
 #############################################################################

@@ -68,13 +68,17 @@ class Play:
         self.players = []
         colors = ["blue", "red", "green", "orange"]
 
+        'Modified to see run AI always without asking'
         # Initialize the players
         for i in range(self.num_players):
-            name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            # name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            name = ""
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
+            elif i == 0:
+                new_player = BasicStrategy(i, "AI"+str(i), colors[i])
             else:
-                new_player = AiPlayer(i, "AI"+str(i), colors[i])
+                new_player = AiPlayer(i, "AI" + str(i), colors[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -82,7 +86,8 @@ class Play:
         self.game = Game(self.players, self.board, init_robber_tile)
         
         # Initialize the display with the generated tiles
-        self.display = Display(self.board, init_robber_tile)
+        self.display = FakeDisplay(self.board, init_robber_tile)
+        # self.display = Display(self.board, init_robber_tile)
 
 #############################################################################
 #################################  Main  ####################################
@@ -104,20 +109,21 @@ class Play:
             player.resources['Wool'] = 0
 
         # Run first two turns
-        # self.first_two_turns()
+        self.first_two_turns()
 
         while True:
             # Check if game is over
             if self.game.currMaxScore >= 10:
-                print self.turnNum
-                self.endGame()
-                return
+                # print self.turnNum
+                return self.endGame()
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
-                print_player_stats(curr_player)
+                # print_player_stats(curr_player)
 
                 roll = rollDice()
+
+                # raw_input("")
 
                 # Distribute resources given the last roll
                 self.game.distributeResources(roll, self.display)
@@ -134,7 +140,7 @@ class Play:
                 
                 self.turnNum += 1
 
-                print "-----End Turn-----"
+                # print "-----End Turn-----"
 
 #############################################################################
 ############################  First Two Turns  ##############################
@@ -144,16 +150,16 @@ class Play:
     def first_two_turns(self):
         # Four players place their first settlement
         for i in range(4):
-            print ("It is player " + self.players[i].name + "\'s go")
+            # print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
-            printResources(self.players[i])
+            # printResources(self.players[i])
 
         # Players place second settlement from last to first
         for i in range(3, -1, -1):
-            print ("It is player " + self.players[i].name + "\'s go")
+            # print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
 
-        catan_log.log("Ran pregame")
+        # catan_log.log("Ran pregame")
 
     # Handle placements logic during the first 2 turns
     def initial_placements(self, player):
@@ -352,7 +358,6 @@ class Play:
                 break 
         
         # More debug print statements
-        print('exited')
         self.updateDevCards(curr_player)
 
         printResources(curr_player)
@@ -444,12 +449,16 @@ class Play:
     Ends the game and returns the winner
     """
     def endGame(self):
-        print "game ending"
+        # print "game ending"
         for player in self.players:
+            #Log for BasicAI Player
+            if isinstance(player, BasicStrategy):
+                player.log("Actual Score," + str(player.score))
+
             if player.score >= 10:
-                print(player.color, player.name + " has won the game!")
-        stall_end = raw_input("you sure you wanna end right now")
+                pass
+                # print(player.turn_num, player.color + player.name + " has won the game!")
+                # catan_log.log(player.color + "," + player.name)
 
+        # stall_end = raw_input("you sure you wanna end right now")
 
-play = Play()
-play.main()

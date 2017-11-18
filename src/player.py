@@ -4,6 +4,7 @@ from game import *
 import random
 import copy
 import util
+from log import *
 
 '''
 Player superclass for shared functionality across human and AI players. Should be 
@@ -70,7 +71,7 @@ class Player:
 
     # Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
-        print "placing settlement", node.row, node.col
+        # print "placing settlement", node.row, node.col
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
         self.cities_and_settlements.append(settlement_to_add)
@@ -145,8 +146,11 @@ class Player:
                 finLongestPaths.append(sum(sorted(pathLens)[1:3]))
         assert len(finLongestPaths) == 2
         self.roadLength = max(finLongestPaths)
-        print('new longest path has length = ' + str(self.roadLength))
+        # print('new longest path has length = ' + str(self.roadLength))
 
+    '''To be used by subclasses. Superclasses should just do nothing'''
+    def log(self, message):
+        pass
     
     
 
@@ -278,3 +282,90 @@ class AiPlayer(Player):
             return self.resources.pop(0) #Can you do this to a dict
         return 0
 
+
+'''
+Class imma fuck up making while way too baked
+Gonna be lit
+It just picks Settlement, City, then, Road and goes for that for a bit
+
+TODO: 
+    -Python destructor to close log class
+    -String parsing from log
+        -How do I write so it's easiest to read back in
+    -Figure out how to reset display
+
+    For now:
+        -Improve pick road position
+'''
+
+class BasicStrategy(AiPlayer):
+    
+    def __init__(self, turn_num, name, color):
+        AiPlayer.__init__(self, turn_num, name, color)
+        self.resource_weights = defaultdict(float)
+        
+        self.basic_log = Log("strategy_log" + str(self.turn_num) +".txt")
+
+        self.update_weights()
+
+    def update_weights(self):
+        pass
+        # info = self.basic_log.readlines()
+        # print info
+
+    #Randomly picks a road. For now only the Settlement location will be optimized.
+    #TODO: Pick best road by evaluating nodes it is leading to and their value
+    def pick_road_position(self, possible_locations):
+        '''
+        Current heuristic:
+            -Takes a look at the settlements that could be placed if you added another 
+             to the end of it
+        '''
+        best_road = None
+        best_score = 0
+
+        for start, end in possible_locations:
+            cur_score = 0
+            neighbors = end.neighbours
+            for neighbor in neighbors:
+                #Make sure nieghbor is empty
+                if not neighbor.isOccupied:
+                    cur_score += self.getLocScore(neighbor)[0]
+            if cur_score >= best_score:
+                best_score = cur_score
+                best_road = (start, end)
+
+        return best_road
+
+    def pick_settlement_position(self, possible_locations):
+        max_location = None
+        max_score = -1*float("inf")
+        best_types = None
+
+        for loc in possible_locations:
+            score, tileTypes = self.getLocScore(loc)
+            if score > max_score:
+                max_location = loc
+                max_score = score
+                best_types = tileTypes
+
+        self.basic_log.log("Expected Score," + str(score))
+        for tileType, count in best_types.items():
+            self.basic_log.log(tileType + "," + str(count)) 
+        return max_location
+
+    #Gets the value of all three tiles boardering a location and sums them
+    def getLocScore(self, node):
+        tileTypes = defaultdict(int)
+        score = 0
+        for tile in node.touchingTiles:
+            tile_weight = 1
+            # tile_weight = self.resource_weights[tile.resource]
+            score += tile.value * tile_weight
+            tileTypes[tile.resource] += 1
+        
+        return score, tileTypes
+
+    def log(self, message):
+        # return
+        self.basic_log.log(message)
