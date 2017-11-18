@@ -453,7 +453,9 @@ class Play:
         for player in self.players:
             #Log for BasicAI Player
             if isinstance(player, BasicStrategy):
-                player.log("Actual Score," + str(player.score))
+                player.update_weights()
+                player_log = player.weights_log
+                player_log.log_dict(player.resource_weights)
 
             if player.score >= 10:
                 pass

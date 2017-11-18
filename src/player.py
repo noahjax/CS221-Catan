@@ -152,6 +152,8 @@ class Player:
     def log(self, message):
         pass
     
+    def update_weights(self):
+        pass
     
 
 
@@ -302,16 +304,44 @@ class BasicStrategy(AiPlayer):
     
     def __init__(self, turn_num, name, color):
         AiPlayer.__init__(self, turn_num, name, color)
-        self.resource_weights = defaultdict(float)
         
-        self.basic_log = Log("strategy_log" + str(self.turn_num) +".txt")
+        #Who knows if this will be useful
+        self.roll_probs = defaultdict(float)
+        self.roll_probs[2] = 1. / 36
+        self.roll_probs[3] = 2. / 36
+        self.roll_probs[4] = 3./36
+        self.roll_probs[5] = 4. / 36
+        self.roll_probs[6] = 5. / 36
+        self.roll_probs[7] = 6. / 36
+        self.roll_probs[8] = 5./ 36
+        self.roll_probs[9] = 4. / 36
+        self.roll_probs[10] = 3. / 36
+        self.roll_probs[11] = 2. / 36
+        self.roll_probs[12] = 1. / 36
 
-        self.update_weights()
+        #These keep track of weights for each resource in the pregame setup
+        self.weights_log = Log("weight_log_" + str(self.turn_num) +".txt")
+        self.resource_weights = self.load_weights()
+        self.resource_weights['Desert'] = 0
+        # print self.resource_weights
+        self.eta = .01
 
+        #Keep track of features chosen. Need a better way to do this eventually
+        self.pre_game_features = defaultdict(int)
+        self.pre_game_score = 0
+
+    def load_weights(self):
+        weights = self.weights_log.readDict()
+        if weights:
+            return defaultdict(int, weights)
+        else: return defaultdict(float)
+
+    #Update weights now that game is over and we know the outcome
     def update_weights(self):
-        pass
-        # info = self.basic_log.readlines()
-        # print info
+        miss = self.score - self.pre_game_score
+        # print "miss", miss
+        for feature, count in self.pre_game_features.items():
+            self.resource_weights[feature] += self.eta * count * miss
 
     #Randomly picks a road. For now only the Settlement location will be optimized.
     #TODO: Pick best road by evaluating nodes it is leading to and their value
@@ -322,7 +352,7 @@ class BasicStrategy(AiPlayer):
              to the end of it
         '''
         best_road = None
-        best_score = 0
+        best_score = -1 * float('inf')
 
         for start, end in possible_locations:
             cur_score = 0
@@ -334,6 +364,7 @@ class BasicStrategy(AiPlayer):
             if cur_score >= best_score:
                 best_score = cur_score
                 best_road = (start, end)
+
 
         return best_road
 
@@ -349,9 +380,12 @@ class BasicStrategy(AiPlayer):
                 max_score = score
                 best_types = tileTypes
 
-        self.basic_log.log("Expected Score," + str(score))
-        for tileType, count in best_types.items():
-            self.basic_log.log(tileType + "," + str(count)) 
+        #Add selected features to features
+        for tileType, count in tileTypes.items():
+            self.pre_game_features[tileType] += count
+
+        self.pre_game_score += max_score
+
         return max_location
 
     #Gets the value of all three tiles boardering a location and sums them
@@ -359,13 +393,10 @@ class BasicStrategy(AiPlayer):
         tileTypes = defaultdict(int)
         score = 0
         for tile in node.touchingTiles:
-            tile_weight = 1
-            # tile_weight = self.resource_weights[tile.resource]
+            # tile_weight = 1
+            tile_weight = self.resource_weights[tile.resource]
+            tile_prob = self.roll_probs[tile.value]
             score += tile.value * tile_weight
             tileTypes[tile.resource] += 1
         
         return score, tileTypes
-
-    def log(self, message):
-        # return
-        self.basic_log.log(message)
