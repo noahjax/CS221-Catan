@@ -286,41 +286,47 @@ class AiPlayer(Player):
 
 
 '''
-Class imma fuck up making while way too baked
-Gonna be lit
-It just picks Settlement, City, then, Road and goes for that for a bit
+This is a class I wrote when I was high that fucks around with an simple way ot use weights
+to improve initial settlement and road locations. Basically it uses the probability of a tile
+and the weight of that resource to predict end game score or whether or not you won. Weights are
+written to and read from a file.
 
-TODO: 
-    -Python destructor to close log class
-    -String parsing from log
-        -How do I write so it's easiest to read back in
-    -Figure out how to reset display
 
-    For now:
-        -Improve pick road position
+Notes on how to go forward:
+
+    -TODO: feature extractor functions
+        -I am thinking we do feature extraction differently for the pregame than the full game
+        -We should implement pregame first because it will be easier and give us a better idea of 
+            how to do it
+        -How will we update weights? Should we update every turn or just at the end of the game?
+
+    -Pregame:
+
+        -Currently writes weights to a file at the end of the game and then reads them back in at the start
+            -TODO: update so doing this works with a blank file and the file doesn't have to already have an entry
+        -Need dedicated feature extractor
+            -Would be nice if somehow worked for roads and settlements
+                -Since feature names don't matter, we could just define features with 'Road' appended to the name and then 
+                    only look at weights that begin with road
+                -Also could define seperate extractors for road and settlement placement
+                    -Issue is that we may need a TON of feature extractors for the main game if we do this
+
+    -Potential Issues:
+    
+        -At first we will probably build an AI that considers its moves and the board and stuff, but later on we would want
+         our AI to incorporate the states of other players. 
+            -To do this, we need access to the game in general, or at the very least other player objects
+            -Could require rethinking how we implemented the Player class so that it takes in the game 
+
 '''
 
 class BasicStrategy(AiPlayer):
     
     def __init__(self, turn_num, name, color):
         AiPlayer.__init__(self, turn_num, name, color)
-        
-        #Who knows if this will be useful
-        self.roll_probs = defaultdict(float)
-        self.roll_probs[2] = 1. / 36
-        self.roll_probs[3] = 2. / 36
-        self.roll_probs[4] = 3./36
-        self.roll_probs[5] = 4. / 36
-        self.roll_probs[6] = 5. / 36
-        self.roll_probs[7] = 6. / 36
-        self.roll_probs[8] = 5./ 36
-        self.roll_probs[9] = 4. / 36
-        self.roll_probs[10] = 3. / 36
-        self.roll_probs[11] = 2. / 36
-        self.roll_probs[12] = 1. / 36
 
         #These keep track of weights for each resource in the pregame setup
-        self.weights_log = Log("weight_log_" + str(self.turn_num) +".txt")
+        self.weights_log = Log("../logs/win_test_log_" + str(self.turn_num) +".txt")
         self.resource_weights = self.load_weights()
         self.resource_weights['Desert'] = 0
         # print self.resource_weights
@@ -338,13 +344,15 @@ class BasicStrategy(AiPlayer):
 
     #Update weights now that game is over and we know the outcome
     def update_weights(self):
-        miss = self.score - self.pre_game_score
+        # miss = self.score - self.pre_game_score
+        win = 1 if self.score == 10 else 0
+        miss = win -self.pre_game_score
         # print "miss", miss
         for feature, count in self.pre_game_features.items():
             self.resource_weights[feature] += self.eta * count * miss
 
     #Randomly picks a road. For now only the Settlement location will be optimized.
-    #TODO: Pick best road by evaluating nodes it is leading to and their value
+    #TODO: Add more features for evaluating a good road
     def pick_road_position(self, possible_locations):
         '''
         Current heuristic:
@@ -352,7 +360,7 @@ class BasicStrategy(AiPlayer):
              to the end of it
         '''
         best_road = None
-        best_score = -1 * float('inf')
+        best_score = float('-inf')
 
         for start, end in possible_locations:
             cur_score = 0
@@ -365,12 +373,11 @@ class BasicStrategy(AiPlayer):
                 best_score = cur_score
                 best_road = (start, end)
 
-
         return best_road
 
     def pick_settlement_position(self, possible_locations):
         max_location = None
-        max_score = -1*float("inf")
+        max_score = float("-inf")
         best_types = None
 
         for loc in possible_locations:
@@ -381,7 +388,7 @@ class BasicStrategy(AiPlayer):
                 best_types = tileTypes
 
         #Add selected features to features
-        for tileType, count in tileTypes.items():
+        for tileType, count in best_types.items():
             self.pre_game_features[tileType] += count
 
         self.pre_game_score += max_score
@@ -395,8 +402,12 @@ class BasicStrategy(AiPlayer):
         for tile in node.touchingTiles:
             # tile_weight = 1
             tile_weight = self.resource_weights[tile.resource]
-            tile_prob = self.roll_probs[tile.value]
-            score += tile.value * tile_weight
+            tile_prob = util.rollProb(tile.value)
+            score += tile_prob * tile_weight
             tileTypes[tile.resource] += 1
         
         return score, tileTypes
+
+    # def pregame_feature_extractor(self,)
+
+    
