@@ -89,3 +89,9 @@ def moveRobber(game, display):
     position = display.getNode()
     display.placeRobber(position)
     game.set_robber_location(position, display)
+
+#Gets the probability of a certain roll
+def rollProb(roll):
+            dist = abs(roll - 7)
+            num = float(6 - dist)
+            return num / 36

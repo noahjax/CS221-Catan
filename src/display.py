@@ -54,7 +54,7 @@ class Display:
         # Set the member variables storing their sizes.
         pygame.init()
         pygame.font.init()
-       
+
         # Not sure this is the best way to do this, as we will have to keep updating the
         # local board, as well as the board stored elsewhere. Should really discuss this
         self.board = board
@@ -222,7 +222,7 @@ class Display:
         for n in nodesToBlit:
             self.permanentBlits.append(n)
        
-        print('done in init')
+        # print('done in init')
 
 
 
@@ -234,8 +234,6 @@ class Display:
             if minmaxTuple[0] <= x <= minmaxTuple[2] and minmaxTuple[1] <= y <= minmaxTuple[3]:
                 return coords
         return None
-
-
 
 
     def blitAll(self):
@@ -336,6 +334,55 @@ class Display:
             return self.orangeDot 
 
 
+
     # Load some different colored nodes for different player, nodes, etc
     # Four default colors
 
+
+'''
+Just does nothing but supports the display interface so when you call display 
+functions it doesn't break it just doesn't do shit
+'''
+class FakeDisplay:
+
+    def __init__(self, board, robberTile):
+        pass
+        
+    def placeRobber(self, node):
+        pass
+
+    def getTextSurface(self, tile):
+        pass
+
+    def loadPermanentBlits(self):
+        pass
+
+    def getNodeAtXY(self, x, y):
+        pass
+
+    def blitAll(self):
+        pass
+
+    def getUserAction(self):
+        pass
+
+    def update(self):
+        pass
+
+    def placeRoad(self, node1, node2, curPlayer):
+        pass
+
+    def placeSettlement(self, node, player):
+        pass
+
+    def placeCity(self, node, player):
+        pass
+
+    def getTile(self):
+        pass
+
+    def getNode(self):
+        pass
+
+    def getDotForPlayer(self, player):
+        pass

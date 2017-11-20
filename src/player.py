@@ -4,6 +4,7 @@ from game import *
 import random
 import copy
 import util
+from log import *
 
 '''
 Player superclass for shared functionality across human and AI players. Should be 
@@ -70,7 +71,7 @@ class Player:
 
     # Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
-        print "placing settlement", node.row, node.col
+        # print "placing settlement", node.row, node.col
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
         self.cities_and_settlements.append(settlement_to_add)
@@ -145,9 +146,14 @@ class Player:
                 finLongestPaths.append(sum(sorted(pathLens)[1:3]))
         assert len(finLongestPaths) == 2
         self.roadLength = max(finLongestPaths)
-        print('new longest path has length = ' + str(self.roadLength))
+        # print('new longest path has length = ' + str(self.roadLength))
 
+    '''To be used by subclasses. Superclasses should just do nothing'''
+    def log(self, message):
+        pass
     
+    def update_weights(self):
+        pass
     
 
 
@@ -278,3 +284,130 @@ class AiPlayer(Player):
             return self.resources.pop(0) #Can you do this to a dict
         return 0
 
+
+'''
+This is a class I wrote when I was high that fucks around with an simple way ot use weights
+to improve initial settlement and road locations. Basically it uses the probability of a tile
+and the weight of that resource to predict end game score or whether or not you won. Weights are
+written to and read from a file.
+
+
+Notes on how to go forward:
+
+    -TODO: feature extractor functions
+        -I am thinking we do feature extraction differently for the pregame than the full game
+        -We should implement pregame first because it will be easier and give us a better idea of 
+            how to do it
+        -How will we update weights? Should we update every turn or just at the end of the game?
+
+    -Pregame:
+
+        -Currently writes weights to a file at the end of the game and then reads them back in at the start
+            -TODO: update so doing this works with a blank file and the file doesn't have to already have an entry
+        -Need dedicated feature extractor
+            -Would be nice if somehow worked for roads and settlements
+                -Since feature names don't matter, we could just define features with 'Road' appended to the name and then 
+                    only look at weights that begin with road
+                -Also could define seperate extractors for road and settlement placement
+                    -Issue is that we may need a TON of feature extractors for the main game if we do this
+
+    -Potential Issues:
+    
+        -At first we will probably build an AI that considers its moves and the board and stuff, but later on we would want
+         our AI to incorporate the states of other players. 
+            -To do this, we need access to the game in general, or at the very least other player objects
+            -Could require rethinking how we implemented the Player class so that it takes in the game 
+
+'''
+
+class BasicStrategy(AiPlayer):
+    
+    def __init__(self, turn_num, name, color):
+        AiPlayer.__init__(self, turn_num, name, color)
+
+        #These keep track of weights for each resource in the pregame setup
+        self.weights_log = Log("../logs/win_test_log_" + str(self.turn_num) +".txt")
+        self.resource_weights = self.load_weights()
+        self.resource_weights['Desert'] = 0
+        # print self.resource_weights
+        self.eta = .01
+
+        #Keep track of features chosen. Need a better way to do this eventually
+        self.pre_game_features = defaultdict(int)
+        self.pre_game_score = 0
+
+    def load_weights(self):
+        weights = self.weights_log.readDict()
+        if weights:
+            return defaultdict(int, weights)
+        else: return defaultdict(float)
+
+    #Update weights now that game is over and we know the outcome
+    def update_weights(self):
+        # miss = self.score - self.pre_game_score
+        win = 1 if self.score == 10 else 0
+        miss = win -self.pre_game_score
+        # print "miss", miss
+        for feature, count in self.pre_game_features.items():
+            self.resource_weights[feature] += self.eta * count * miss
+
+    #Randomly picks a road. For now only the Settlement location will be optimized.
+    #TODO: Add more features for evaluating a good road
+    def pick_road_position(self, possible_locations):
+        '''
+        Current heuristic:
+            -Takes a look at the settlements that could be placed if you added another 
+             to the end of it
+        '''
+        best_road = None
+        best_score = float('-inf')
+
+        for start, end in possible_locations:
+            cur_score = 0
+            neighbors = end.neighbours
+            for neighbor in neighbors:
+                #Make sure nieghbor is empty
+                if not neighbor.isOccupied:
+                    cur_score += self.getLocScore(neighbor)[0]
+            if cur_score >= best_score:
+                best_score = cur_score
+                best_road = (start, end)
+
+        return best_road
+
+    def pick_settlement_position(self, possible_locations):
+        max_location = None
+        max_score = float("-inf")
+        best_types = None
+
+        for loc in possible_locations:
+            score, tileTypes = self.getLocScore(loc)
+            if score > max_score:
+                max_location = loc
+                max_score = score
+                best_types = tileTypes
+
+        #Add selected features to features
+        for tileType, count in best_types.items():
+            self.pre_game_features[tileType] += count
+
+        self.pre_game_score += max_score
+
+        return max_location
+
+    #Gets the value of all three tiles boardering a location and sums them
+    def getLocScore(self, node):
+        tileTypes = defaultdict(int)
+        score = 0
+        for tile in node.touchingTiles:
+            # tile_weight = 1
+            tile_weight = self.resource_weights[tile.resource]
+            tile_prob = util.rollProb(tile.value)
+            score += tile_prob * tile_weight
+            tileTypes[tile.resource] += 1
+        
+        return score, tileTypes
+
+    # def pregame_feature_extractor(self,)
+
+    
