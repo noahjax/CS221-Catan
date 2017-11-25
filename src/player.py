@@ -26,6 +26,11 @@ class Player:
         self.resources = defaultdict(int)
         self.devCards = defaultdict(int)
         self.roads = []
+    
+        # Map each node to a list of other road nodes it is touching
+        # This is used for computing the longest path
+        self.touching = defaultdict(list)
+
         self.occupyingNodes = []
 
         # Don't necessarily need to keep track of pieces for each player, but could be useful
@@ -59,9 +64,10 @@ class Player:
     def place_road(self, roadLoc, game, firstTurn=False):
         self.roads.append(roadLoc)
         game.roads.append(roadLoc)
+        
         if not firstTurn:
             game.updateRoadResources(self.resources)
-        # TODO: Check longest road logic
+        self.updateLongestRoad(roadLoc)
 
     # Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
@@ -73,6 +79,7 @@ class Player:
         self.incrementScore(1)
 
         if firstTurn:
+            self.initialSettlementCoords.append((node.row, node.col))
             for tile in node.touchingTiles:
                 self.resources[tile.resource] += 1
                 self.numResources += 1
@@ -95,54 +102,37 @@ class Player:
             self.resources[resource] -= 1
         else:
             print("Sorry you do not have any of these to discard")
-
+    
     # Should be called whenever a road is built.
-    # Needs board?
-    def updateLongestRoad(self):
-        # Get the maximum two paths leading away from the starting point
-        # return their sum
-        roadNodes = []
-        for road in self.roads:
-            roadNodes.append(road.location[0])
-            roadNodes.append(road.location[1])
-        roadNodes = list(set(roadNodes))
+    def updateLongestRoad(self, road):
 
-        finLongestPaths = []  # Store the longest path length from each settlement
+        # Update the 'touching' dict (self.touching)
+        roadNodes = list(set(list(sum(self.roads, ())))) # Flatten the roads into a (unique) list of nodes 
+        nn1, nn2 = road # new node 1, 2 (for the new node)
+        for node in roadNodes:
+            # If a road exists between the two, they are touching
+            if (nn1, node) in self.roads or (node, nn1) in self.roads:
+                self.touching[nn1].append(node)
+                self.touching[node].append(nn1)
+            if (nn2, node) in self.roads or (node, nn2) in self.roads:
+                self.touching[nn2].append(node)
+                self.touching[node].append(nn2)
+      
+        # Use the touching dict to get the longest path
+        longestPaths = []
+        for startNode in roadNodes:
+            visited = []
+            def longestPath(node, length, last, path):
+                toVisit = [n for n in self.touching[node] if n != last]
+                if node in visited or len(toVisit) == 0:
+                    return length
+                visited.append(node)
+                return max(longestPath(neighbor, length + 1, node, path + [neighbor]) for neighbor in toVisit) 
 
-        for startPoint in self.initialSettlementCoords:
-            # Starting from each settlement, compute the 0-3 path lengths
-            pathLens = []
+            longestPaths.append(longestPath(startNode, 0, None, [startNode]))
 
-            for neighbor in self.board.getNodeNeighbors(startPoint):
-                if neighbor in roadNodes:
-                    alreadySearched = [startPoint]
-
-                    def recurse(node):
-                        nextToSearch = [n for n in self.board.getNeighborNodes(node) if n not in alreadySearched]
-                        if len(nextToSearch) == 0:
-                            return 0
-                        else:
-                            for n in nextToSearch:
-                                alreadySearched.append(n)
-                                return recurse(n) + 1
-
-                    pathLens.append(recurse(neighbor))
-
-            assert len(pathLens) <= 3
-            if len(pathLens) == 0:
-                finLongestPaths.append(0)
-            elif len(pathLens) == 1:
-                finLongestPaths.append(pathLens[0])
-            elif len(pathLens) == 2:
-                finLongestPaths.append(sum(pathLens))
-            else:
-                finLongestPaths.append(sum(sorted(pathLens)[1:3]))
-        assert len(finLongestPaths) == 2
-        self.roadLength = max(finLongestPaths)
-        print('new longest path has length = ' + str(self.roadLength))
-
-    
-    
+        self.roadLength = max(longestPaths)
+        print('Longest road has length = ' + str(self.roadLength))
 
 
 #############################################################################
