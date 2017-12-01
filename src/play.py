@@ -86,8 +86,7 @@ class Play:
         self.game = Game(self.players, self.board, init_robber_tile)
         
         # Initialize the display with the generated tiles
-        self.display = FakeDisplay(self.board, init_robber_tile)
-        # self.display = Display(self.board, init_robber_tile)
+        self.display = Display(self.board, init_robber_tile)
 
 #############################################################################
 #################################  Main  ####################################

@@ -252,13 +252,15 @@ class Display:
         print('Possible commands:\ngetNode (gn) moveRobber (mr)')
         return raw_input('')
 
+    DISPLAY_ON = 0
 
     def update(self):
-        # Update the display
-        white = (255, 255, 255)
-        self.screen.fill((white))
-        self.blitAll()
-        pygame.display.flip()
+        if DISPLAY_ON:
+            # Update the display
+            white = (255, 255, 255)
+            self.screen.fill((white))
+            self.blitAll()
+            pygame.display.flip()
 
 
     def placeRoad(self, node1, node2, curPlayer):
@@ -339,51 +341,3 @@ class Display:
     # Load some different colored nodes for different player, nodes, etc
     # Four default colors
 
-
-'''
-Just does nothing but supports the display interface so when you call display 
-functions it doesn't break it just doesn't do shit
-'''
-class FakeDisplay:
-
-    def __init__(self, board, robberTile):
-        pass
-        
-    def placeRobber(self, node):
-        pass
-
-    def getTextSurface(self, tile):
-        pass
-
-    def loadPermanentBlits(self):
-        pass
-
-    def getNodeAtXY(self, x, y):
-        pass
-
-    def blitAll(self):
-        pass
-
-    def getUserAction(self):
-        pass
-
-    def update(self):
-        pass
-
-    def placeRoad(self, node1, node2, curPlayer):
-        pass
-
-    def placeSettlement(self, node, player):
-        pass
-
-    def placeCity(self, node, player):
-        pass
-
-    def getTile(self):
-        pass
-
-    def getNode(self):
-        pass
-
-    def getDotForPlayer(self, player):
-        pass
