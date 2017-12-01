@@ -2,11 +2,12 @@ import numpy as np
 import pygame
 from pygame.locals import *
 
+# Turn off when training
+DISPLAY_ON = False
 
 class Display:
  
     screen = None
-    #screenWidth, screenHeight = (320, 240)
     screenWidth, screenHeight = (640, 480)
     # screenWidth, screenHeight = (1280, 960)
 
@@ -49,6 +50,8 @@ class Display:
     font = None
     
     def __init__(self, board, robberTile):
+        if not DISPLAY_ON: return
+
         # Loads:
         # - tiles
         # - nodes
@@ -130,6 +133,7 @@ class Display:
 
 
     def placeRobber(self, node):
+        if not DISPLAY_ON: return
         # Add the robber to tempBlits at the center of the specified tile
         x, y, z, w = self.nodeLocs[node]
         self.tempBlits['robber'] = (self.robber, (x - self.dotWidth / 2, y + int(self.tileHeight / 2) - self.dotHeight / 2))
@@ -137,6 +141,7 @@ class Display:
 
 
     def getTextSurface(self, tile):
+        if not DISPLAY_ON: return
         # Returns a surface containing the resource, value string of the given tile
         text = str(tile.resource) + ' ' + str(tile.value)
         textSurface = self.font.render(text, False, (0, 0, 0))
@@ -146,8 +151,9 @@ class Display:
 
 
 
-
+    
     def loadPermanentBlits(self):    
+        if not DISPLAY_ON: return
         # Compute the blit locations of each node and tile
         numTiles = [3, 4, 5, 4, 3]
 
@@ -231,6 +237,7 @@ class Display:
 
 
     def getNodeAtXY(self, x, y):
+        if not DISPLAY_ON: return
         # If a node is at the coordinates x, y, return the coordinates of the node in the game logic
         # Return None if no node is at the specified coords
         for coords, minmaxTuple in self.nodeLocs.iteritems():
@@ -240,6 +247,7 @@ class Display:
 
 
     def blitAll(self):
+        if not DISPLAY_ON: return
         # Blit all available objects to the screen
         # Currently blits all objects in 
         # - permanentBlits
@@ -249,21 +257,23 @@ class Display:
 
 
     def getUserAction(self):
+        if not DISPLAY_ON: return
         # Put some kinds of possible commands in here at the moment
         # I'm guessing that this kind of thing will be moved elsewhere long-term 
         print('Possible commands:\ngetNode (gn) moveRobber (mr)')
         return raw_input('')
 
     def update(self):
-        if self.displayOn:
-            # Update the display
-            white = (255, 255, 255)
-            self.screen.fill((white))
-            self.blitAll()
-            pygame.display.flip()
+        if not DISPLAY_ON: return
+        # Update the display
+        white = (255, 255, 255)
+        self.screen.fill((white))
+        self.blitAll()
+        pygame.display.flip()
 
 
     def placeRoad(self, node1, node2, curPlayer):
+        if not DISPLAY_ON: return
         # Place something to mark the node here
         # Assumes that the nodes passed in are valid locations
         # x <=> screen width
@@ -286,6 +296,7 @@ class Display:
 
 
     def placeSettlement(self, node, player):
+        if not DISPLAY_ON: return
         # Takes in a node object
         # print('placing settlement')
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
@@ -295,11 +306,13 @@ class Display:
 
 
     def placeCity(self, node, player):
+        if not DISPLAY_ON: return
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
         self.permanentBlits.append((self.city, (x1 + self.city.get_rect().size[0] / 2, y1 + self.city.get_rect().size[1] / 2)))
         self.update()
 
     def getTile(self):
+        if not DISPLAY_ON: return
         # Returns the (tuple) tile ID of the nearest tile clicked
         tileFound = False
         while True:
@@ -311,6 +324,7 @@ class Display:
         return None
 
     def getNode(self):
+        if not DISPLAY_ON: return
         # Takes in an action and updates the display accordingly
         nodeFound = False
         while True:
@@ -326,6 +340,7 @@ class Display:
         return None 
 
     def getDotForPlayer(self, player):
+        if not DISPLAY_ON: return
         # Get the dot corresponding to the player's color
         if player.color == 'red':
             return self.redDot
@@ -335,9 +350,4 @@ class Display:
             return self.blueDot
         else:
             return self.orangeDot 
-
-
-
-    # Load some different colored nodes for different player, nodes, etc
-    # Four default colors
 
