@@ -34,6 +34,7 @@ class Knight:
 
     # Plays the Knight card given a new position for the Robber
     def play(self, display, game):
+        self.player.devCardsPlayed[self.type] += 1
         if not self.player.isAi:
             moveRobber(game, display)
         else:
@@ -76,6 +77,7 @@ class VictoryPoint:
 
     # Define what happens when the player plays this card
     def play(self):
+        self.player.devCardsPlayed[self.type] += 1
         self.player.incrementScore(self.value)
 
 
@@ -94,6 +96,7 @@ class Monopoly:
         self.type = 'Monopoly'
 
     def play(self):
+        self.player.devCardsPlayed[self.type] += 1
         resource = getResourceInput()
         total = 0
         for player in self.players:
@@ -113,6 +116,7 @@ class YearOfPlenty:
         self.type = 'Year of Plenty'
 
     def play(self):
+        self.player.devCardsPlayed[self.type] += 1
         for i in range(2):
             resource = getResourceInput()
             self.player.resources[resource] += 1
