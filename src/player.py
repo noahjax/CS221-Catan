@@ -237,6 +237,18 @@ class AiPlayer(Player):
 
         return city, settlement
 
+    def feature_extractor(self):
+        features = self.expected_resources_per_roll()
+        features['Devcards played'] = sum(self.devCardsPlayed)
+        features.update(self.devCardsPlayed)
+        features['Num roads'] = len(self.roads)
+        features['Longest Road'] = self.longestRoadLength
+        numCities, numSettlements = self.getNumSettlementsAndCities()
+        features['Num cities'] = numCities
+        features['Num settlements'] = numSettlements
+        features['Num times cards over 7'] = self.numTimesOverSeven
+        return features
+
 
     '''
     Picking positions mostly useful for pregame when possible moves are limited and it's 
@@ -364,6 +376,7 @@ class BasicStrategy(AiPlayer):
         self.pre_game_score = 0
 
     def load_weights(self):
+        return defaultdict(float)
         weights = self.weights_log.readDict()
         if weights:
             return defaultdict(int, weights)
@@ -434,15 +447,3 @@ class BasicStrategy(AiPlayer):
             tileTypes[tile.resource] += 1
         
         return score, tileTypes
-
-    def feature_extractor(self):
-        features = self.expected_resources_per_roll()
-        features['Devcards played'] = sum(self.devCardsPlayed)
-        features.update(self.devCardsPlayed)
-        features['Num roads'] = len(self.roads)
-        features['Longest Road'] = self.longestRoadLength
-        numCities, numSettlements = self.getNumSettlementsAndCities()
-        features['Num cities'] = numCities
-        features['Num settlements'] = numSettlements
-        features['Num times cards over 7'] = self.numTimesOverSeven
-        return features

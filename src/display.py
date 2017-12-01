@@ -60,7 +60,7 @@ class Display:
         # Not sure this is the best way to do this, as we will have to keep updating the
         # local board, as well as the board stored elsewhere. Should really discuss this
         self.board = board
-        self.displayOn = True
+        self.displayOn = False
         
         self.font = pygame.font.SysFont('../res/Comic Sans MS', 30)
 
