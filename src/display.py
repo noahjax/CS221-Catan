@@ -59,6 +59,7 @@ class Display:
         # Not sure this is the best way to do this, as we will have to keep updating the
         # local board, as well as the board stored elsewhere. Should really discuss this
         self.board = board
+        self.displayOn = True
         
         self.font = pygame.font.SysFont('../res/Comic Sans MS', 10)
 
@@ -252,10 +253,8 @@ class Display:
         print('Possible commands:\ngetNode (gn) moveRobber (mr)')
         return raw_input('')
 
-    DISPLAY_ON = 0
-
     def update(self):
-        if DISPLAY_ON:
+        if self.displayOn:
             # Update the display
             white = (255, 255, 255)
             self.screen.fill((white))

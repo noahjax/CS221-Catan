@@ -2,6 +2,7 @@ from game import *
 from board import *
 from player import *
 from display import *
+import time
 
 
 class Play:
@@ -206,6 +207,7 @@ class Play:
     """
     def run_AI_turn(self, player):
         # Get all possible moves player can make and send to AI for decision making
+        time.sleep(0.5)
         possible_moves = self.game.getPossibleActions(player)
 
         # Get move from AI player
@@ -463,3 +465,5 @@ class Play:
 
         # stall_end = raw_input("you sure you wanna end right now")
 
+play = Play()
+play.main()

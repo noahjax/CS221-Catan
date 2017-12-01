@@ -42,7 +42,7 @@ class Player:
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []
         self.numKnights = 0
-        self.roadLength = 0
+        self.longestRoadLength = 0
         self.numResources = 0
         self.isAi = False
        
@@ -74,6 +74,19 @@ class Player:
         if not firstTurn:
             game.updateRoadResources(self.resources)
         self.updateLongestRoad(roadLoc)
+
+        # Update game longest road and players score
+        if self.longestRoadLength > game.longestRoad:
+            game.longestRoad = self.longestRoadLength
+            if self.longestRoadLength >= 5:
+                if game.currPlayerWithLongestRoad == None:
+                    self.score += 2
+                    game.currPlayerWithLongestRoad = self
+                if not game.currPlayerWithLongestRoad is None and not game.currPlayerWithLongestRoad == self:
+                    game.currPlayerWithLongestRoad.score -= 2
+                    self.score += 2
+                    game.currPlayerWithLongestRoad = self
+
 
     # Places settlement in desired location, updates necessary data structures
     def place_settlement(self, node, game, firstTurn=False):
@@ -138,9 +151,7 @@ class Player:
 
             longestPaths.append(longestPath(startNode, 0, None, [startNode]))
 
-        self.roadLength = max(longestPaths)
-        print('Longest road has length = ' + str(self.roadLength))
-
+        self.longestRoadLength = max(longestPaths)
 
 #############################################################################
 #############################   Human Player    #############################
