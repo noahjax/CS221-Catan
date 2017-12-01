@@ -24,6 +24,8 @@ class Game(object):
         self.currMaxKnights = 0
         self.players = players
         self.currMaxScore = 0
+        self.longestRoad = 0
+        self.currPlayerWithLongestRoad = None
         self.board = board
         self.turn_num = 0
         self.devCards = self.initialize_dev_cards()
