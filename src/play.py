@@ -68,13 +68,17 @@ class Play:
         self.players = []
         colors = ["blue", "red", "green", "orange"]
 
+        'Modified to see run AI always without asking'
         # Initialize the players
         for i in range(self.num_players):
-            name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            # name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            name = ""
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
+            elif i == 0:
+                new_player = BasicStrategy(i, "AI"+str(i), colors[i])
             else:
-                new_player = AiPlayer(i, "AI"+str(i), colors[i])
+                new_player = AiPlayer(i, "AI" + str(i), colors[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -82,7 +86,8 @@ class Play:
         self.game = Game(self.players, self.board, init_robber_tile)
         
         # Initialize the display with the generated tiles
-        self.display = Display(self.board, init_robber_tile)
+        self.display = FakeDisplay(self.board, init_robber_tile)
+        # self.display = Display(self.board, init_robber_tile)
 
 #############################################################################
 #################################  Main  ####################################
@@ -97,11 +102,11 @@ class Play:
 
         # Initialize player resources
         for player in self.players:
-            player.resources['Ore'] = 5
-            player.resources['Brick'] = 5
-            player.resources['Wood'] = 5
-            player.resources['Grain'] = 5
-            player.resources['Wool'] = 5
+            player.resources['Ore'] = 0
+            player.resources['Brick'] = 0
+            player.resources['Wood'] = 0
+            player.resources['Grain'] = 0
+            player.resources['Wool'] = 0
 
         # Run first two turns
         self.first_two_turns()
@@ -109,21 +114,19 @@ class Play:
         while True:
             # Check if game is over
             if self.game.currMaxScore >= 10:
-                self.endGame()
-                return
+                # print self.turnNum
+                return self.endGame()
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+                # print_player_stats(curr_player)
 
-                print_player_stats(curr_player)
-                
-                # TODO: Doesn't handle moving robber yet
                 roll = rollDice()
-                while roll == 7:
-                    roll = rollDice()
+
+                # raw_input("")
 
                 # Distribute resources given the last roll
-                self.game.distributeResources(roll)
+                self.game.distributeResources(roll, self.display)
                 
                 # Play the given turn
                 if curr_player.isAI:
@@ -137,7 +140,7 @@ class Play:
                 
                 self.turnNum += 1
 
-                print "-----End Turn-----"
+                # print "-----End Turn-----"
 
 #############################################################################
 ############################  First Two Turns  ##############################
@@ -147,16 +150,16 @@ class Play:
     def first_two_turns(self):
         # Four players place their first settlement
         for i in range(4):
-            print ("It is player " + self.players[i].name + "\'s go")
+            # print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
-            printResources(self.players[i])
+            # printResources(self.players[i])
 
         # Players place second settlement from last to first
         for i in range(3, -1, -1):
-            print ("It is player " + self.players[i].name + "\'s go")
+            # print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
 
-        catan_log.log("Ran pregame")
+        # catan_log.log("Ran pregame")
 
     # Handle placements logic during the first 2 turns
     def initial_placements(self, player):
@@ -211,26 +214,42 @@ class Play:
         
         # Print move for debugging purposes
         if not move:
-            print player.color,  "No move selected"
+            # print player.color,  "No move selected"
             return
         
-        print "move:",move
+        # print "move:",move
 
         # Act on move by placing pieces and updating graphics
         # TODO: Handle devCards and other possible actions
         for action, locs in move.items():
             piece, count = action
-            # Might want to flip structure of for loop and if statements
-            for loc in locs:
-                if piece == 'Settlement':
-                    player.place_settlement(loc, self.game)
-                    self.display.placeSettlement(loc, player)
-                elif piece == 'City':
-                    player.place_city(loc, self.game)
-                    self.display.placeCity(loc, player)
-                elif piece == 'Road':
-                    player.place_road(loc, self.game)
-                    self.display.placeRoad(loc[0], loc[1], player)
+
+            #Exchange resources
+            if isinstance(piece, tuple):
+                oldResource, newResource = piece
+                player.resources[oldResource] -= count
+                player.resources[newResource] += 1
+                
+            #Place piece
+            else:
+                # Might want to flip structure of for loop and if statements
+                for loc in locs:
+                    if piece == 'Settlement':
+                        player.place_settlement(loc, self.game)
+                        self.display.placeSettlement(loc, player)
+                    elif piece == 'City':
+                        player.place_city(loc, self.game)
+                        self.display.placeCity(loc, player)
+                    elif piece == 'Road':
+                        player.place_road(loc, self.game)
+                        self.display.placeRoad(loc[0], loc[1], player)
+                    elif piece == 'DevCard':
+                        self.game.buyDevCard(player)
+
+        #Pick and play a devCard. Often won't do anything
+        devCard = player.pickDevCard()
+        if devCard: self.play_devcard(devCard, player)
+
 
 
 #############################################################################
@@ -339,7 +358,8 @@ class Play:
                 break 
         
         # More debug print statements
-        print('exited')
+        self.updateDevCards(curr_player)
+
         printResources(curr_player)
         printDevCards(curr_player)
 
@@ -380,8 +400,8 @@ class Play:
             print("Sorry you do not have the resources to buy a City")
 
     # Initiates logic to buy and place a road
-    def buy_and_place_road(self, curr_player):
-        if self.game.canBuyRoad(curr_player.resources):
+    def buy_and_place_road(self, curr_player, devCard = False):
+        if self.game.canBuyRoad(curr_player.resources) or devCard:
             possiblePlacements = self.game.getRoadLocations(curr_player)
             if len(possiblePlacements) == 0:
                 print("Sorry there are no valid road locations")
@@ -404,14 +424,23 @@ class Play:
             card = currPlayer.devCards[type].pop(0)
             if type == 'Knight':
                 card.play(self.display, self.game)
-            # TODO: What does this check do? Why would type be road
-            elif type == 'Road':
-                return True
+            elif type == 'Road Building':
+                for i in range(2):
+                    self.buy_and_place_road(currPlayer, True)
             else:
                 card.play()
         else:
             print("Sorry you do not have that dev card")
             return False
+
+    def updateDevCards(self, currPlayer):
+        for type_card in currPlayer.newDevCards.keys():
+            for num_cards in range(len(currPlayer.newDevCards[type_card])):
+                card_to_add = currPlayer.newDevCards[type_card].pop(0)
+                if type_card in currPlayer.devCards.keys():
+                    currPlayer.devCards[type_card].append(card_to_add)
+                else:
+                    currPlayer.devCards[type_card] = [card_to_add]
 
 #############################################################################
 ###########################   End Game  #####################################
@@ -420,13 +449,18 @@ class Play:
     Ends the game and returns the winner
     """
     def endGame(self):
-        print "game ending"
+        # print "game ending"
         for player in self.players:
+            #Log for BasicAI Player
+            if isinstance(player, BasicStrategy):
+                player.update_weights()
+                player_log = player.weights_log
+                player_log.log_dict(player.resource_weights)
+
             if player.score >= 10:
-                print (player.name + " has won the game!")
-                print(player.name + " has won the game!")
-        stall_end = raw_input("you sure you wanna end right now")
+                pass
+                # print(player.turn_num, player.color + player.name + " has won the game!")
+                # catan_log.log(player.color + "," + player.name)
 
+        # stall_end = raw_input("you sure you wanna end right now")
 
-play = Play()
-play.main()
