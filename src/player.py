@@ -26,8 +26,10 @@ class Player:
         # Storing these in dict to make it easy to figure out how many they have. {"item": count}
         self.resources = defaultdict(int)
         self.devCards = defaultdict(int)
+        self.devCardsPlayed = defaultdict(int)
         self.newDevCards = defaultdict(int)
         self.roads = []
+        self.numTimesOverSeven = 0
     
         # Map each node to a list of other road nodes it is touching
         # This is used for computing the longest path
@@ -172,7 +174,8 @@ class HumanPlayer(Player):
     '''
     # Deals with a player having more than 7 cards when a seven is rolled
     def over_seven(self):
-        while self.numResources > 7:
+        numResources = self.numResources
+        while self.numResources > (numResources / 2):
             print("You have more than 7 resources, they are as follows: ")
             for resource in self.resources:
                 print(resource + ": " + str(self.resources[resource]))
@@ -208,6 +211,33 @@ class AiPlayer(Player):
         Player.__init__(self, turn_num, name, color)
         self.isAI = True
 
+    # Figure out how many of each resource we would expect per roll
+    def expected_resources_per_roll(self):
+        possibleRolls = [a+b for a in range(1, 7) for b in range(1, 7)]
+        def prob(num):
+            return len([a for a in possibleRolls if a == num]) / 36.0
+
+        expected_resources = defaultdict(float)
+        multiplier = 1
+        for settlement in self.cities_and_settlements:
+            if isinstance(settlement, City):
+                multiplier = 2
+            for tile in settlement.location.get_tiles:
+                expected_resources[tile.resource] += prob(tile.value) * multiplier
+
+        return expected_resources
+
+    def getNumSettlementsAndCities(self):
+        city, settlement = (0, 0)
+        for city_or_settlement in self.cities_and_settlements:
+            if isinstance(city_or_settlement, City):
+                city += 1
+            else:
+                settlement += 1
+
+        return city, settlement
+
+
     '''
     Picking positions mostly useful for pregame when possible moves are limited and it's 
     easier to simply pick a random position. Full gameplay uses more extensive methods
@@ -228,7 +258,8 @@ class AiPlayer(Player):
 
     # If the AI has over seven cards currently just discard all until you get a
     def over_seven(self):
-        while self.numResources > 7:
+        numResources = self.numResources
+        while self.numResources > (numResources/2):
            for resource in self.resources:
                if self.resources[resource] > 0:
                    self.resources[resource] -= 1
@@ -404,6 +435,13 @@ class BasicStrategy(AiPlayer):
         
         return score, tileTypes
 
-    # def pregame_feature_extractor(self,)
-
-    
+    def feature_extractor(self):
+        features = self.expected_resources_per_roll()
+        features['Devcards played'] = sum(self.devCardsPlayed)
+        features.update(self.devCardsPlayed)
+        features['Num roads'] = len(self.roads)
+        features['Longest Road'] = self.longestRoadLength
+        numCities, numSettlements = self.getNumSettlementsAndCities()
+        features['Num cities'] = numCities
+        features['Num settlements'] = numSettlements
+        features['Num times cards over 7'] = self.numTimesOverSeven

@@ -426,6 +426,7 @@ class Play:
             if type == 'Knight':
                 card.play(self.display, self.game)
             elif type == 'Road Building':
+                currPlayer.devCardsPlayed['Road Building'] += 1
                 for i in range(2):
                     self.buy_and_place_road(currPlayer, True)
             else:

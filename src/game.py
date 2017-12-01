@@ -506,6 +506,10 @@ class Game(object):
                         if tile.value == roll and not tile.hasRobber and tile.resource != 'Desert':
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
+
+        for player in self.players:
+            if player.numResources > 7:
+                player.numTimesOverSeven += 1
                     
         # catan_log.log("Distributed resources to players")
                         
