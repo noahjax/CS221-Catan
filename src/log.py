@@ -20,6 +20,11 @@ class Log:
             out = json.dumps(out_dict)
             f.write(out)
 
+    def log_dict_second(self, out_dict, score):
+        with open(self.filepath, 'a') as f:
+            out = json.dumps(out_dict)
+            f.write(out + " " + str(score) + '\n')
+
     def readlines(self):
         with open(self.filepath, 'r+') as f:
             lines = f.readlines()
@@ -29,6 +34,7 @@ class Log:
     def readDict(self):
         
         with open(self.filepath, 'r+') as f:
+            print self.filepath
             lines = f.readlines()
             if not lines: return
             #Reset to start of file

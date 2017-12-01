@@ -6,24 +6,21 @@ Class for testing multiple runs of the play class. Currently just runs it a
 bunch of times to keep track of the winner. 
 '''
 
-winners = defaultdict(int)
+features = defaultdict(int)
 score = defaultdict(float)
+logger = Log("../logs/training_data_log.txt")
 
-runs = 500
+runs = 10
 for i in range(runs):
     print(i)
     play = Play()
     play.main()
 
     #Get info from the game
-    for i, player in enumerate(play.players):
-        # if i == 0: print player.resource_weights
-        score[i] += float(player.score)/ runs
-        if player.score == 10:
-            winners[i] += 1./runs
-
-print winners
-print score
+    for player in play.players:
+        features = player.feature_extractor()
+        score = player.score
+        logger.log_dict_second(features, score)
 
 # test_log = Log("test_log.txt")
 # test_log.log_dict(winners)
