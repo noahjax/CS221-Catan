@@ -77,6 +77,7 @@ class Play:
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
             elif i == 0:
+                print('BasicStrategy has color = ' + colors[i])
                 new_player = BasicStrategy(i, "AI"+str(i), colors[i])
             else:
                 new_player = AiPlayer(i, "AI" + str(i), colors[i])
@@ -207,7 +208,7 @@ class Play:
     """
     def run_AI_turn(self, player):
         # Get all possible moves player can make and send to AI for decision making
-        time.sleep(0.5)
+        # time.sleep(0.5)
         possible_moves = self.game.getPossibleActions(player)
 
         # Get move from AI player
@@ -468,3 +469,10 @@ class Play:
 
 play = Play()
 play.main()
+for player in play.players:
+    if isinstance(player, BasicStrategy):
+        features = player.feature_extractor()
+        for f in features:
+            print(f + ' ' + str(features[f]))
+while True:
+    pass

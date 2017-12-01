@@ -6,6 +6,7 @@ from pygame.locals import *
 class Display:
  
     screen = None
+    #screenWidth, screenHeight = (320, 240)
     screenWidth, screenHeight = (640, 480)
     # screenWidth, screenHeight = (1280, 960)
 
@@ -61,7 +62,7 @@ class Display:
         self.board = board
         self.displayOn = True
         
-        self.font = pygame.font.SysFont('../res/Comic Sans MS', 10)
+        self.font = pygame.font.SysFont('../res/Comic Sans MS', 30)
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
         

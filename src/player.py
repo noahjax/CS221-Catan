@@ -222,7 +222,7 @@ class AiPlayer(Player):
         for settlement in self.cities_and_settlements:
             if isinstance(settlement, City):
                 multiplier = 2
-            for tile in settlement.location.get_tiles:
+            for tile in settlement.location.get_tiles():
                 expected_resources[tile.resource] += prob(tile.value) * multiplier
 
         return expected_resources
@@ -445,3 +445,4 @@ class BasicStrategy(AiPlayer):
         features['Num cities'] = numCities
         features['Num settlements'] = numSettlements
         features['Num times cards over 7'] = self.numTimesOverSeven
+        return features
