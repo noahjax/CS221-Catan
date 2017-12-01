@@ -6,7 +6,8 @@ from pygame.locals import *
 class Display:
  
     screen = None
-    screenWidth, screenHeight = (1280, 960)
+    screenWidth, screenHeight = (640, 480)
+    # screenWidth, screenHeight = (1280, 960)
 
     redDot, blueDot, greenDot, orangeDot, blackDot = (None, None, None, None, None)
     redRoad, blueRoad, greenRoad, orangeRoad, blackRoad = (None, None, None, None, None)
