@@ -5,6 +5,7 @@ import random
 import copy
 import util
 from log import *
+import copy
 
 '''
 Player superclass for shared functionality across human and AI players. Should be 
@@ -284,6 +285,58 @@ class AiPlayer(Player):
             return self.resources.pop(0) #Can you do this to a dict
         return 0
 
+    '''
+    Given a state and an move, returns the successor state. 
+    Used by eval function to determine what move to take from a given state
+    Make sure to delete the successor state after using it so we don't have a million copies
+    floating around
+    '''
+    def get_successor(self, game, move):
+        new_game = copy.deepcopy(game)
+        player = game.players[self.turn_num]
+
+        for action, locs in move.items():
+            piece, count = action
+
+            #Exchange resources
+            if isinstance(piece, tuple):
+                oldResource, newResource = piece
+                player.resources[oldResource] -= count
+                player.resources[newResource] += 1
+                
+            #Place piece
+            else:
+                # Might want to flip structure of for loop and if statements
+                for loc in locs:
+                    if piece == 'Settlement':
+                        player.place_settlement(loc, game)
+                    elif piece == 'City':
+                        player.place_city(loc, game)
+                    elif piece == 'Road':
+                        player.place_road(loc, game)
+                    elif piece == 'DevCard':
+                        new_game.buyDevCard(player)
+
+        #Pick and play a devCard. Often won't do anything
+        devCard = player.pickDevCard()
+        #Had to copy devCard logic because it relied on the play class to 
+        #handle road building. 
+        if devCard: 
+            if type in player.devCards and player.devCards[type] >= 0:
+                card = player.devCards[type].pop(0)
+            if type == 'Knight':
+                card.play(self.display, self.game)
+            elif type == 'Road Building':
+                for i in range(2):
+                    possible_locations = new_game.getRoadLocations(player)
+                    loc = self.pick_road_position(possible_locations)
+                    self.place_road(loc, new_game, True)
+            else:
+                card.play()
+        else:
+            print("Sorry you do not have that dev card")
+
+        return new_game
 
 '''
 This is a class I wrote when I was high that fucks around with an simple way ot use weights
