@@ -3,7 +3,7 @@ import pygame
 from pygame.locals import *
 
 # Turn off when training
-DISPLAY_ON = False
+DISPLAY_ON = True 
 
 class Display:
  
@@ -40,6 +40,7 @@ class Display:
 
     # Store the tempBlits as a dict, since the order etc will be changing
     # As such, these should not need to be printed in any particular order
+    # 'name' : (img, (blitAtX, blitAtY))
     tempBlits = {}
 
     # Store the x, y tuples of each tile center
@@ -65,7 +66,7 @@ class Display:
         self.board = board
         self.displayOn = False
         
-        self.font = pygame.font.SysFont('../res/Comic Sans MS', 30)
+        self.font = pygame.font.SysFont('../res/Comic Sans MS', 80)
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
         
@@ -136,11 +137,11 @@ class Display:
         if not DISPLAY_ON: return
         # Add the robber to tempBlits at the center of the specified tile
         x, y, z, w = self.nodeLocs[node]
-        self.tempBlits['robber'] = (self.robber, (x - self.dotWidth / 2, y + int(self.tileHeight / 2) - self.dotHeight / 2))
+        self.tempBlits['Robber'] = (self.robber, (x - self.dotWidth / 2, y + int(self.tileHeight / 2) - self.dotHeight / 2))
         self.update()
 
 
-    def getTextSurface(self, tile):
+    def getTileTextSurface(self, tile):
         if not DISPLAY_ON: return
         # Returns a surface containing the resource, value string of the given tile
         text = str(tile.resource) + ' ' + str(tile.value)
@@ -149,7 +150,16 @@ class Display:
         textSurface = pygame.transform.scale(textSurface, (int(self.tileWidth * 4 / 5), int(self.tileWidth / 4)))
         return textSurface
 
-
+    def getStatsTextSurface(self, player):
+        text = 'Wood: %s - Grain: %s - Brick: %s - Ore: %s - Wool: %s' % \
+                (player.resources['Wood'],
+                 player.resources['Grain'],
+                 player.resources['Brick'],
+                 player.resources['Ore'],
+                 player.resources['Wool'])
+        textSurface = self.font.render(text, False, (0, 0, 0))
+        textSurface = pygame.transform.scale(textSurface, (int(self.screenWidth), int(self.screenHeight / 15)))
+        return textSurface
 
     
     def loadPermanentBlits(self):    
@@ -193,7 +203,7 @@ class Display:
     
                 # Display the type of the tile inside the hexagon
                 tile = self.board.tiles[counterTile]
-                text = self.getTextSurface(tile)
+                text = self.getTileTextSurface(tile)
                 self.permanentBlits.append((text, (imgX + int(self.tileWidth / 8), imgY + int(self.tileHeight / 2) - int(self.tileHeight / 8))))
                 counterTile += 1
 
@@ -350,4 +360,11 @@ class Display:
             return self.blueDot
         else:
             return self.orangeDot 
+
+    def printPlayerStats(self, player):
+        if not DISPLAY_ON: return
+        print('ppstats')
+        stats = self.getStatsTextSurface(player)         
+        self.tempBlits['Player stats'] = stats, (0, int(self.screenHeight - (self.screenHeight / 15)))
+        self.update()
 

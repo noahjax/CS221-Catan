@@ -72,8 +72,8 @@ class Play:
         'Modified to see run AI always without asking'
         # Initialize the players
         for i in range(self.num_players):
-            # name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
-            name = ""
+            name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            # name = ""
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
             elif i == 0:
@@ -188,6 +188,7 @@ class Play:
 
     # Define logic for a Human's first turn
     def Human_first_turn(self, player, possible_settlements):
+        self.display.printPlayerStats(player)
         # Place single settlement
         settlementLoc = self.getCitySettlementLoc(possible_settlements, True)
         player.place_settlement(settlementLoc, self.game, True)
@@ -318,11 +319,13 @@ class Play:
         
         # Loop until user indicates to exit and end turn
         while True:
+            self.display.printPlayerStats(curr_player)
             option = raw_input('Type \'b\' to buy something, type \'p\' to play a dev card, or hit enter to end your turn: ')
             if option == 'b':
                 
                 # Loop until player is done buying things
                 while True:
+                    self.display.printPlayerStats(curr_player)
                     buyType = raw_input('type (s, c, r, d) to buy something, or hit enter to return: ')
 
                     # Try and buy a settlement
@@ -465,3 +468,6 @@ class Play:
                 # catan_log.log(player.color + "," + player.name)
 
         # stall_end = raw_input("you sure you wanna end right now")
+play = Play()
+play.main()
+
