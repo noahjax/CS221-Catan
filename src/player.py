@@ -435,6 +435,26 @@ class AiPlayer(Player):
 
         game.updateCityResources(self, True)
 
+    #Returns the successor state after a move has been taken
+    def get_successor(self, game, moves):
+
+        #Do each indivdual move one at a time
+        for move in moves:
+            game = self.do_move(move, game)
+
+        return game
+
+    #Returns to starting state from a successor state
+    def undo_successor(self, game, moves):
+        actions = moves.items()
+
+        #Loop backwards to undo moves in the correct order
+        for i in range(len(actions), -1, -1):
+            move = actions[i]
+            game = self.undo_move(move, game)
+
+        return game
+
 
     # def get_successor(self, game, move):
     #     new_game = copy.deepcopy(game) # Exceeds max recursive depth
