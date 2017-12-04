@@ -83,11 +83,10 @@ class Play:
                 new_player = HumanPlayer(i, name, colors[i])
             
             # For each of the AI players, we also pass their corresponding weight log
-            new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
-#             elif i == 0:
-#                 new_player (i, "AI"+str(i), colors[i], logs[i])
-#             else:
-#                 new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
+            elif i == 0:
+                new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
+            else:
+                new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -147,6 +146,7 @@ class Play:
                     self.game.currMaxScore = curr_player.score
                 
                 self.turnNum += 1
+                # print self.turnNum
 
                 # print "-----End Turn-----"
 
@@ -172,25 +172,24 @@ class Play:
     # Handle placements logic during the first 2 turns
     def initial_placements(self, player):
         # Get all possible options
-        possible_settlements = self.game.getSettlementLocations(player, True)
 
         if player.isAI:
             # Run first turn logic AI
-            self.AI_first_turn(player, possible_settlements)
+            self.AI_first_turn(player)
         else:
             # Run first turn logic Human
+            possible_settlements = self.game.getSettlementLocations(player, True)
             self.Human_first_turn(player, possible_settlements)
 
     # Define logic for an AI's first turn
-    def AI_first_turn(self, player, possible_settlements):
+    def AI_first_turn(self, player):
         # Place single settlement
-        settlementLoc = player.pick_settlement_position(possible_settlements)
+        settlementLoc = player.pick_settlement_position(self.game)
         player.place_settlement(settlementLoc, self.game, True)
         self.display.placeSettlement(settlementLoc, player)
-
+        
         # Place single road
-        possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
-        roadLoc = player.pick_road_position(possible_roads)
+        roadLoc = player.pick_road_position(settlementLoc, self.game)
         player.place_road(roadLoc, self.game, True)
         self.display.placeRoad(roadLoc[0], roadLoc[1], player)
 
@@ -224,10 +223,9 @@ class Play:
         # Get all possible moves player can make and send to AI for decision making
         # time.sleep(0.5)
         resources = player.resources
-        possible_moves = self.game.getPossibleActions(player)
 
         # Get move from AI player
-        move = player.pickMove(possible_moves, self.game)
+        move = player.pickMove(self.game)
         '''
         move = player.pickMove(self.game)
         '''
@@ -490,6 +488,3 @@ class Play:
                 # catan_log.log(player.color + "," + player.name)
 
         # stall_end = raw_input("you sure you wanna end right now")
-
-play = Play()
-play.main()

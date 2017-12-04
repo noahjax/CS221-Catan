@@ -30,7 +30,8 @@ for i in range(runs):
     for player in play.players:
         features = player.feature_extractor()
         score = player.score
-        logger.log_dict_second(features, score)
+        if features:
+            logger.log_dict_second(features, score)
         # print('devcards = ' + str(player.devCards))    
 
 # test_log = Log("test_log.txt")
