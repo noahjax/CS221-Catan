@@ -494,9 +494,8 @@ class Game(object):
                 player.numTimesOverSeven += 1
 
         if roll == 7:
-            return  #Don't want to do this for now
-            print("Please move the robber. No resources to distribute")
-            moveRobber(self, display)
+            # return  #Don't want to do this for now
+            # moveRobber(self, display)
             for player in self.players:
                 if player.numResources > 7:
                     player.over_seven()
@@ -511,6 +510,7 @@ class Game(object):
                         if tile.value == roll and not tile.hasRobber and tile.resource != 'Desert':
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
+                            node.occupyingPiece.player.numResources += resourceNum
 
                     
         # catan_log.log("Distributed resources to players")
