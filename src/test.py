@@ -12,7 +12,7 @@ logger = Log("../logs/training_data_log.txt")
 
 runs = 10
 for i in range(runs):
-    print(i)
+    print('i = ' + str(i))
     play = Play()
     play.main()
 

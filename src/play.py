@@ -72,8 +72,8 @@ class Play:
         'Modified to see run AI always without asking'
         # Initialize the players
         for i in range(self.num_players):
-            name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
-            # name = ""
+            # name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+            name = ""
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
             elif i == 0:
@@ -472,6 +472,4 @@ class Play:
                 # catan_log.log(player.color + "," + player.name)
 
         # stall_end = raw_input("you sure you wanna end right now")
-play = Play()
-play.main()
 
