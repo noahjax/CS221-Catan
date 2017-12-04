@@ -26,6 +26,7 @@ class Game(object):
         self.currMaxScore = 0
         self.longestRoad = 0
         self.currPlayerWithLongestRoad = None
+        self.playerWithLargestArmy = None
         self.board = board
         self.turn_num = 0
         self.devCards = self.initialize_dev_cards()
@@ -488,6 +489,10 @@ class Game(object):
     """
     # Can access board through self, so really just need roll
     def distributeResources(self, roll, display):
+        for player in self.players:
+            if player.numResources > 7:
+                player.numTimesOverSeven += 1
+
         if roll == 7:
             return  #Don't want to do this for now
             print("Please move the robber. No resources to distribute")
@@ -507,9 +512,6 @@ class Game(object):
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
 
-        for player in self.players:
-            if player.numResources > 7:
-                player.numTimesOverSeven += 1
                     
         # catan_log.log("Distributed resources to players")
                         

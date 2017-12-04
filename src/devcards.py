@@ -62,8 +62,13 @@ class Knight:
 
         # If this gives them largest army update the game state
         if self.player.numKnights >= 3 and self.player.numKnights > game.currMaxKnights:
+            if game.playerWithLargestArmy is not None:
+                game.playerWithLargestArmy.hasLargestArmy = False
+
             self.player.score += 2
             game.currMaxKnights = self.player.numKnights
+            game.playerWithLargestArmy = self.player
+            self.player.hasLargestArmy = True
 
 
 # Defines a default Victory Point dev card from Catan
