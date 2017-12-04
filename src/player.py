@@ -6,6 +6,7 @@ import copy
 import util
 from log import *
 import copy
+import numpy as np
 
 '''
 Player superclass for shared functionality across human and AI players. Should be 

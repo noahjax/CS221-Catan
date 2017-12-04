@@ -3,7 +3,7 @@ import pygame
 from pygame.locals import *
 
 # Turn off when training
-DISPLAY_ON = True 
+DISPLAY_ON = False 
 
 class Display:
  
@@ -51,7 +51,7 @@ class Display:
     font = None
     
     def __init__(self, board, robberTile):
-        if not DISPLAY_ON: return
+        if not DISPLAY_ON: return None
 
         # Loads:
         # - tiles
