@@ -20,6 +20,7 @@ for i in range(4):
     weightLogs[i].log_dict({'DELETE ME' : -1})
 
 runs = 1 
+
 for i in range(runs):
     print(i)
     play = Play(weightLogs)

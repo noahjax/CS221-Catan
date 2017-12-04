@@ -32,6 +32,9 @@ class Player:
         self.newDevCards = defaultdict(int)
         self.roads = []
         self.numTimesOverSeven = 0
+        self.numCardsDiscarded = 0
+        self.holdsLongestRoad = False
+        self.hasLargestArmy = False
     
         # Map each node to a list of other road nodes it is touching
         # This is used for computing the longest path
@@ -41,14 +44,14 @@ class Player:
 
         #Rates that you can swap cards in at. Currently 4 for all cards but can change as we introduce ports
         #At some point we should make it so desert doesn't get distributed to people at all
-        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':100000}
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':1000000000}
 
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []
         self.numKnights = 0
         self.longestRoadLength = 0
         self.numResources = 0
-        self.isAi = False
+        self.isAI = False
        
         # Store the two tuples of coordinates where the initial settlements are placed
         self.initialSettlementCoords = [] 
@@ -76,7 +79,7 @@ class Player:
         game.roads.append(roadLoc)
         
         if not firstTurn:
-            game.updateRoadResources(self.resources)
+            game.updateRoadResources(self)
         self.updateLongestRoad(roadLoc)
         # Update game longest road and players score
         if self.longestRoadLength > game.longestRoad:
@@ -84,11 +87,14 @@ class Player:
             if self.longestRoadLength >= 5:
                 if game.currPlayerWithLongestRoad == None:
                     self.score += 2
+                    self.holdsLongestRoad = True
                     game.currPlayerWithLongestRoad = self
                 if not game.currPlayerWithLongestRoad is None and not game.currPlayerWithLongestRoad == self:
                     game.currPlayerWithLongestRoad.score -= 2
+                    game.currPlayerWithLongestRoad.holdsLongestRoad = False
                     self.score += 2
                     game.currPlayerWithLongestRoad = self
+                    self.holdsLongestRoad = True
 
 
     # Places settlement in desired location, updates necessary data structures
@@ -103,10 +109,11 @@ class Player:
         if firstTurn:
             self.initialSettlementCoords.append((node.row, node.col))
             for tile in node.touchingTiles:
-                self.resources[tile.resource] += 1
-                self.numResources += 1
+                if tile.resource is not 'Desert':
+                    self.resources[tile.resource] += 1
+                    self.numResources += 1
         else:
-            game.updateSettlementResources(self.resources)
+            game.updateSettlementResources(self)
 
     # Places city in desired location, updates necessary data structures
     def place_city(self, node, game):
@@ -121,7 +128,7 @@ class Player:
         node.set_occupying_piece(city_to_add)
         self.cities_and_settlements.append(city_to_add)
         self.incrementScore(1)
-        game.updateCityResources(self.resources)
+        game.updateCityResources(self)
 
     # Allows a player to discard a resource
     def discard_resource(self, resource):
@@ -194,7 +201,7 @@ class HumanPlayer(Player):
         self.resources[resource] -= 1
         self.numResources -= 1
         oppPlayer.resources[resource] += 1
-        oppPlayer.resources += 1
+        oppPlayer.numResources += 1
         print(self.name + " gave one " + resource + " to " + oppPlayer.name)
 
 
@@ -216,66 +223,7 @@ class AiPlayer(Player):
     def __init__(self, turn_num, name, color, weightsLog):
         Player.__init__(self, turn_num, name, color)
         self.isAI = True
-        self.weights = weightsLog.readDict() 
-        if 'DELETE ME' in self.weights.keys():
-            # The weights log has not been initialized
-            weights = self.feature_extractor() # Get the list of features
-            for k in weights:
-                # Initialize each feature to a random weight
-                weights[k] = random.randint(-10, 10)
-            self.weights = weights
-            # Overwrite the log with the randomized weights dict
-            weightsLog.log_dict(self.weights)
-
-    # Use the weights to determine the value of a given roll
-    def evaluateMoveValue(self, game, move):
-        if not move:
-            return -1
-        future = self.get_successor(game, move) 
-        futureFeatures = future.players[self.turn_num].feature_extractor()
-        return util.dotProduct(futureFeatures, self.weights)
-    
-    # Figure out how many of each resource we would expect per roll
-    def expected_resources_per_roll(self):
-        possibleRolls = [a+b for a in range(1, 7) for b in range(1, 7)]
-        def prob(num):
-            return len([a for a in possibleRolls if a == num]) / 36.0
-
-        expected_resources = defaultdict(float)
-        multiplier = 1
-        for settlement in self.cities_and_settlements:
-            if isinstance(settlement, City):
-                multiplier = 2
-            for tile in settlement.location.get_tiles():
-                expected_resources[tile.resource] += prob(tile.value) * multiplier
-
-        return expected_resources
-
-    def getNumSettlementsAndCities(self):
-        city, settlement = (0, 0)
-        for city_or_settlement in self.cities_and_settlements:
-            if isinstance(city_or_settlement, City):
-                city += 1
-            else:
-                settlement += 1
-
-        return city, settlement
-
-    def feature_extractor(self):
-        expectedResources = self.expected_resources_per_roll() 
-        features = expectedResources 
-        features['Devcards played'] = sum(self.devCardsPlayed)
-        features.update(self.devCardsPlayed)
-        features['Num roads'] = len(self.roads)
-        features['Longest Road'] = self.longestRoadLength
-        numCities, numSettlements = self.getNumSettlementsAndCities()
-        features['Num cities'] = numCities
-        features['Num settlements'] = numSettlements
-        features['Num times cards over 7'] = self.numTimesOverSeven
-        features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
-        return features
-
-
+       
     '''
     Picking positions mostly useful for pregame when possible moves are limited and it's 
     easier to simply pick a random position. Full gameplay uses more extensive methods
@@ -298,10 +246,10 @@ class AiPlayer(Player):
     def over_seven(self):
         numResources = self.numResources
         while self.numResources > (numResources/2):
-           for resource in self.resources:
-               if self.resources[resource] > 0:
-                   self.resources[resource] -= 1
-                   self.numResources -= 1
+            resource = self.getFavResource()
+            self.resources[resource] -= 1
+            self.numResources -= 1
+            self.numCardsDiscarded += 1
 
 
     #Don't think we need this considering that this is probably for pregame
@@ -313,48 +261,68 @@ class AiPlayer(Player):
     '''
     Given a list of all possible moves, pick a move. This simple implementation picks 
     a random move and returns it. 
-        -possible_moves in format [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
+        -possible_moves in format [{(piece, count): [loc1, loc2]},{(piece,count): [loc1]}, ...]
         -Move should be in dict format {(Piece, count): loc, (Piece, count): loc}
         -Not sure how we will update this with devCards 
         -Probably need check to make sure that you don't try to place two pieces in the same
          location
     '''
-    #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
-    def pickMove(self, possible_moves, game):
-        # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
-        # TODO: How can we evaluate a future game state without making a full copy?
-        move = {}
-        # Convert possible_moves to a list of tuples for easier reference 
-        # [((piece, count), [locations]), ((piece2, count2), [locations2])] 
-        possible_moves_tup = [(a, b) for d in possible_moves if d for a, b in d.items()] 
-        for action, possibleLocations in possible_moves_tup:
-            # mostValuableActions = [(action, location, value)]
-            mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleLocations]
-            mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
-            
-            # Get the most valuable locations according to the 'count' field in a move
-            move[action] = [a[1] for a in mostValuableActions[:action[1]]]
 
-        # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
+    def pickMove(self, possible_moves):
+        #Always buy a devCard if you can
+        for move in possible_moves:
+            if not move: continue
+            for action, location in move.items():
+                piece, count = action
+                if piece == 'buyDevCard':
+                    move[action] = None
+                    return move
+        
+        #Get a random move 
+        move = random.choice(possible_moves)
+        if not move: return move
+
+        for action, locations in move.items():
+            piece, count = action
+
+            #Handle case where you exchange resource cards
+            if isinstance(piece, tuple):
+                move[action] = None
+            #Handle selecting a random move
+            else:
+                random.shuffle(move[action])
+                move[action] = move[action][:count]
+
         return move 
 
     #Randomly pick and play a devCard
     def pickDevCard(self):
         options = [None]
-        for card, count in self.devCards.items():
-            if count > 0:
-                options.append(card)
+        for devType, cards in self.devCards.items():
+            if cards:
+                options.append(devType)
 
         return random.choice(options)
         
-        
+    #Function used for the monopoly devcard to get the resource you want
+    def getFavResource(self):
+        resources = [resource for resource in self.resources if self.resources[resource] > 0]
+        return random.choice(resources)
     
     #Random AI should still be able to do this at some point, even if not yet
-    def give_card(self):
-        # Need to define this as an AI choice
+    # TODO: Currently gives away a random card. At some point would be nice to 
+    # give away more optimally
+    def give_card(self, oppPlayer):
         if len(self.resources) != 0:
-            return self.resources.pop(0) #Can you do this to a dict
-        return 0
+            #Randomly select a resource to give up
+            resource = random.choice(self.resources.keys())
+            while(not self.resources[resource]):
+                resource = random.choice(self.resources.keys())
+            
+            self.resources[resource] -= 1
+            self.numResources -= 1
+            oppPlayer.resources[resource] += 1
+            oppPlayer.numResources += 1
 
     '''
     Given a state and an move, returns the successor state. 
@@ -414,6 +382,100 @@ class AiPlayer(Player):
 
         return new_game
 
+      
+class weightedAI(AIPlayer):
+  
+  def __init__(self, turn_num, name, color):
+        AiPlayer.__init__(self, turn_num, name, color)
+        self.weights = weightsLog.readDict() 
+        if 'DELETE ME' in self.weights.keys():
+            # The weights log has not been initialized
+            weights = self.feature_extractor() # Get the list of features
+            for k in weights:
+                # Initialize each feature to a random weight
+                weights[k] = random.randint(-10, 10)
+            self.weights = weights
+            # Overwrite the log with the randomized weights dict
+            weightsLog.log_dict(self.weights)
+
+    # Use the weights to determine the value of a given roll
+    def evaluateMoveValue(self, game, move):
+        if not move:
+            return -1
+        future = self.get_successor(game, move) 
+        futureFeatures = future.players[self.turn_num].feature_extractor()
+        return util.dotProduct(futureFeatures, self.weights)
+    
+    # Figure out how many of each resource we would expect per roll
+    def expected_resources_per_roll(self):
+        possibleRolls = [a+b for a in range(1, 7) for b in range(1, 7)]
+        def prob(num):
+            return len([a for a in possibleRolls if a == num]) / 36.0
+
+        expected_resources = defaultdict(float)
+        multiplier = 1
+        for settlement in self.cities_and_settlements:
+            if isinstance(settlement, City):
+                multiplier = 2
+            for tile in settlement.location.get_tiles():
+                expected_resources[tile.resource] += prob(tile.value) * multiplier
+
+        return expected_resources
+
+    def getNumSettlementsAndCities(self):
+        city, settlement = (0, 0)
+        for city_or_settlement in self.cities_and_settlements:
+            if isinstance(city_or_settlement, City):
+                city += 1
+            else:
+                settlement += 1
+
+        return city, settlement
+
+    def feature_extractor(self):
+        expectedResources = self.expected_resources_per_roll() 
+        features = expectedResources 
+        features['Devcards played'] = sum(self.devCardsPlayed)
+        features.update(self.devCardsPlayed)
+        features['Num roads'] = len(self.roads)
+        features['Longest Road'] = self.longestRoadLength
+        numCities, numSettlements = self.getNumSettlementsAndCities()
+        features['Num cities'] = numCities
+        features['Num settlements'] = numSettlements
+        features['Num turns with more than 7 cards'] = self.numTimesOverSeven
+        features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
+        features['Has longest road'] = 1 if self.holdsLongestRoad else 0
+        features['Has largest army'] = 1 if self.hasLargestArmy else 0
+        features['Num cards discarded'] = self.numCardsDiscarded
+        return features    
+      
+  #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
+  def pickMove(self, possible_moves, game):
+        # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
+        # TODO: How can we evaluate a future game state without making a full copy?
+        move = {}
+        # Convert possible_moves to a list of tuples for easier reference 
+        # [((piece, count), [locations]), ((piece2, count2), [locations2])] 
+        possible_moves_tup = [(a, b) for d in possible_moves if d for a, b in d.items()] 
+        for action, possibleLocations in possible_moves_tup:
+            # mostValuableActions = [(action, location, value)]
+            mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleLocations]
+            mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+            
+            # Get the most valuable locations according to the 'count' field in a move
+            move[action] = [a[1] for a in mostValuableActions[:action[1]]]
+
+        # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
+        return move
+        
+      
+      
+      
+      
+      
+      
+      
+      
 '''
 This is a class I wrote when I was high that fucks around with an simple way ot use weights
 to improve initial settlement and road locations. Basically it uses the probability of a tile

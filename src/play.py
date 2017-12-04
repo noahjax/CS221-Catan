@@ -214,9 +214,17 @@ class Play:
     This will take an AI player and allow them to pick among all possible moves for a given gamestate
     """
     def run_AI_turn(self, player):
+        #Pick and play a devCard. Often won't do anything if no available cards
+        devCard = player.pickDevCard()
+        # print "devCard: ", devCard
+        # print player.devCards
+        if devCard: self.play_devcard(devCard, player)
+        
         # Get all possible moves player can make and send to AI for decision making
         # time.sleep(0.5)
+        resources = player.resources
         possible_moves = self.game.getPossibleActions(player)
+
         # Get move from AI player
         move = player.pickMove(possible_moves, self.game)
         '''
@@ -228,10 +236,10 @@ class Play:
             # print player.color,  "No move selected"
             return
         
-        # print "move:",move
+        # print "move:", move
+        # raw_input("")
+
         # Act on move by placing pieces and updating graphics
-        # TODO: Handle devCards and other possible actions
-    
         for action, locs in move.items():
             piece, count = action
 
@@ -239,8 +247,14 @@ class Play:
             if isinstance(piece, tuple):
                 oldResource, newResource = piece
                 player.resources[oldResource] -= count
+                player.numResources -= count
                 player.resources[newResource] += 1
-                
+                player.numResources += 1
+
+            #Buying DevCard
+            elif piece == 'buyDevCard':
+                self.game.buyDevCard(player)
+
             #Place piece
             else:
                 # Might want to flip structure of for loop and if statements
@@ -254,14 +268,8 @@ class Play:
                     elif piece == 'Road':
                         player.place_road(loc, self.game)
                         self.display.placeRoad(loc[0], loc[1], player)
-                    elif piece == 'DevCard':
-                        self.game.buyDevCard(player)
 
-        #Pick and play a devCard. Often won't do anything
-        devCard = player.pickDevCard()
-        if devCard: self.play_devcard(devCard, player)
-
-
+        self.updateDevCards(player)
 
 #############################################################################
 ############ Location finders for city, settlement and road #################
@@ -419,7 +427,10 @@ class Play:
             if len(possiblePlacements) == 0:
                 print("Sorry there are no valid road locations")
                 return
-            roadLoc = self.getRoadLoc(possiblePlacements)
+            if curr_player.isAI:
+                roadLoc = curr_player.pick_road_position(possiblePlacements)
+            else:
+                roadLoc = self.getRoadLoc(possiblePlacements)
             if not roadLoc:
                 return
             curr_player.place_road(roadLoc, self.game)
@@ -433,7 +444,8 @@ class Play:
 
     # Initiate the logic that plays a given devcard
     def play_devcard(self, type, currPlayer):
-        if type in currPlayer.devCards and currPlayer.devCards[type] >= 0:
+        #Make sure they have some of this devCard
+        if type in currPlayer.devCards and currPlayer.devCards[type]:
             card = currPlayer.devCards[type].pop(0)
             if type == 'Knight':
                 card.play(self.display, self.game)
@@ -478,5 +490,5 @@ class Play:
 
         # stall_end = raw_input("you sure you wanna end right now")
 
-#play = Play()
-#play.main()
+play = Play()
+play.main()

@@ -26,6 +26,7 @@ class Game(object):
         self.currMaxScore = 0
         self.longestRoad = 0
         self.currPlayerWithLongestRoad = None
+        self.playerWithLargestArmy = None
         self.board = board
         self.turn_num = 0
         self.devCards = self.initialize_dev_cards()
@@ -96,7 +97,7 @@ class Game(object):
         can_buy = self.canBuyDevCard(cur_player.resources)
         if can_buy:
             # Update player resources
-            self.updateDevCardResources(cur_player.resources)
+            self.updateDevCardResources(cur_player)
 
             # Get devCard and give to player
             dev_card = self.devCards.pop()
@@ -115,7 +116,6 @@ class Game(object):
             # Log purchase
             name = cur_player.name
             # catan_log.log(name + " bought " + dev_card)
-
 
         else:
             if not self.devCards:
@@ -174,37 +174,41 @@ class Game(object):
             and resources['Wool'] >= 1 and resources['Grain'] >= 1
 
     def canBuyDevCard(self, resources):
-        if not self.devCards:
-            return False
+        # if not self.devCards:
+        #     return False
         return resources['Ore'] >= 1 and resources['Grain'] >= 1 \
             and resources['Wool'] >= 1
 
     # Second group of helpers to update resources if you buy an item
-    def updateRoadResources(self, resources, add=False):
+    def updateRoadResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Brick'] -= 1 * i
-        resources['Wood'] -= 1 * i
+        player.resources['Brick'] -= 1 * i
+        player.resources['Wood'] -= 1 * i
+        player.numResources -= 2 * i
 
-    def updateCityResources(self, resources, add=False):
+    def updateCityResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Ore'] -= 3 * i
-        resources['Grain'] -= 2 * i
+        player.resources['Ore'] -= 3 * i
+        player.resources['Grain'] -= 2 * i
+        player.numResources -= 5 * i
 
-    def updateSettlementResources(self, resources, add=False):
+    def updateSettlementResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Brick'] -= 1 * i
-        resources['Wood'] -= 1 * i
-        resources['Wool'] -= 1 * i
-        resources['Grain'] -= 1 * i
+        player.resources['Brick'] -= 1 * i
+        player.resources['Wood'] -= 1 * i
+        player.resources['Wool'] -= 1 * i
+        player.resources['Grain'] -= 1 * i
+        player.numResources -= 4 * i
 
-    def updateDevCardResources(self, resources, add=False):
+    def updateDevCardResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Ore'] -= 1 * i
-        resources['Wool'] -= 1 * i
-        resources['Grain'] -= 1 * i
+        player.resources['Ore'] -= 1 * i
+        player.resources['Wool'] -= 1 * i
+        player.resources['Grain'] -= 1 * i
+        player.numResources -= 3 * i
 
     #Handles recursion to explore items you can buy
-    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=3):
+    def findResourceCombos(self, exchange_rates, resources, pieces, ans, depth=3):
 
         #Only recurse 5 levels to limit running time
         if depth <= 0: return
@@ -252,7 +256,8 @@ class Game(object):
             # self.updateDevCardResources(resources, add=True)
             cur_pieces['buyDevCard'] -= 1
 
-        #Check if you can exchange any of your resources
+        #TODO: Somehow fix this so that you don't get thousands of resources
+        # Check if you can exchange any of your resources
         for resource, count in resources.items():
             if count >= exchange_rates[resource]:
                 resources[resource] -= exchange_rates[resource]
@@ -262,8 +267,8 @@ class Game(object):
                         resources[addResource] += 1
                         # Store exchanges in form (trade in, recieve): exchange rate
                         cur_pieces[(resource, addResource)] = exchange_rates[resource]
-                        self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-2)
-                        resources[addResource] += 1
+                        self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-3)
+                        resources[addResource] -= 1
 
                 resources[resource] += exchange_rates[resource]
 
@@ -375,7 +380,8 @@ class Game(object):
     '''
 
     #Returns a list lists of [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
-    #that represent buying and placing pieces.
+    #that represent buying and placing pieces. 
+    '''Note: Does not handle playing DevCards. This logic is handled in player'''
     def getPossibleActions(self, player):
         #Get possible purchases
         possiblePurchases = self.piecesPurchasable(player)
@@ -387,6 +393,7 @@ class Game(object):
             cur_action = {}
             locations = []
             #Get locations for each piece
+
             for piece, count in purchase.items():
                 if piece == 'City':
                     locations = self.getCityLocations(player)
@@ -396,7 +403,7 @@ class Game(object):
                     locations = self.getSettlementLocations(player)
 
                 #Add to dict if there are enough valid locations
-                if len(locations) < count:
+                if len(locations) < count and piece != buyDevCard:
                     continue
                 cur_action[(piece, count)] = locations
             #Add this dict to the list of possible actions
@@ -488,10 +495,13 @@ class Game(object):
     """
     # Can access board through self, so really just need roll
     def distributeResources(self, roll, display):
+        for player in self.players:
+            if player.numResources > 7:
+                player.numTimesOverSeven += 1
+
         if roll == 7:
-            return  #Don't want to do this for now
-            print("Please move the robber. No resources to distribute")
-            moveRobber(self, display)
+            # return  #Don't want to do this for now
+            # moveRobber(self, display)
             for player in self.players:
                 if player.numResources > 7:
                     player.over_seven()
@@ -506,10 +516,8 @@ class Game(object):
                         if tile.value == roll and not tile.hasRobber and tile.resource != 'Desert':
                             resourceNum = 2 if node.occupyingPiece == City else 1
                             node.occupyingPiece.player.resources[tile.resource] += resourceNum
+                            node.occupyingPiece.player.numResources += resourceNum
 
-        for player in self.players:
-            if player.numResources > 7:
-                player.numTimesOverSeven += 1
                     
         # catan_log.log("Distributed resources to players")
                         
