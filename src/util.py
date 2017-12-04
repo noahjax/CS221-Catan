@@ -93,7 +93,7 @@ def moveRobber(game, display):
             for node_coordinates in game.board.getNodesForTile(tile):
                 node = game.board.getNodeFromCoords(node_coordinates[0], node_coordinates[1])
                 if node is not None and node.isOccupied:
-                    if node.occupyingPiece.player.score < 3:
+                    if node.occupyingPiece.player.score <= 3:
                         print("Sorry this is an invalid robber location")
                         isValid = False
         if isValid:
