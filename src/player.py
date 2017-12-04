@@ -32,6 +32,8 @@ class Player:
         self.newDevCards = defaultdict(int)
         self.roads = []
         self.numTimesOverSeven = 0
+        self.holdsLongestRoad = False
+        self.hasLargestArmy = False
     
         # Map each node to a list of other road nodes it is touching
         # This is used for computing the longest path
@@ -85,11 +87,14 @@ class Player:
             if self.longestRoadLength >= 5:
                 if game.currPlayerWithLongestRoad == None:
                     self.score += 2
+                    self.holdsLongestRoad = True
                     game.currPlayerWithLongestRoad = self
                 if not game.currPlayerWithLongestRoad is None and not game.currPlayerWithLongestRoad == self:
                     game.currPlayerWithLongestRoad.score -= 2
+                    game.currPlayerWithLongestRoad.holdsLongestRoad = False
                     self.score += 2
                     game.currPlayerWithLongestRoad = self
+                    self.holdsLongestRoad = True
 
 
     # Places settlement in desired location, updates necessary data structures
@@ -251,6 +256,8 @@ class AiPlayer(Player):
         features['Num settlements'] = numSettlements
         features['Num times cards over 7'] = self.numTimesOverSeven
         features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
+        features['Has longest road'] = 1 if self.holdsLongestRoad else 0
+        features['Has largest army'] = 1 if self.hasLargestArmy else 0
         return features
 
 
