@@ -10,7 +10,7 @@ features = defaultdict(int)
 score = defaultdict(float)
 logger = Log("../logs/training_data_log.txt")
 
-runs = 10
+runs = 1
 for i in range(runs):
     print('i = ' + str(i))
     play = Play()

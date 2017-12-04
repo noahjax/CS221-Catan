@@ -32,6 +32,7 @@ class Player:
         self.newDevCards = defaultdict(int)
         self.roads = []
         self.numTimesOverSeven = 0
+        self.numCardsDiscarded = 0
         self.holdsLongestRoad = False
         self.hasLargestArmy = False
     
@@ -254,10 +255,11 @@ class AiPlayer(Player):
         numCities, numSettlements = self.getNumSettlementsAndCities()
         features['Num cities'] = numCities
         features['Num settlements'] = numSettlements
-        features['Num times cards over 7'] = self.numTimesOverSeven
+        features['Num turns with more than 7 cards'] = self.numTimesOverSeven
         features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
         features['Has longest road'] = 1 if self.holdsLongestRoad else 0
         features['Has largest army'] = 1 if self.hasLargestArmy else 0
+        features['Num cards discarded'] = self.numCardsDiscarded
         return features
 
 
@@ -287,6 +289,7 @@ class AiPlayer(Player):
                if self.resources[resource] > 0:
                    self.resources[resource] -= 1
                    self.numResources -= 1
+                   self.numCardsDiscarded += 1
 
 
     #Don't think we need this considering that this is probably for pregame
