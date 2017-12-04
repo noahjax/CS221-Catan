@@ -239,7 +239,8 @@ class AiPlayer(Player):
         return city, settlement
 
     def feature_extractor(self):
-        features = self.expected_resources_per_roll()
+        expectedResources = self.expected_resources_per_roll() 
+        features = expectedResources 
         features['Devcards played'] = sum(self.devCardsPlayed)
         features.update(self.devCardsPlayed)
         features['Num roads'] = len(self.roads)
@@ -248,6 +249,7 @@ class AiPlayer(Player):
         features['Num cities'] = numCities
         features['Num settlements'] = numSettlements
         features['Num times cards over 7'] = self.numTimesOverSeven
+        features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
         return features
 
 

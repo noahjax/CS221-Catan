@@ -21,6 +21,7 @@ for i in range(runs):
         features = player.feature_extractor()
         score = player.score
         logger.log_dict_second(features, score)
+    
 
 # test_log = Log("test_log.txt")
 # test_log.log_dict(winners)
