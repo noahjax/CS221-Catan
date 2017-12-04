@@ -95,7 +95,7 @@ class RoadBuilding:
         self.type = 'Road Building'
 
 #TODO: Think there might be a bug in here...ofter AI games will say they stole 
-#thousands of resources
+# thousands of resources
 class Monopoly:
     def __init__(self, player, players):
         self.player = player

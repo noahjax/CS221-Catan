@@ -215,8 +215,9 @@ class Play:
         
         # Get all possible moves player can make and send to AI for decision making
         # time.sleep(0.5)
+        resources = player.resources
         possible_moves = self.game.getPossibleActions(player)
-
+        assert(resources == player.resources)
         # Get move from AI player
         move = player.pickMove(possible_moves)
 
@@ -240,7 +241,9 @@ class Play:
             if isinstance(piece, tuple):
                 oldResource, newResource = piece
                 player.resources[oldResource] -= count
+                player.numResources -= count
                 player.resources[newResource] += 1
+                player.numResources += 1
 
             #Buying DevCard
             elif piece == 'buyDevCard':

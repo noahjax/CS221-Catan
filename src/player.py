@@ -79,7 +79,7 @@ class Player:
         game.roads.append(roadLoc)
         
         if not firstTurn:
-            game.updateRoadResources(self.resources)
+            game.updateRoadResources(self)
         self.updateLongestRoad(roadLoc)
 
         # Update game longest road and players score
@@ -110,10 +110,11 @@ class Player:
         if firstTurn:
             self.initialSettlementCoords.append((node.row, node.col))
             for tile in node.touchingTiles:
-                self.resources[tile.resource] += 1
-                self.numResources += 1
+                if tile.resource is not 'Desert':
+                    self.resources[tile.resource] += 1
+                    self.numResources += 1
         else:
-            game.updateSettlementResources(self.resources)
+            game.updateSettlementResources(self)
 
     # Places city in desired location, updates necessary data structures
     def place_city(self, node, game):
@@ -123,7 +124,7 @@ class Player:
         node.set_occupying_piece(city_to_add)
         self.cities_and_settlements.append(city_to_add)
         self.incrementScore(1)
-        game.updateCityResources(self.resources)
+        game.updateCityResources(self)
 
     # Allows a player to discard a resource
     def discard_resource(self, resource):
@@ -196,7 +197,7 @@ class HumanPlayer(Player):
         self.resources[resource] -= 1
         self.numResources -= 1
         oppPlayer.resources[resource] += 1
-        oppPlayer.resources += 1
+        oppPlayer.numResources += 1
         print(self.name + " gave one " + resource + " to " + oppPlayer.name)
 
 
@@ -285,11 +286,10 @@ class AiPlayer(Player):
     def over_seven(self):
         numResources = self.numResources
         while self.numResources > (numResources/2):
-           for resource in self.resources:
-               if self.resources[resource] > 0:
-                   self.resources[resource] -= 1
-                   self.numResources -= 1
-                   self.numCardsDiscarded += 1
+            resource = self.getFavResource()
+            self.resources[resource] -= 1
+            self.numResources -= 1
+            self.numCardsDiscarded += 1
 
 
     #Don't think we need this considering that this is probably for pregame
@@ -349,7 +349,7 @@ class AiPlayer(Player):
         
     #Function used for the monopoly devcard to get the resource you want
     def getFavResource(self):
-        resources = ['Ore', 'Brick', 'Grain', 'Wood', 'Wool']
+        resources = [resource for resource in self.resources if self.resources[resource] > 0]
         return random.choice(resources)
     
     #Random AI should still be able to do this at some point, even if not yet
