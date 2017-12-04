@@ -212,7 +212,11 @@ class Play:
 
         # Get move from AI player
         move = player.pickMove(possible_moves)
-        
+
+        '''
+        move = player.pickMove(self.game)
+        '''
+
         # Print move for debugging purposes
         if not move:
             # print player.color,  "No move selected"
