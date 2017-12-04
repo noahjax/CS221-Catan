@@ -133,7 +133,7 @@ class Play:
                 # raw_input("")
 
                 # Distribute resources given the last roll
-                self.game.distributeResources(roll, self.display)
+                self.game.distributeResources(roll, self.display, curr_player)
                 
                 # Play the given turn
                 if curr_player.isAI:

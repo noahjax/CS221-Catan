@@ -86,7 +86,19 @@ def areValidResources(resources):
 # Move the robber
 def moveRobber(game, display):
     print("Please click on the top central node of the tile where you would like to place the robber")
-    position = display.getNode()
+    while True:
+        position = display.getNode()
+        isValid = True
+        for tile in position.get_tiles:
+            for node_coordinates in game.board.getNodesForTile(tile):
+                node = game.board.getNodeFromCoords(node_coordinates[0], node_coordinates[1])
+                if node is not None and node.isOccupied:
+                    if node.occupyingPiece.player.score < 3:
+                        print("Sorry this is an invalid robber location")
+                        isValid = False
+        if isValid:
+            break
+
     display.placeRobber(position)
     game.set_robber_location(position, display)
 

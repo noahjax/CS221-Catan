@@ -92,7 +92,11 @@ class Board:
 
     # Get a node from co-ordinates
     def getNodeFromCoords(self, r, c):
-        return self.nodes[r][c]
+        node = (r, c)
+        if self.inBounds(node):
+            return self.nodes[r][c]
+        else:
+            return None
 
     # Get a tile for the node
     def getTileForNode(self, r, c):
