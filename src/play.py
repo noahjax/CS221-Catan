@@ -19,7 +19,12 @@ class Play:
     run the game until an end state has been found (i.e. a player has
     ten points.)
     """
-    def __init__(self):
+    # New updates: logs is passed in as a dict from the player number to the current Log containing the weight
+    # dicts for each player. At the start, they will contain a placeholder dict, overwritten by the player
+    # Each AI player will be passed the log for their weights, which will be updated over time. 
+    # This update is assuming that there is a higher level being run in test.py, where the actual log objects are stored.
+    # Player types must be constant from one run to the next (e.g. P1 = human, P2 = AI, P3 = AI, P4 = Human for all runs in test.py)
+    def __init__(self, logs):
         # Initialize the board and give values and resources to tiles
         self.board = Board()
         self.turnNum = 0
@@ -76,10 +81,12 @@ class Play:
             name = ""
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
+            
+            # For each of the AI players, we also pass their corresponding weight log
             elif i == 0:
-                new_player = BasicStrategy(i, "AI"+str(i), colors[i])
+                new_player = BasicStrategy(i, "AI"+str(i), colors[i], logs[i])
             else:
-                new_player = AiPlayer(i, "AI" + str(i), colors[i])
+                new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -210,10 +217,8 @@ class Play:
         # Get all possible moves player can make and send to AI for decision making
         # time.sleep(0.5)
         possible_moves = self.game.getPossibleActions(player)
-
         # Get move from AI player
-        move = player.pickMove(possible_moves)
-
+        move = player.pickMove(possible_moves, self.game)
         '''
         move = player.pickMove(self.game)
         '''
@@ -224,9 +229,9 @@ class Play:
             return
         
         # print "move:",move
-
         # Act on move by placing pieces and updating graphics
         # TODO: Handle devCards and other possible actions
+    
         for action, locs in move.items():
             piece, count = action
 
@@ -473,3 +478,5 @@ class Play:
 
         # stall_end = raw_input("you sure you wanna end right now")
 
+#play = Play()
+#play.main()

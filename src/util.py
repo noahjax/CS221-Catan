@@ -95,3 +95,11 @@ def rollProb(roll):
             dist = abs(roll - 7)
             num = float(6 - dist)
             return num / 36
+
+# Pulled from sentiment assignment to do an efficient dot product
+def dotProduct(d1, d2):
+    if len(d1) < len(d2):
+        return dotProduct(d2, d1)
+    else:
+        return sum(d1.get(f, 0) * v for f, v in d2.items())
+

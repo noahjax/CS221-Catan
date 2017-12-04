@@ -49,3 +49,4 @@ class Log:
 
 catan_log = Log("log.txt")
 
+

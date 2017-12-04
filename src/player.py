@@ -78,7 +78,6 @@ class Player:
         if not firstTurn:
             game.updateRoadResources(self.resources)
         self.updateLongestRoad(roadLoc)
-
         # Update game longest road and players score
         if self.longestRoadLength > game.longestRoad:
             game.longestRoad = self.longestRoadLength
@@ -111,8 +110,13 @@ class Player:
 
     # Places city in desired location, updates necessary data structures
     def place_city(self, node, game):
+        # Update: modified how settlements are removed. When the duplicate player object was passed out of get_successor,
+        # it was located at a different memory address than the original owner of the city, and so list.remove(x) would throw and error
         prev_settlement = node.get_occupying_piece()
-        self.cities_and_settlements.remove(prev_settlement)
+        origLen = len(self.cities_and_settlements)
+        self.cities_and_settlements = [c_or_s for c_or_s in self.cities_and_settlements if str(c_or_s.location) != str(node)]
+        assert len(self.cities_and_settlements) == origLen - 1
+        # self.cities_and_settlements.remove(prev_settlement)
         city_to_add = City(self, node)
         node.set_occupying_piece(city_to_add)
         self.cities_and_settlements.append(city_to_add)
@@ -129,7 +133,6 @@ class Player:
 
     # Should be called whenever a road is built.
     def updateLongestRoad(self, road):
-
         # Update the 'touching' dict (self.touching)
         roadNodes = list(set(list(sum(self.roads, ())))) # Flatten the roads into a (unique) list of nodes 
         nn1, nn2 = road # new node 1, 2 (for the new node)
@@ -141,11 +144,12 @@ class Player:
             if (nn2, node) in self.roads or (node, nn2) in self.roads:
                 self.touching[nn2].append(node)
                 self.touching[node].append(nn2)
-      
+        
         # Use the touching dict to get the longest path
         longestPaths = []
         for startNode in roadNodes:
             visited = []
+            
             def longestPath(node, length, last, path):
                 toVisit = [n for n in self.touching[node] if n != last]
                 if node in visited or len(toVisit) == 0:
@@ -209,10 +213,28 @@ class AiPlayer(Player):
     of pick_*_position and other methods using real features
     """
 
-    def __init__(self, turn_num, name, color):
+    def __init__(self, turn_num, name, color, weightsLog):
         Player.__init__(self, turn_num, name, color)
         self.isAI = True
+        self.weights = weightsLog.readDict() 
+        if 'DELETE ME' in self.weights.keys():
+            # The weights log has not been initialized
+            weights = self.feature_extractor() # Get the list of features
+            for k in weights:
+                # Initialize each feature to a random weight
+                weights[k] = random.randint(-10, 10)
+            self.weights = weights
+            # Overwrite the log with the randomized weights dict
+            weightsLog.log_dict(self.weights)
 
+    # Use the weights to determine the value of a given roll
+    def evaluateMoveValue(self, game, move):
+        if not move:
+            return -1
+        future = self.get_successor(game, move) 
+        futureFeatures = future.players[self.turn_num].feature_extractor()
+        return util.dotProduct(futureFeatures, self.weights)
+    
     # Figure out how many of each resource we would expect per roll
     def expected_resources_per_roll(self):
         possibleRolls = [a+b for a in range(1, 7) for b in range(1, 7)]
@@ -297,16 +319,23 @@ class AiPlayer(Player):
         -Probably need check to make sure that you don't try to place two pieces in the same
          location
     '''
-    def pickMove(self, possible_moves):
-        #Get a random move 
-        move = random.choice(possible_moves)
-        if not move: return move
+    #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
+    def pickMove(self, possible_moves, game):
+        # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
+        # TODO: How can we evaluate a future game state without making a full copy?
+        move = {}
+        # Convert possible_moves to a list of tuples for easier reference 
+        # [((piece, count), [locations]), ((piece2, count2), [locations2])] 
+        possible_moves_tup = [(a, b) for d in possible_moves if d for a, b in d.items()] 
+        for action, possibleLocations in possible_moves_tup:
+            # mostValuableActions = [(action, location, value)]
+            mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleLocations]
+            mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+            
+            # Get the most valuable locations according to the 'count' field in a move
+            move[action] = [a[1] for a in mostValuableActions[:action[1]]]
 
-        for action, locations in move.items():
-            piece, count = action
-            random.shuffle(move[action])
-            move[action] = move[action][:count]
-
+        # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
         return move 
 
     #Randomly pick and play a devCard
@@ -334,31 +363,36 @@ class AiPlayer(Player):
     floating around
     '''
     def get_successor(self, game, move):
-        new_game = copy.deepcopy(game)
-        player = game.players[self.turn_num]
+        new_game = copy.deepcopy(game) # Exceeds max recursive depth
+        player = new_game.players[self.turn_num]
+        
+        # for action, loc in move.items(): <- again, we're only considering single locations at this point, so 
+        # this loop is not needed at the moment
+        piece, count = move[0]
+        loc = move[1]
 
-        for action, locs in move.items():
-            piece, count = action
-
-            #Exchange resources
-            if isinstance(piece, tuple):
-                oldResource, newResource = piece
-                player.resources[oldResource] -= count
-                player.resources[newResource] += 1
+        #Exchange resources
+        if isinstance(piece, tuple):
+            oldResource, newResource = piece
+            player.resources[oldResource] -= count
+            player.resources[newResource] += 1
                 
-            #Place piece
-            else:
-                # Might want to flip structure of for loop and if statements
-                for loc in locs:
-                    if piece == 'Settlement':
-                        player.place_settlement(loc, game)
-                    elif piece == 'City':
-                        player.place_city(loc, game)
-                    elif piece == 'Road':
-                        player.place_road(loc, game)
-                    elif piece == 'DevCard':
-                        new_game.buyDevCard(player)
-
+        #Place piece
+        else:
+            # Might want to flip structure of for loop and if statements
+            # Updated this to only take in a single location. In evaluateMoveValue, we're only 
+            # considering the value of moves made in isolation, which reduces the number of permutations
+            # that could be made of different moves. May be a less intelligent approach for the AI but
+            # might save some complexity. 
+            if piece == 'Settlement':
+                player.place_settlement(loc, new_game)
+            elif piece == 'City':
+                player.place_city(loc, new_game)
+            elif piece == 'Road':
+                player.place_road(loc, new_game)
+            elif piece == 'DevCard':
+                new_game.buyDevCard(player)
+        
         #Pick and play a devCard. Often won't do anything
         devCard = player.pickDevCard()
         #Had to copy devCard logic because it relied on the play class to 
@@ -367,7 +401,7 @@ class AiPlayer(Player):
             if type in player.devCards and player.devCards[type] >= 0:
                 card = player.devCards[type].pop(0)
             if type == 'Knight':
-                card.play(self.display, self.game)
+                card.play(self.display, new_game) 
             elif type == 'Road Building':
                 for i in range(2):
                     possible_locations = new_game.getRoadLocations(player)
@@ -375,8 +409,8 @@ class AiPlayer(Player):
                     self.place_road(loc, new_game, True)
             else:
                 card.play()
-        else:
-            print("Sorry you do not have that dev card")
+        # else:
+        #     print("Sorry you do not have that dev card")
 
         return new_game
 
@@ -417,8 +451,8 @@ Notes on how to go forward:
 
 class BasicStrategy(AiPlayer):
     
-    def __init__(self, turn_num, name, color):
-        AiPlayer.__init__(self, turn_num, name, color)
+    def __init__(self, turn_num, name, color, log):
+        AiPlayer.__init__(self, turn_num, name, color, log)
 
         #These keep track of weights for each resource in the pregame setup
         self.weights_log = Log("../logs/win_test_log_" + str(self.turn_num) +".txt")

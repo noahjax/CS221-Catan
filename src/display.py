@@ -3,7 +3,7 @@ import pygame
 from pygame.locals import *
 
 # Turn off when training
-DISPLAY_ON = False 
+DISPLAY_ON = True 
 
 class Display:
  
