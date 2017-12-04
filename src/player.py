@@ -220,7 +220,7 @@ class AiPlayer(Player):
     of pick_*_position and other methods using real features
     """
 
-    def __init__(self, turn_num, name, color, weightsLog):
+    def __init__(self, turn_num, name, color, weightsLog=None):
         Player.__init__(self, turn_num, name, color)
         self.isAI = True
        
@@ -385,8 +385,8 @@ class AiPlayer(Player):
       
 class weightedAI(AIPlayer):
   
-  def __init__(self, turn_num, name, color):
-        AiPlayer.__init__(self, turn_num, name, color)
+  def __init__(self, turn_num, name, color, weightsLog):
+        AiPlayer.__init__(self, turn_num, name, color, weightsLog)
         self.weights = weightsLog.readDict() 
         if 'DELETE ME' in self.weights.keys():
             # The weights log has not been initialized
