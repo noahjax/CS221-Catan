@@ -116,7 +116,6 @@ class Game(object):
             name = cur_player.name
             # catan_log.log(name + " bought " + dev_card)
 
-
         else:
             if not self.devCards:
                 print("Sorry there are no devcards left to buy")
@@ -174,8 +173,8 @@ class Game(object):
             and resources['Wool'] >= 1 and resources['Grain'] >= 1
 
     def canBuyDevCard(self, resources):
-        if not self.devCards:
-            return False
+        # if not self.devCards:
+        #     return False
         return resources['Ore'] >= 1 and resources['Grain'] >= 1 \
             and resources['Wool'] >= 1
 
@@ -252,7 +251,8 @@ class Game(object):
             # self.updateDevCardResources(resources, add=True)
             cur_pieces['buyDevCard'] -= 1
 
-        #Check if you can exchange any of your resources
+        #TODO: Somehow fix this so that you don't get thousands of resources
+        # Check if you can exchange any of your resources
         for resource, count in resources.items():
             if count >= exchange_rates[resource]:
                 resources[resource] -= exchange_rates[resource]
@@ -262,7 +262,7 @@ class Game(object):
                         resources[addResource] += 1
                         # Store exchanges in form (trade in, recieve): exchange rate
                         cur_pieces[(resource, addResource)] = exchange_rates[resource]
-                        self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-2)
+                        self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-3)
                         resources[addResource] += 1
 
                 resources[resource] += exchange_rates[resource]
@@ -375,7 +375,8 @@ class Game(object):
     '''
 
     #Returns a list lists of [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
-    #that represent buying and placing pieces.
+    #that represent buying and placing pieces. 
+    '''Note: Does not handle playing DevCards. This logic is handled in player'''
     def getPossibleActions(self, player):
         #Get possible purchases
         possiblePurchases = self.piecesPurchasable(player)
@@ -387,6 +388,7 @@ class Game(object):
             cur_action = {}
             locations = []
             #Get locations for each piece
+
             for piece, count in purchase.items():
                 if piece == 'City':
                     locations = self.getCityLocations(player)
@@ -396,7 +398,7 @@ class Game(object):
                     locations = self.getSettlementLocations(player)
 
                 #Add to dict if there are enough valid locations
-                if len(locations) < count:
+                if len(locations) < count and piece != buyDevCard:
                     continue
                 cur_action[(piece, count)] = locations
             #Add this dict to the list of possible actions

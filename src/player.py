@@ -41,14 +41,14 @@ class Player:
 
         #Rates that you can swap cards in at. Currently 4 for all cards but can change as we introduce ports
         #At some point we should make it so desert doesn't get distributed to people at all
-        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':100000}
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':1000000000}
 
         # Don't necessarily need to keep track of pieces for each player, but could be useful
         self.cities_and_settlements = []
         self.numKnights = 0
         self.longestRoadLength = 0
         self.numResources = 0
-        self.isAi = False
+        self.isAI = False
        
         # Store the two tuples of coordinates where the initial settlements are placed
         self.initialSettlementCoords = [] 
@@ -291,41 +291,71 @@ class AiPlayer(Player):
     '''
     Given a list of all possible moves, pick a move. This simple implementation picks 
     a random move and returns it. 
-        -possible_moves in format [{(piece, count): [loc1, loc2]},{(piece,location): [loc1]}, ...]
+        -possible_moves in format [{(piece, count): [loc1, loc2]},{(piece,count): [loc1]}, ...]
         -Move should be in dict format {(Piece, count): loc, (Piece, count): loc}
         -Not sure how we will update this with devCards 
         -Probably need check to make sure that you don't try to place two pieces in the same
          location
     '''
     def pickMove(self, possible_moves):
+        #Always buy a devCard if you can
+        for move in possible_moves:
+            if not move: continue
+            for action, location in move.items():
+                piece, count = action
+                if piece == 'buyDevCard':
+                    move[action] = None
+                    return move
+        
         #Get a random move 
         move = random.choice(possible_moves)
         if not move: return move
 
         for action, locations in move.items():
             piece, count = action
-            random.shuffle(move[action])
-            move[action] = move[action][:count]
+
+            #Handle case where you exchange resource cards
+            if isinstance(piece, tuple):
+                move[action] = None
+            #Handle selecting a random move
+            else:
+                random.shuffle(move[action])
+                move[action] = move[action][:count]
+
+        # print(self.devCards)
+        # print(self.newDevCards)
+        # print(self.pickDevCard())
 
         return move 
 
     #Randomly pick and play a devCard
     def pickDevCard(self):
         options = [None]
-        for card, count in self.devCards.items():
-            if count > 0:
-                options.append(card)
+        for devType, cards in self.devCards.items():
+            if cards:
+                options.append(devType)
 
         return random.choice(options)
         
-        
+    #Function used for the monopoly devcard to get the resource you want
+    def getFavResource(self):
+        resources = ['Ore', 'Brick', 'Grain', 'Wood', 'Wool']
+        return random.choice(resources)
     
     #Random AI should still be able to do this at some point, even if not yet
-    def give_card(self):
-        # Need to define this as an AI choice
+    # TODO: Currently gives away a random card. At some point would be nice to 
+    # give away more optimally
+    def give_card(self, oppPlayer):
         if len(self.resources) != 0:
-            return self.resources.pop(0) #Can you do this to a dict
-        return 0
+            #Randomly select a resource to give up
+            resource = random.choice(self.resources.keys())
+            while(not self.resources[resource]):
+                resource = random.choice(self.resources.keys())
+            
+            self.resources[resource] -= 1
+            self.numResources -= 1
+            oppPlayer.resources[resource] += 1
+            oppPlayer.numResources += 1
 
     '''
     Given a state and an move, returns the successor state. 

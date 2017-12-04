@@ -35,23 +35,24 @@ class Knight:
     # Plays the Knight card given a new position for the Robber
     def play(self, display, game):
         self.player.devCardsPlayed[self.type] += 1
-        if not self.player.isAi:
+        if not self.player.isAI:
             moveRobber(game, display)
         else:
             self.player.moveRobber(game, display)
 
-        players_to_give_cards = set()
+        players_to_give_cards = []
 
         # Check all players that need to give a card
         for oppPlayer in self.players:
             if not oppPlayer == self.player:
                 for node in self.player.occupyingNodes:
                     for tile in node.touchingTiles:
-                        if tile.hasRobber:
-                            players_to_give_cards.add(oppPlayer)
+                        #Players on tiles the robber is moved to have to give up cards
+                        if tile.hasRobber and oppPlayer not in players_to_give_cards:
+                            players_to_give_cards.append(oppPlayer)
 
-        if len(players_to_give_cards) == 0:
-            print("No players need to give cards")
+        # if len(players_to_give_cards) == 0:
+        #     print("No players need to give cards")
 
         # For each of those players make them give a card
         for player in players_to_give_cards:
@@ -88,7 +89,8 @@ class RoadBuilding:
         self.player = player
         self.type = 'Road Building'
 
-
+#TODO: Think there might be a bug in here...ofter AI games will say they stole 
+#thousands of resources
 class Monopoly:
     def __init__(self, player, players):
         self.player = player
@@ -97,7 +99,11 @@ class Monopoly:
 
     def play(self):
         self.player.devCardsPlayed[self.type] += 1
-        resource = getResourceInput()
+        
+        if self.player.isAI:
+            resource = self.player.getFavResource()
+        else: 
+            resource = getResourceInput()
         total = 0
         for player in self.players:
             if not player == self.player:
@@ -118,7 +124,10 @@ class YearOfPlenty:
     def play(self):
         self.player.devCardsPlayed[self.type] += 1
         for i in range(2):
-            resource = getResourceInput()
+            if self.player.isAI: 
+                resource = self.player.getFavResource()
+            else:
+                resource = getResourceInput()
             self.player.resources[resource] += 1
             self.player.numResources += 1
 
