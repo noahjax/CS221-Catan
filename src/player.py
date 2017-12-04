@@ -25,7 +25,7 @@ class Player:
         self.color = color
         self.score = 0
 
-        # Storing these in dict to make it easy to figure out how many they have. {"item": count}
+        # Storing these in dict to make it easy to figure out how many they have. {"item": [obj,obj,...]}
         self.resources = defaultdict(int)
         self.devCards = defaultdict(int)
         self.devCardsPlayed = defaultdict(int)
@@ -223,6 +223,9 @@ class AiPlayer(Player):
     def __init__(self, turn_num, name, color, weightsLog=None):
         Player.__init__(self, turn_num, name, color)
         self.isAI = True
+
+        #Used for unchoosing a devCard
+        self.prevDevCards = []
        
     '''
     These functions are used for pregame positions
@@ -339,12 +342,13 @@ class AiPlayer(Player):
     Make sure to delete the successor state after using it so we don't have a million copies
     floating around
     '''
-    def get_successor(self, game, move):
-        new_game = copy.deepcopy(game) # Exceeds max recursive depth
-        player = new_game.players[self.turn_num]
+
+    #Updates a game after a move so the new gamestate s' can be used in Eval(s')
+    def do_move(self, game, move, firstTurn=False):
         
         # for action, loc in move.items(): <- again, we're only considering single locations at this point, so 
         # this loop is not needed at the moment
+        print "move: ", move
         piece, count = move[0]
         loc = move[1]
 
@@ -356,40 +360,135 @@ class AiPlayer(Player):
                 
         #Place piece
         else:
-            # Might want to flip structure of for loop and if statements
-            # Updated this to only take in a single location. In evaluateMoveValue, we're only 
-            # considering the value of moves made in isolation, which reduces the number of permutations
-            # that could be made of different moves. May be a less intelligent approach for the AI but
-            # might save some complexity. 
             if piece == 'Settlement':
-                player.place_settlement(loc, new_game)
+                player.place_settlement(loc, game, firstTurn)
             elif piece == 'City':
-                player.place_city(loc, new_game)
+                player.place_city(loc, game)
             elif piece == 'Road':
-                player.place_road(loc, new_game)
+                player.place_road(loc, game, firstTurn)
             elif piece == 'DevCard':
-                new_game.buyDevCard(player)
+                game.buyDevCard(player)
         
-        #Pick and play a devCard. Often won't do anything
-        devCard = player.pickDevCard()
-        #Had to copy devCard logic because it relied on the play class to 
-        #handle road building. 
-        if devCard: 
-            if type in player.devCards and player.devCards[type] >= 0:
-                card = player.devCards[type].pop(0)
-            if type == 'Knight':
-                card.play(self.display, new_game) 
-            elif type == 'Road Building':
-                for i in range(2):
-                    possible_locations = new_game.getRoadLocations(player)
-                    loc = self.pick_road_position(possible_locations)
-                    self.place_road(loc, new_game, True)
-            else:
-                card.play()
-        # else:
-        #     print("Sorry you do not have that dev card")
+        return game
+    
+    #TODO: Potential issue: What happens when we run this at a depth > 1 and we want to 
+    #Undoes a move, return s' to state s. Assumes move you are undoing was the last move made.
+    def undo_move(self, game, move, firstTurn=False):
+        piece, count = move[0]
+        loc = move[1]
 
-        return new_game
+        #Exchange resources
+        if isinstance(piece, tuple):
+            oldResource, newResource = piece
+            player.resources[oldResource] += count
+            player.resources[newResource] -= 1
+                
+        #Place piece
+        else:
+            if piece == 'Settlement':
+                player.remove_settlement(loc, game)
+            elif piece == 'City':
+                player.remove_city(loc, game)
+            elif piece == 'Road':
+                player.remove_road(loc, game)
+            elif piece == 'DevCard':
+                game.returnDevCard(player)
+        
+        return game
+
+    #Helper to remove roads
+    #TODO: handle undoing longest road
+    def remove_road(self, roadLoc, game, firstTurn=False):
+        del self.roads[-1]
+        del game.roads[-1]
+
+        if not firstTurn:
+            game.updateRoadResources(self, True)
+
+        #Longest road stuff
+        #TODO TODO TODO
+        
+
+    #Helper to remove settlements
+    def remove_settlement(self, node, game, firstTurn=False):
+        node.occupyingPiece = None
+        del self.cities_and_settlements[-1]
+        del self.occupyingNodes[-1]
+        self.score -= 1
+
+        if firstTurn:
+            self.initialSettlementCoords.append((node.row, node.col))
+            for tile in node.touchingTiles:
+                if tile.resource is not 'Desert':
+                    self.resources[tile.resource] -= 1
+                    self.numResources -= 1
+        else:
+            game.updateSettlementResources(self, True)
+
+    #Helper to remove cities
+    def remove_city(self, node, game):
+        del node.occupyingPiece
+        node.occupyingPiece = Settlement(self, node)
+        del self.cities_and_settlements[-1]
+        self.occupyingNodes.append(node.occupyingPiece)
+        self.score -= 1
+
+        game.updateCityResources(self, True)
+
+
+    # def get_successor(self, game, move):
+    #     new_game = copy.deepcopy(game) # Exceeds max recursive depth
+    #     player = new_game.players[self.turn_num]
+        
+    #     # for action, loc in move.items(): <- again, we're only considering single locations at this point, so 
+    #     # this loop is not needed at the moment
+    #     piece, count = move[0]
+    #     loc = move[1]
+
+    #     #Exchange resources
+    #     if isinstance(piece, tuple):
+    #         oldResource, newResource = piece
+    #         player.resources[oldResource] -= count
+    #         player.resources[newResource] += 1
+                
+    #     #Place piece
+    #     else:
+    #         # Might want to flip structure of for loop and if statements
+    #         # Updated this to only take in a single location. In evaluateMoveValue, we're only 
+    #         # considering the value of moves made in isolation, which reduces the number of permutations
+    #         # that could be made of different moves. May be a less intelligent approach for the AI but
+    #         # might save some complexity. 
+    #         if piece == 'Settlement':
+    #             player.place_settlement(loc, new_game)
+    #         elif piece == 'City':
+    #             player.place_city(loc, new_game)
+    #         elif piece == 'Road':
+    #             player.place_road(loc, new_game)
+    #         elif piece == 'DevCard':
+    #             new_game.buyDevCard(player)
+        
+    #     #Pick and play a devCard. Often won't do anything
+    #     devCard = player.pickDevCard()
+    #     #Had to copy devCard logic because it relied on the play class to 
+    #     #handle road building. 
+    #     if devCard: 
+    #         if type in player.devCards and player.devCards[type] >= 0:
+    #             card = player.devCards[type].pop(0)
+    #         if type == 'Knight':
+    #             card.play(self.display, new_game) 
+    #         elif type == 'Road Building':
+    #             for i in range(2):
+    #                 possible_locations = new_game.getRoadLocations(player)
+    #                 loc = self.pick_road_position(possible_locations)
+    #                 self.place_road(loc, new_game, True)
+    #         else:
+    #             card.play()
+    #     # else:
+    #     #     print("Sorry you do not have that dev card")
+
+    #     return new_game
+
+
 
     '''Random AI doesn't have a feature extractor, but we want it to be compatible with test'''
     def feature_extractor(self):

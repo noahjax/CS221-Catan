@@ -104,6 +104,7 @@ class Game(object):
             # print("You got a " + dev_card.type)
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
+            cur_player.prevDevCards.append[card_to_add]
 
             # Checks if you already have devCard, may be redundant with defaultdict()
             if dev_card in cur_player.newDevCards.keys():
@@ -124,7 +125,25 @@ class Game(object):
                 print("You don't have enough resources to buy a devCard")
 
             # catan_log.log("Couldn't buy devCard")
-        
+    
+    #Return a devCard
+    def returnDevCard(self, cur_player):
+        self.updateDevCardResources(cur_player, True)
+        cards = cur_player.devCards   
+        return_card = cur_player.prevDevCards[-1]   
+        del cards[return_card][-1]
+        del cur_player.prevDevCards[-1]
+
+    #TODO: Maybe we should move this to game so that we can model successor states actually having playable 
+    #Devcards
+    def updateDevCards(self, currPlayer):
+        for type_card in currPlayer.newDevCards.keys():
+            for num_cards in range(len(currPlayer.newDevCards[type_card])):
+                card_to_add = currPlayer.newDevCards[type_card].pop(0)
+                if type_card in currPlayer.devCards.keys():
+                    currPlayer.devCards[type_card].append(card_to_add)
+                else:
+                    currPlayer.devCards[type_card] = [card_to_add]    
 
     #Handle moving the robber
     def set_robber_location(self, location, display):
