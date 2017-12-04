@@ -97,7 +97,7 @@ class Game(object):
         can_buy = self.canBuyDevCard(cur_player.resources)
         if can_buy:
             # Update player resources
-            self.updateDevCardResources(cur_player.resources)
+            self.updateDevCardResources(cur_player)
 
             # Get devCard and give to player
             dev_card = self.devCards.pop()
@@ -180,31 +180,35 @@ class Game(object):
             and resources['Wool'] >= 1
 
     # Second group of helpers to update resources if you buy an item
-    def updateRoadResources(self, resources, add=False):
+    def updateRoadResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Brick'] -= 1 * i
-        resources['Wood'] -= 1 * i
+        player.resources['Brick'] -= 1 * i
+        player.resources['Wood'] -= 1 * i
+        player.numResources -= 2 * i
 
-    def updateCityResources(self, resources, add=False):
+    def updateCityResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Ore'] -= 3 * i
-        resources['Grain'] -= 2 * i
+        player.resources['Ore'] -= 3 * i
+        player.resources['Grain'] -= 2 * i
+        player.numResources -= 5 * i
 
-    def updateSettlementResources(self, resources, add=False):
+    def updateSettlementResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Brick'] -= 1 * i
-        resources['Wood'] -= 1 * i
-        resources['Wool'] -= 1 * i
-        resources['Grain'] -= 1 * i
+        player.resources['Brick'] -= 1 * i
+        player.resources['Wood'] -= 1 * i
+        player.resources['Wool'] -= 1 * i
+        player.resources['Grain'] -= 1 * i
+        player.numResources -= 4 * i
 
-    def updateDevCardResources(self, resources, add=False):
+    def updateDevCardResources(self, player, add=False):
         i = -1 if add else 1
-        resources['Ore'] -= 1 * i
-        resources['Wool'] -= 1 * i
-        resources['Grain'] -= 1 * i
+        player.resources['Ore'] -= 1 * i
+        player.resources['Wool'] -= 1 * i
+        player.resources['Grain'] -= 1 * i
+        player.numResources -= 3 * i
 
     #Handles recursion to explore items you can buy
-    def findResourceCombos(self, exchange_rates,  resources, pieces, ans, depth=3):
+    def findResourceCombos(self, exchange_rates, resources, pieces, ans, depth=3):
 
         #Only recurse 5 levels to limit running time
         if depth <= 0: return
@@ -264,7 +268,7 @@ class Game(object):
                         # Store exchanges in form (trade in, recieve): exchange rate
                         cur_pieces[(resource, addResource)] = exchange_rates[resource]
                         self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-3)
-                        resources[addResource] += 1
+                        resources[addResource] -= 1
 
                 resources[resource] += exchange_rates[resource]
 

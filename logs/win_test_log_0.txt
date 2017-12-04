@@ -1,1 +1,1 @@
-{"Wool": 0.01, "Wood": 0.0, "Grain": 0.0, "Brick": 0.0, "Ore": 0.02, "Desert": 0}
+{"Ore": 0.0, "Wood": 0.0, "Grain": 0.02, "Brick": 0.0, "Wool": 0.01, "Desert": 0}
