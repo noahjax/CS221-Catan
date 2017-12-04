@@ -225,6 +225,8 @@ class AiPlayer(Player):
         self.isAI = True
        
     '''
+    These functions are used for pregame positions
+
     Picking positions mostly useful for pregame when possible moves are limited and it's 
     easier to simply pick a random position. Full gameplay uses more extensive methods
     defined later.
@@ -232,11 +234,16 @@ class AiPlayer(Player):
          implementations even though this class doesn't. 
     '''
     #Handles picking a road and building it. Assumes possible road locations isn't empty
-    def pick_road_position(self, possible_locations):
-        return random.choice(possible_locations)
+    #Including game in case we want to get more information about road locations
+    def pick_road_position(self, settlementLoc, game):
+        possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
+        return random.choice(possible_roads)
    
-    def pick_settlement_position(self, possible_locations):
-        return random.choice(possible_locations)
+    def pick_settlement_position(self, game):
+        possible_settlements = game.getSettlementLocations(self, True)
+        return random.choice(possible_settlements)
+    
+    '''Functions for the robber logic'''
 
     def moveRobber(self, game, display):
         # TODO: write logic for the AI to get the possible robber locations
@@ -250,7 +257,6 @@ class AiPlayer(Player):
             self.resources[resource] -= 1
             self.numResources -= 1
             self.numCardsDiscarded += 1
-
 
     #Don't think we need this considering that this is probably for pregame
     # def pick_city_position(self, possible_locations):
@@ -268,8 +274,11 @@ class AiPlayer(Player):
          location
     '''
 
-    def pickMove(self, possible_moves):
+    def pickMove(self, game):
         #Always buy a devCard if you can
+
+        possible_moves = game.getPossibleActions(self)
+
         for move in possible_moves:
             if not move: continue
             for action, location in move.items():
@@ -382,10 +391,14 @@ class AiPlayer(Player):
 
         return new_game
 
+    '''Random AI doesn't have a feature extractor, but we want it to be compatible with test'''
+    def feature_extractor(self):
+        pass
+
       
-class weightedAI(AIPlayer):
+class weightedAI(AiPlayer):
   
-  def __init__(self, turn_num, name, color, weightsLog):
+    def __init__(self, turn_num, name, color, weightsLog):
         AiPlayer.__init__(self, turn_num, name, color, weightsLog)
         self.weights = weightsLog.readDict() 
         if 'DELETE ME' in self.weights.keys():
@@ -449,10 +462,11 @@ class weightedAI(AIPlayer):
         features['Num cards discarded'] = self.numCardsDiscarded
         return features    
       
-  #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
-  def pickMove(self, possible_moves, game):
+    #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
+    def pickMove(self, game):
         # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
         # TODO: How can we evaluate a future game state without making a full copy?
+        possible_moves = game.getPossibleActions(self)
         move = {}
         # Convert possible_moves to a list of tuples for easier reference 
         # [((piece, count), [locations]), ((piece2, count2), [locations2])] 
