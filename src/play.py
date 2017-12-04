@@ -83,10 +83,11 @@ class Play:
                 new_player = HumanPlayer(i, name, colors[i])
             
             # For each of the AI players, we also pass their corresponding weight log
-            elif i == 0:
-                new_player = BasicStrategy(i, "AI"+str(i), colors[i], logs[i])
-            else:
-                new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
+            new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
+#             elif i == 0:
+#                 new_player (i, "AI"+str(i), colors[i], logs[i])
+#             else:
+#                 new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
