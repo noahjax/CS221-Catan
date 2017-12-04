@@ -19,7 +19,12 @@ class Play:
     run the game until an end state has been found (i.e. a player has
     ten points.)
     """
-    def __init__(self):
+    # New updates: logs is passed in as a dict from the player number to the current Log containing the weight
+    # dicts for each player. At the start, they will contain a placeholder dict, overwritten by the player
+    # Each AI player will be passed the log for their weights, which will be updated over time. 
+    # This update is assuming that there is a higher level being run in test.py, where the actual log objects are stored.
+    # Player types must be constant from one run to the next (e.g. P1 = human, P2 = AI, P3 = AI, P4 = Human for all runs in test.py)
+    def __init__(self, logs):
         # Initialize the board and give values and resources to tiles
         self.board = Board()
         self.turnNum = 0
@@ -76,10 +81,13 @@ class Play:
             name = ""
             if name != "":
                 new_player = HumanPlayer(i, name, colors[i])
-            elif i == 0:
-                new_player = BasicStrategy(i, "AI"+str(i), colors[i])
-            else:
-                new_player = AiPlayer(i, "AI" + str(i), colors[i])
+            
+            # For each of the AI players, we also pass their corresponding weight log
+            new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
+#             elif i == 0:
+#                 new_player (i, "AI"+str(i), colors[i], logs[i])
+#             else:
+#                 new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -217,10 +225,9 @@ class Play:
         # time.sleep(0.5)
         resources = player.resources
         possible_moves = self.game.getPossibleActions(player)
-        assert(resources == player.resources)
-        # Get move from AI player
-        move = player.pickMove(possible_moves)
 
+        # Get move from AI player
+        move = player.pickMove(possible_moves, self.game)
         '''
         move = player.pickMove(self.game)
         '''

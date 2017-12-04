@@ -10,10 +10,20 @@ features = defaultdict(int)
 score = defaultdict(float)
 logger = Log("../logs/training_data_log.txt")
 
-runs = 1
+weightLogs = {} # Maps from a character number to a Log object
+
+# Initialize the weightLogs to random
+# Assume 4 players and initialized weights for all of them regardless of whether they are AI or human
+# All are initialized with a placeholder dict that should be overwritten
+for i in range(4):
+    weightLogs[i] = Log('../logs/WeightLog_%s.txt' % i)
+    weightLogs[i].log_dict({'DELETE ME' : -1})
+
+runs = 1 
+
 for i in range(runs):
-    print('i = ' + str(i))
-    play = Play()
+    print(i)
+    play = Play(weightLogs)
     play.main()
 
     #Get info from the game
@@ -21,7 +31,7 @@ for i in range(runs):
         features = player.feature_extractor()
         score = player.score
         logger.log_dict_second(features, score)
-    
+        # print('devcards = ' + str(player.devCards))    
 
 # test_log = Log("test_log.txt")
 # test_log.log_dict(winners)
