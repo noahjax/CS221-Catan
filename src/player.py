@@ -276,7 +276,7 @@ class AiPlayer(Player):
             for node_coordinates in game.board.getNodesForTile(tile):
                 node = game.board.getNodeFromCoords(node_coordinates[0], node_coordinates[1])
                 if node is not None and node.isOccupied:
-                    if node.occupyingPiece.player.score > 3 and node.occupyingPiece.player is not self:
+                    if node.occupyingPiece.player.score <= 3 or node.occupyingPiece.player is self:
                         # print("Sorry this is an invalid robber location")
                         isValid = False
             if isValid:
