@@ -83,10 +83,10 @@ class Play:
                 new_player = HumanPlayer(i, name, colors[i])
             
             # For each of the AI players, we also pass their corresponding weight log
-            elif i == 0:
-                new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
-            else:
-                new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
+            # elif i == 0:
+            new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
+            # else:
+            #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -119,11 +119,14 @@ class Play:
         self.first_two_turns()
 
         while True:
+            if self.turnNum/4 > 100:
+                break
             # Check if game is over
             if self.game.currMaxScore >= 10:
                 # print self.turnNum
                 return self.endGame()
             else:
+                time.sleep(1)
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
                 # print_player_stats(curr_player)
@@ -146,7 +149,6 @@ class Play:
                     self.game.currMaxScore = curr_player.score
                 
                 self.turnNum += 1
-                print self.turnNum
 
                 # print "-----End Turn-----"
 
@@ -427,7 +429,7 @@ class Play:
                 print("Sorry there are no valid road locations")
                 return
             if curr_player.isAI:
-                roadLoc = curr_player.pick_road_position(possiblePlacements)
+                roadLoc = curr_player.pick_road_devcard_ai(possiblePlacements)
             else:
                 roadLoc = self.getRoadLoc(possiblePlacements)
             if not roadLoc:
