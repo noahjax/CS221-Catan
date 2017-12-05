@@ -491,5 +491,5 @@ class Play:
 
         # stall_end = raw_input("you sure you wanna end right now")
 
-play = Play()
-play.main()
+# play = Play()
+# play.main()

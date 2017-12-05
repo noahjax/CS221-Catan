@@ -3,10 +3,12 @@ import pygame
 from pygame.locals import *
 
 # Turn off when training
-DISPLAY_ON = False
+DISPLAY_ON = True 
 
 class Display:
- 
+    
+    colors = {'green': (16, 124, 16), 'blue': (0, 0, 231), 'orange': (243, 87, 40), 'red': (241, 0, 0)}
+
     screen = None
     screenWidth, screenHeight = (640, 480)
     # screenWidth, screenHeight = (1280, 960)
@@ -69,7 +71,8 @@ class Display:
         self.font = pygame.font.SysFont('../res/Comic Sans MS', 80)
 
         self.screen = pygame.display.set_mode((self.screenWidth, self.screenHeight))
-        
+        self.roadsToDraw = [] 
+
         # Dots on dots on dots on dots on dots on ... 
         self.redDot = pygame.image.load('../res/red_dot.png')
         self.redDot = pygame.transform.scale(self.redDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
@@ -86,6 +89,9 @@ class Display:
         self.blackDot = pygame.image.load('../res/black_dot.png')
         self.blackDot = pygame.transform.scale(self.blackDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
 
+        self.whiteDot= pygame.image.load('../res/white_dot.png')
+        self.whiteDot = pygame.transform.scale(self.whiteDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
+
         # Load the city and town pngs
         self.city = pygame.image.load('../res/castle.png')
         self.city = pygame.transform.scale(self.city, (self.screenWidth / 40, self.screenHeight / 40))
@@ -93,32 +99,27 @@ class Display:
         self.town = pygame.image.load('../res/town.png')
         self.town = pygame.transform.scale(self.town, (self.screenWidth / 25, self.screenHeight / 25))
 
-        # Load a hexagon to use as a tile
-        self.tile = pygame.image.load('../res/hex.png')
-        self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
+        # self.tile = pygame.image.load('../res/hex.png')
+        # self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
+        self.resourceTiles = {}
+        self.resourceTiles['Wood'] = pygame.image.load('../res/wood.png')
+        self.resourceTiles['Grain'] = pygame.image.load('../res/grain.png')
+        self.resourceTiles['Ore'] = pygame.image.load('../res/ore.png')
+        self.resourceTiles['Wool'] = pygame.image.load('../res/wool.png')
+        self.resourceTiles['Brick'] = pygame.image.load('../res/brick.png')
+        self.resourceTiles['Desert'] = pygame.image.load('../res/desert.png')
 
-        # Load triangles to use as roads
-        self.redRoad = pygame.image.load('../res/red_triangle.png')
-        self.redRoad = pygame.transform.scale(self.redRoad, (self.screenWidth / 25, self.screenHeight / 25))
-        
-        self.blueRoad = pygame.image.load('../res/blue_triangle.png')
-        self.blueRoad = pygame.transform.scale(self.blueRoad, (self.screenWidth / 25, self.screenHeight / 25))
-
-        self.greenRoad = pygame.image.load('../res/green_triangle.png')
-        self.greenRoad = pygame.transform.scale(self.greenRoad, (self.screenWidth / 25, self.screenHeight / 25))
-        
-        self.orangeRoad = pygame.image.load('../res/orange_triangle.png')
-        self.orangeRoad = pygame.transform.scale(self.orangeRoad, (self.screenWidth / 25, self.screenHeight / 25))
-        
+        for resource, unscaled in self.resourceTiles.items():
+            self.resourceTiles[resource] = pygame.transform.scale(unscaled, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
+ 
         # Set some variables to reference later on
-        self.tileWidth = self.tile.get_rect().size[0]
-        self.tileHeight = self.tile.get_rect().size[1]
-
+        self.tileWidth = int(self.screenWidth / 8) 
+        self.tileHeight = int(self.screenHeight / 8) 
+        self.background = pygame.image.load('../res/water.png')
+        self.background = pygame.transform.scale(self.background, (self.screenWidth, self.screenHeight))
+      
         self.dotWidth = self.redDot.get_rect().size[0]
         self.dotHeight = self.redDot.get_rect().size[1]
-
-        self.roadWidth = self.redRoad.get_rect().size[0]
-        self.roadHeight = self.redRoad.get_rect().size[1]
 
         # This should happen before loading any temp blits, as tileCenters are initialized here
         self.loadPermanentBlits()
@@ -131,8 +132,6 @@ class Display:
 
         self.placeRobber(robberTile) 
 
-
-
     def placeRobber(self, node):
         if not DISPLAY_ON: return
         # Add the robber to tempBlits at the center of the specified tile
@@ -144,11 +143,16 @@ class Display:
     def getTileTextSurface(self, tile):
         if not DISPLAY_ON: return
         # Returns a surface containing the resource, value string of the given tile
-        text = str(tile.resource) + ' ' + str(tile.value)
-        textSurface = self.font.render(text, False, (0, 0, 0))
+        # text = str(tile.resource) + ' ' + str(tile.value)
+        text = str(tile.value)
+        textSurface = self.font.render(text, False, (255, 255, 255))
         # Scale according to the size of the tiles
-        textSurface = pygame.transform.scale(textSurface, (int(self.tileWidth * 4 / 5), int(self.tileWidth / 4)))
+        textSurface = pygame.transform.scale(textSurface, (int(self.tileWidth * 2 / 5), int(self.tileWidth / 4)))
         return textSurface
+    
+    def getResourceTile(self, tile):
+        if not DISPLAY_ON: return
+        return self.resourceTiles[tile.resource]
 
     def getStatsTextSurface(self, player):
         text = 'Wood: %s - Grain: %s - Brick: %s - Ore: %s - Wool: %s' % \
@@ -164,6 +168,10 @@ class Display:
     
     def loadPermanentBlits(self):    
         if not DISPLAY_ON: return
+
+        # Add the background first, so that it appears behind everything else
+        self.permanentBlits.append((self.background, (0, 0)))
+
         # Compute the blit locations of each node and tile
         numTiles = [3, 4, 5, 4, 3]
 
@@ -199,10 +207,12 @@ class Display:
                 imgX = j * self.tileWidth + offsets[i]
                 imgY = i * int(self.tileHeight * 4 / 5) + int(self.screenWidth / 7)
                 self.tileCenters.append((imgX + int(self.tileWidth / 2), imgY + int(self.tileHeight / 2))) 
-                self.permanentBlits.append((self.tile, (imgX, imgY)))
+                # self.permanentBlits.append((self.tile, (imgX, imgY)))
     
                 # Display the type of the tile inside the hexagon
                 tile = self.board.tiles[counterTile]
+                self.permanentBlits.append((self.getResourceTile(tile), (imgX, imgY)))
+
                 text = self.getTileTextSurface(tile)
                 self.permanentBlits.append((text, (imgX + int(self.tileWidth / 8), imgY + int(self.tileHeight / 2) - int(self.tileHeight / 8))))
                 counterTile += 1
@@ -223,7 +233,7 @@ class Display:
                         # Both blit the dot to the game screen, and add it to nodeLocs
                         dotX = imgX + offset[0]
                         dotY = imgY + offset[1]
-                        nodesToBlit.append((self.blackDot, (dotX, dotY)))
+                        nodesToBlit.append((self.whiteDot, (dotX, dotY)))
                         coords = (i, counterJTop) 
                         self.nodeLocs[coords] = (dotX, dotY, dotX + self.dotWidth, dotY + self.dotHeight)
                         counterJTop += 1
@@ -232,7 +242,7 @@ class Display:
                     for offset in bottomDotOffsets[:dotRange]:
                         dotX = imgX + offset[0]
                         dotY = imgY + offset[1]
-                        nodesToBlit.append((self.blackDot, (dotX, dotY)))
+                        nodesToBlit.append((self.whiteDot, (dotX, dotY)))
                         coords = (i + 1, counterJBot)
                         self.nodeLocs[coords] = (dotX, dotY, dotX + self.dotWidth, dotY + self.dotHeight)
                         counterJBot += 1
@@ -242,8 +252,6 @@ class Display:
             self.permanentBlits.append(n)
        
         # print('done in init')
-
-
 
 
     def getNodeAtXY(self, x, y):
@@ -262,6 +270,8 @@ class Display:
         # Currently blits all objects in 
         # - permanentBlits
         # - tempBlits 
+        # for rd in self.roadsToDraw:
+        #    pygame.draw.line(rd[0], rd[1], rd[2], rd[3], rd[4])
         for blit in (self.permanentBlits + list(self.tempBlits.values())):
             self.screen.blit(blit[0], blit[1])
 
@@ -279,6 +289,9 @@ class Display:
         white = (255, 255, 255)
         self.screen.fill((white))
         self.blitAll()
+        for rd in self.roadsToDraw:
+            pygame.draw.line(rd[0], rd[1], rd[2], rd[3], rd[4])
+        
         pygame.display.flip()
 
 
@@ -290,20 +303,9 @@ class Display:
         # y <=> screen height
         x11, y11, x12, y12 = self.nodeLocs[(node1.row, node1.col)]
         x21, y21, x22, y22 = self.nodeLocs[(node2.row, node2.col)]
-        
-        roadToBlit = None
-        locToBlit = ((x11 + x21) / 2, (y11 + y21) / 2) 
-        if curPlayer.color == 'red':
-            roadToBlit = self.redRoad
-        elif curPlayer.color == 'orange':
-            roadToBlit = self.orangeRoad
-        elif curPlayer.color == 'green':
-            roadToBlit = self.greenRoad
-        else:
-            roadToBlit = self.blueRoad
-        self.permanentBlits.append((roadToBlit, locToBlit))
+        self.roadsToDraw.append((self.screen, self.colors[curPlayer.color], \
+                                (x11 + self.dotWidth / 2, y11 + self.dotHeight / 2), (x21 + self.dotWidth / 2, y21 + self.dotHeight / 2), 5))
         self.update()
-
 
     def placeSettlement(self, node, player):
         if not DISPLAY_ON: return

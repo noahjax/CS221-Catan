@@ -383,9 +383,9 @@ class AiPlayer(Player):
         return new_game
 
       
-class weightedAI(AIPlayer):
+class weightedAI(AiPlayer):
   
-  def __init__(self, turn_num, name, color, weightsLog):
+    def __init__(self, turn_num, name, color, weightsLog):
         AiPlayer.__init__(self, turn_num, name, color, weightsLog)
         self.weights = weightsLog.readDict() 
         if 'DELETE ME' in self.weights.keys():
@@ -449,8 +449,8 @@ class weightedAI(AIPlayer):
         features['Num cards discarded'] = self.numCardsDiscarded
         return features    
       
-  #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
-  def pickMove(self, possible_moves, game):
+    #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
+    def pickMove(self, possible_moves, game):
         # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
         # TODO: How can we evaluate a future game state without making a full copy?
         move = {}
