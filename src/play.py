@@ -119,6 +119,10 @@ class Play:
         self.first_two_turns()
 
         while True:
+
+            #Delay so you can watch the game
+            time.sleep(.03)
+
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
             # if self.turnNum/4 > 50:
             #     break
