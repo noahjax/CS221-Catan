@@ -146,7 +146,7 @@ class Play:
                     self.game.currMaxScore = curr_player.score
                 
                 self.turnNum += 1
-                # print self.turnNum
+                print self.turnNum
 
                 # print "-----End Turn-----"
 
@@ -268,7 +268,7 @@ class Play:
                         player.place_road(loc, self.game)
                         self.display.placeRoad(loc[0], loc[1], player)
 
-        self.updateDevCards(player)
+        self.game.updateDevCards(player)
 
 #############################################################################
 ############ Location finders for city, settlement and road #################
@@ -378,7 +378,7 @@ class Play:
                 break 
         
         # More debug print statements
-        self.updateDevCards(curr_player)
+        self.game.updateDevCards(curr_player)
 
         printResources(curr_player)
         printDevCards(curr_player)
@@ -457,15 +457,6 @@ class Play:
         else:
             print("Sorry you do not have that dev card")
             return False
-
-    def updateDevCards(self, currPlayer):
-        for type_card in currPlayer.newDevCards.keys():
-            for num_cards in range(len(currPlayer.newDevCards[type_card])):
-                card_to_add = currPlayer.newDevCards[type_card].pop(0)
-                if type_card in currPlayer.devCards.keys():
-                    currPlayer.devCards[type_card].append(card_to_add)
-                else:
-                    currPlayer.devCards[type_card] = [card_to_add]
 
 #############################################################################
 ###########################   End Game  #####################################
