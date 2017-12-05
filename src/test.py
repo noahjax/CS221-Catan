@@ -37,6 +37,7 @@ for i in range(runs):
             numWinners += 1
             print "Currently have had this many winners: ", numWinners
             winners[player.turn_num] += 1
+            print(player.color + ' wins')
 
     playerScores = [(player_, score) for player_, score in winners.items()]
     playerScores.sort(key = lambda x: x[1])

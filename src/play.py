@@ -72,7 +72,7 @@ class Play:
 
         # Variables for player initialization
         self.players = []
-        colors = ["blue", "red", "green", "orange"]
+        colors = ["orange", "red", "green", "blue"]
 
         'Modified to see run AI always without asking'
         # Initialize the players
