@@ -81,20 +81,20 @@ class Game(object):
         return deque(devCards)
 
     #Check to see if you can buy a devCard
-    def canBuyDevCard(self, resources):
+    def canBuyDevCard(self, player):
         # Make sure there are devCards left
         if not self.devCards:
             return False
 
         # Check if player has the resources to buy a devCard
-        if resources['Ore'] < 1 or resources['Wool'] < 1 or resources['Grain'] < 1:
+        if player.resources['Ore'] < 1 or player.resources['Wool'] < 1 or player.resources['Grain'] < 1:
             return False
         
         return True
 
     # Handle buying a devCard. Update player to have this devCard, remove resources from player
     def buyDevCard(self, cur_player):
-        can_buy = self.canBuyDevCard(cur_player.resources)
+        can_buy = self.canBuyDevCard(cur_player)
         if can_buy:
             # Update player resources
             self.updateDevCardResources(cur_player)
@@ -104,6 +104,7 @@ class Game(object):
             # print("You got a " + dev_card.type)
 
             card_to_add = buyDevCard(cur_player, dev_card, self.players)
+            cur_player.prevDevCards.append(card_to_add)
 
             # Checks if you already have devCard, may be redundant with defaultdict()
             if dev_card in cur_player.newDevCards.keys():
@@ -124,7 +125,25 @@ class Game(object):
                 print("You don't have enough resources to buy a devCard")
 
             # catan_log.log("Couldn't buy devCard")
-        
+    
+    #Return a devCard
+    def returnDevCard(self, cur_player):
+        self.updateDevCardResources(cur_player, True)
+        cards = cur_player.devCards   
+        return_card = cur_player.prevDevCards[-1]   
+        del cards[return_card][-1]
+        del cur_player.prevDevCards[-1]
+
+    #TODO: Maybe we should move this to game so that we can model successor states actually having playable 
+    #Devcards
+    def updateDevCards(self, currPlayer):
+        for type_card in currPlayer.newDevCards.keys():
+            for num_cards in range(len(currPlayer.newDevCards[type_card])):
+                card_to_add = currPlayer.newDevCards[type_card].pop(0)
+                if type_card in currPlayer.devCards.keys():
+                    currPlayer.devCards[type_card].append(card_to_add)
+                else:
+                    currPlayer.devCards[type_card] = [card_to_add]    
 
     #Handle moving the robber
     def set_robber_location(self, location, display):
@@ -163,21 +182,21 @@ class Game(object):
     
     
     # First group of helpers to determine if you can buy an item
-    def canBuyRoad(self, resources):
-        return resources['Brick'] >= 1 and resources['Wood'] >= 1
+    def canBuyRoad(self, player):
+        return player.resources['Brick'] >= 1 and player.resources['Wood'] >= 1
 
-    def canBuyCity(self, resources):
-        return resources['Ore'] >= 3 and resources['Grain'] >= 2
+    def canBuyCity(self, player):
+        return player.resources['Ore'] >= 3 and player.resources['Grain'] >= 2
 
-    def canBuySettlement(self, resources):
-        return resources['Brick'] >= 1 and resources['Wood'] >= 1 \
-            and resources['Wool'] >= 1 and resources['Grain'] >= 1
+    def canBuySettlement(self, player):
+        return player.resources['Brick'] >= 1 and player.resources['Wood'] >= 1 \
+            and player.resources['Wool'] >= 1 and player.resources['Grain'] >= 1
 
-    def canBuyDevCard(self, resources):
+    def canBuyDevCard(self, player):
         # if not self.devCards:
         #     return False
-        return resources['Ore'] >= 1 and resources['Grain'] >= 1 \
-            and resources['Wool'] >= 1
+        return player.resources['Ore'] >= 1 and player.resources['Grain'] >= 1 \
+            and player.resources['Wool'] >= 1
 
     # Second group of helpers to update resources if you buy an item
     def updateRoadResources(self, player, add=False):
@@ -208,88 +227,118 @@ class Game(object):
         player.numResources -= 3 * i
 
     #Handles recursion to explore items you can buy
-    def findResourceCombos(self, exchange_rates, resources, pieces, ans, depth=3):
+    def findResourceCombos(self, pieces, ans, curr_player, depth=3):
+
+        # for resource in curr_player.resources:
+        #     if curr_player.resources[resource] < 0:
+        #         print curr_player.resources
+        #     assert(curr_player.numResources >= 0)
+        #     assert(curr_player.resources[resource] >= 0)
+        # if not areValidResources(curr_player.resources):
+        #     print curr_player.resources
+        #     return
 
         #Only recurse 5 levels to limit running time
-        if depth <= 0: return
+        if depth <= 0:
+        #     for r,c in curr_player.resources.items():
+        #         if c <0 : print "fuck you", depth
+            return
 
         #Copy pieces so we don't modify it as we recurse
-        cur_pieces = pieces.copy()
+        cur_pieces = copy.deepcopy(pieces)
 
         #Check if you can buy a road, if you can, recurse without road resources
-        if self.canBuyRoad(resources):
+        if self.canBuyRoad(curr_player):
             cur_pieces['Road'] += 1
             # self.updateRoadResources(resources)
-            subtractResources(resources, self.road_cost)
-            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-1)
-            addResources(resources, self.road_cost)
+            # print "road before s ", curr_player.turn_num, curr_player.resources
+            subtractResources(curr_player, self.road_cost)
+            # print "road after s ", curr_player.turn_num, curr_player.resources
+            self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
+            # print "road before a ", curr_player.turn_num, curr_player.resources
+            addResources(curr_player, self.road_cost)
+            # print "road after a ", curr_player.turn_num, curr_player.resources
             # self.updateRoadResources(resources, add=True)
             cur_pieces['Road'] -= 1
 
         #Check if you can buy a settlement, if you can, recurse
-        if self.canBuySettlement(resources):
+        if self.canBuySettlement(curr_player):
             cur_pieces['Settlement'] += 1
             # self.updateSettlementResources(resources)
-            subtractResources(resources, self.settlement_cost)
-            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans,depth - 1)
-            addResources(resources, self.settlement_cost)
+            # print "settlement before s", curr_player.turn_num, curr_player.resources
+            subtractResources(curr_player, self.settlement_cost)
+            # print "settlement after s", curr_player.turn_num, curr_player.resources
+            self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
+            # print "settlement before a", curr_player.turn_num, curr_player.resources
+            addResources(curr_player, self.settlement_cost)
+            # print "settlement after a", curr_player.turn_num, curr_player.resources
             # self.updateSettlementResources(resources, add=True)
             cur_pieces['Settlement'] -= 1
 
         #Check if you can buy a city, if you can, recurse
-        if self.canBuyCity(resources):
+        if self.canBuyCity(curr_player):
             cur_pieces['City'] += 1
             # self.updateSettlementResources(resources)
-            subtractResources(resources, self.city_cost)
-            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth - 1)
-            addResources(resources, self.city_cost)            
+            # print "city before s", curr_player.turn_num, curr_player.resources
+            subtractResources(curr_player, self.city_cost)
+            # print "city after s", curr_player.turn_num, curr_player.resources
+            self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
+            # print "city before a", curr_player.turn_num, curr_player.resources
+            addResources(curr_player, self.city_cost)
+            # print "city after a", curr_player.turn_num, curr_player.resources
             # self.updateSettlementResources(resources, add=True)
             cur_pieces['City'] -= 1
 
         #Check if you can buy a DevCard, if you can, recurse
-        if self.canBuyDevCard(resources):
+        if self.canBuyDevCard(curr_player):
             cur_pieces['buyDevCard'] += 1
             # self.updateDevCardResources(resources)
-            subtractResources(resources, self.devCard_cost)
-            self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth - 1)
-            addResources(resources, self.devCard_cost)
+            # print "devcard before s", curr_player.turn_num, curr_player.resources
+            subtractResources(curr_player, self.devCard_cost)
+            # print "devcard after s", curr_player.turn_num, curr_player.resources
+            self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
+            # print "devcard before a", curr_player.turn_num, curr_player.resources
+            addResources(curr_player, self.devCard_cost)
+            # print "devcard after a", curr_player.turn_num, curr_player.resources
             # self.updateDevCardResources(resources, add=True)
             cur_pieces['buyDevCard'] -= 1
 
-        #TODO: Somehow fix this so that you don't get thousands of resources
         # Check if you can exchange any of your resources
-        for resource, count in resources.items():
-            if count >= exchange_rates[resource]:
-                resources[resource] -= exchange_rates[resource]
+        for resource, count in curr_player.resources.items():
+            if count >= curr_player.exchangeRates[resource]:
+                curr_player.resources[resource] -= curr_player.exchangeRates[resource]
                 #Add a new resource
-                for addResource in resources:
+                for addResource in curr_player.resources:
                     if addResource != resource:
-                        resources[addResource] += 1
+                        curr_player.resources[addResource] += 1
                         # Store exchanges in form (trade in, recieve): exchange rate
-                        cur_pieces[(resource, addResource)] = exchange_rates[resource]
-                        self.findResourceCombos(exchange_rates, resources, cur_pieces, ans, depth-3)
-                        resources[addResource] -= 1
+                        cur_pieces[(resource, addResource)] = curr_player.exchangeRates[resource]
+                        self.findResourceCombos(cur_pieces, ans, curr_player, depth-2)
+                        del cur_pieces[(resource, addResource)]
+                        curr_player.resources[addResource] -= 1
 
-                resources[resource] += exchange_rates[resource]
+                curr_player.resources[resource] += curr_player.exchangeRates[resource]
 
         #Remove 0 values and add to answer
         cur_pieces = defaultdict(int, dict((k, v) for k, v in cur_pieces.items() if v))
         if cur_pieces not in ans:
             ans.append(cur_pieces)
+        # print "ans: ", ans
 
     #Returns list of dictionaries [{Road:1, City:1},{...}] representing possible pieces
     #you can buy given a player with some resources
     def piecesPurchasable(self, player):
-        player_resources = player.resources
-        exchange_rates = player.exchangeRates
-        
+        # player_resources = player.resources
+        # for r in player_resources:
+        #     assert r >= 0
+
         #Look at trades the person could make to get different resources
         # possible_resources = self.resource_exchanges(player_resources, exchange_rates)
         
         ans = []
         pieces = defaultdict(int)
-        self.findResourceCombos(exchange_rates, player_resources, pieces, ans)
-
+        self.findResourceCombos(pieces, ans, player)
+        # print "possible purchases: ", ans
         # for move, newResources in possible_resources:
         #     newAns = []
         #     newPieces = {}
@@ -494,14 +543,14 @@ class Game(object):
     Function to distribute resources after every roll
     """
     # Can access board through self, so really just need roll
-    def distributeResources(self, roll, display):
+    def distributeResources(self, roll, display, curr_player):
         for player in self.players:
             if player.numResources > 7:
                 player.numTimesOverSeven += 1
 
         if roll == 7:
             # return  #Don't want to do this for now
-            # moveRobber(self, display)
+            curr_player.moveRobber(self, display)
             for player in self.players:
                 if player.numResources > 7:
                     player.over_seven()

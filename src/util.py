@@ -67,14 +67,21 @@ def printDevCards(currPlayer, endTurn = False):
         print (devCard + ": " + str(len(currPlayer.devCards[devCard])))
 
 # Helper function to add resources. Assumes use of defaultdicts
-def addResources(resources, toAdd):
+def addResources(player, toAdd):
+    # assert areValidResources(toAdd)
     for resource, count in toAdd.items():
-        resources[resource] += count
+        player.resources[resource] += count
+        player.numResources += count
+    # assert areValidResources(player.resources)
+
 
 # Helper function to subtract resources. Assumes use of defaultdicts
-def subtractResources(resources, toSub):
+def subtractResources(player, toSub):
+    # assert areValidResources(toSub)
     for resource, count in toSub.items():
-        resources[resource] -= count
+        player.resources[resource] -= count
+        player.numResources -= count
+    # assert areValidResources(player.resources)
 
 # Helper function to check if resource amounts are valid. Helpful for canBuy(x)
 ### May not be useful ###
@@ -86,7 +93,19 @@ def areValidResources(resources):
 # Move the robber
 def moveRobber(game, display):
     print("Please click on the top central node of the tile where you would like to place the robber")
-    position = display.getNode()
+    while True:
+        position = display.getNode()
+        isValid = True
+        for tile in position.get_tiles:
+            for node_coordinates in game.board.getNodesForTile(tile):
+                node = game.board.getNodeFromCoords(node_coordinates[0], node_coordinates[1])
+                if node is not None and node.isOccupied:
+                    if node.occupyingPiece.player.score <= 3:
+                        print("Sorry this is an invalid robber location")
+                        isValid = False
+        if isValid:
+            break
+
     display.placeRobber(position)
     game.set_robber_location(position, display)
 

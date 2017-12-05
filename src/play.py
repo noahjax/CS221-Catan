@@ -83,11 +83,10 @@ class Play:
                 new_player = HumanPlayer(i, name, colors[i])
             
             # For each of the AI players, we also pass their corresponding weight log
+            # elif i == 0:
             new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
-#             elif i == 0:
-#                 new_player (i, "AI"+str(i), colors[i], logs[i])
-#             else:
-#                 new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
+            # else:
+            #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
@@ -120,6 +119,9 @@ class Play:
         self.first_two_turns()
 
         while True:
+            # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
+            # if self.turnNum/4 > 50:
+            #     break
             # Check if game is over
             if self.game.currMaxScore >= 10:
                 # print self.turnNum
@@ -127,6 +129,12 @@ class Play:
             else:
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+                for resource in curr_player.resources:
+                    if curr_player.resources[resource] < 0:
+                        print curr_player.resources
+                #     assert(curr_player.numResources >= 0)
+                    assert(curr_player.resources[resource] >= -10)
+                    # assert(curr_player.resources[resource] >= 0)
                 # print_player_stats(curr_player)
 
                 roll = rollDice()
@@ -134,7 +142,7 @@ class Play:
                 # raw_input("")
 
                 # Distribute resources given the last roll
-                self.game.distributeResources(roll, self.display)
+                self.game.distributeResources(roll, self.display, curr_player)
                 
                 # Play the given turn
                 if curr_player.isAI:
@@ -172,25 +180,24 @@ class Play:
     # Handle placements logic during the first 2 turns
     def initial_placements(self, player):
         # Get all possible options
-        possible_settlements = self.game.getSettlementLocations(player, True)
 
         if player.isAI:
             # Run first turn logic AI
-            self.AI_first_turn(player, possible_settlements)
+            self.AI_first_turn(player)
         else:
             # Run first turn logic Human
+            possible_settlements = self.game.getSettlementLocations(player, True)
             self.Human_first_turn(player, possible_settlements)
 
     # Define logic for an AI's first turn
-    def AI_first_turn(self, player, possible_settlements):
+    def AI_first_turn(self, player):
         # Place single settlement
-        settlementLoc = player.pick_settlement_position(possible_settlements)
+        settlementLoc = player.pick_settlement_position(self.game)
         player.place_settlement(settlementLoc, self.game, True)
         self.display.placeSettlement(settlementLoc, player)
-
+        
         # Place single road
-        possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
-        roadLoc = player.pick_road_position(possible_roads)
+        roadLoc = player.pick_road_position(settlementLoc, self.game)
         player.place_road(roadLoc, self.game, True)
         self.display.placeRoad(roadLoc[0], roadLoc[1], player)
 
@@ -224,10 +231,10 @@ class Play:
         # Get all possible moves player can make and send to AI for decision making
         # time.sleep(0.5)
         resources = player.resources
-        possible_moves = self.game.getPossibleActions(player)
 
         # Get move from AI player
-        move = player.pickMove(possible_moves, self.game)
+        move = player.pickMove(self.game)
+        # print('move = ' + str(move))
         '''
         move = player.pickMove(self.game)
         '''
@@ -251,7 +258,7 @@ class Play:
                 player.numResources -= count
                 player.resources[newResource] += 1
                 player.numResources += 1
-
+                assert player.resources[oldResource] >= 0
             #Buying DevCard
             elif piece == 'buyDevCard':
                 self.game.buyDevCard(player)
@@ -270,7 +277,7 @@ class Play:
                         player.place_road(loc, self.game)
                         self.display.placeRoad(loc[0], loc[1], player)
 
-        self.updateDevCards(player)
+        self.game.updateDevCards(player)
 
 #############################################################################
 ############ Location finders for city, settlement and road #################
@@ -380,7 +387,7 @@ class Play:
                 break 
         
         # More debug print statements
-        self.updateDevCards(curr_player)
+        self.game.updateDevCards(curr_player)
 
         printResources(curr_player)
         printDevCards(curr_player)
@@ -391,7 +398,7 @@ class Play:
 
     # Initiates logic to buy and place a settlement
     def buy_and_place_settlement(self, curr_player):
-        if self.game.canBuySettlement(curr_player.resources):
+        if self.game.canBuySettlement(curr_player):
             possiblePlacement = self.game.getSettlementLocations(curr_player, False) # array of possible nodes
             if len(possiblePlacement) == 0:
                 print("Sorry there are no open settlement locations")
@@ -407,7 +414,7 @@ class Play:
 
     # Initiates logic to buy and place a city
     def buy_and_place_city(self, curr_player):
-        if self.game.canBuyCity(curr_player.resources):
+        if self.game.canBuyCity(curr_player):
             possiblePlacement = self.game.getCityLocations(curr_player)
             if len(possiblePlacement) == 0:
                 print("Sorry there are no valid city locations")
@@ -423,13 +430,13 @@ class Play:
 
     # Initiates logic to buy and place a road
     def buy_and_place_road(self, curr_player, devCard = False):
-        if self.game.canBuyRoad(curr_player.resources) or devCard:
+        if self.game.canBuyRoad(curr_player) or devCard:
             possiblePlacements = self.game.getRoadLocations(curr_player)
             if len(possiblePlacements) == 0:
                 print("Sorry there are no valid road locations")
                 return
             if curr_player.isAI:
-                roadLoc = curr_player.pick_road_position(possiblePlacements)
+                roadLoc = curr_player.pick_road_devcard_ai(possiblePlacements)
             else:
                 roadLoc = self.getRoadLoc(possiblePlacements)
             if not roadLoc:
@@ -459,15 +466,6 @@ class Play:
         else:
             print("Sorry you do not have that dev card")
             return False
-
-    def updateDevCards(self, currPlayer):
-        for type_card in currPlayer.newDevCards.keys():
-            for num_cards in range(len(currPlayer.newDevCards[type_card])):
-                card_to_add = currPlayer.newDevCards[type_card].pop(0)
-                if type_card in currPlayer.devCards.keys():
-                    currPlayer.devCards[type_card].append(card_to_add)
-                else:
-                    currPlayer.devCards[type_card] = [card_to_add]
 
 #############################################################################
 ###########################   End Game  #####################################
