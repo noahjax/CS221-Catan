@@ -74,13 +74,18 @@ class Player:
 
     # Places road in desired location, updates necessary data structures
     # roadLoc should be a tuple of node objects
-    def place_road(self, roadLoc, game, firstTurn=False):
+    def place_road(self, roadLoc, game, firstTurn=False, future=False):
         self.roads.append(roadLoc)
         game.roads.append(roadLoc)
         
         if not firstTurn:
             game.updateRoadResources(self)
+
+        if future: return
+
         self.updateLongestRoad(roadLoc)
+
+
         # Update game longest road and players score
         if self.longestRoadLength > game.longestRoad:
             game.longestRoad = self.longestRoadLength
@@ -122,7 +127,6 @@ class Player:
         prev_settlement = node.get_occupying_piece()
         origLen = len(self.cities_and_settlements)
         self.cities_and_settlements = [c_or_s for c_or_s in self.cities_and_settlements if str(c_or_s.location) != str(node)]
-        assert len(self.cities_and_settlements) == origLen - 1
         # self.cities_and_settlements.remove(prev_settlement)
         city_to_add = City(self, node)
         node.set_occupying_piece(city_to_add)
@@ -244,6 +248,9 @@ class AiPlayer(Player):
     def pick_road_position(self, settlementLoc, game):
         possible_roads = [(settlementLoc, neighbor) for neighbor in settlementLoc.neighbours]
         return random.choice(possible_roads)
+
+    def pick_road_devcard_ai(self, possRoads):
+        return random.choice(possRoads)
    
     def pick_settlement_position(self, game):
         possible_settlements = game.getSettlementLocations(self, True)
@@ -253,6 +260,8 @@ class AiPlayer(Player):
 
     def moveRobber(self, game, display):
         positions = self.getPossibleRobberPositions(game)
+        if not positions:
+            return
         maxNum, bestTile = -1, None
         for tile in positions:
             currNum = 0
@@ -265,6 +274,7 @@ class AiPlayer(Player):
                         currNum += 2
             if currNum > maxNum:
                 maxNum, bestTile = currNum, tile
+
         if display is not None:
             display.placeRobber(bestTile.id)
         game.set_robber_location(bestTile.id, display)
@@ -344,16 +354,19 @@ class AiPlayer(Player):
 
     #Randomly pick and play a devCard
     def pickDevCard(self):
-        options = [None]
+        options = []
         for devType, cards in self.devCards.items():
             if cards:
                 options.append(devType)
-
+        if not options:
+            return None
         return random.choice(options)
         
     #Function used for the monopoly devcard to get the resource you want
     def getFavResource(self):
         resources = [resource for resource in self.resources if self.resources[resource] > 0]
+        if not resources:
+            return 'Grain'
         return random.choice(resources)
     
     #Random AI should still be able to do this at some point, even if not yet
@@ -383,26 +396,26 @@ class AiPlayer(Player):
         
         # for action, loc in move.items(): <- again, we're only considering single locations at this point, so 
         # this loop is not needed at the moment
-        print "move: ", move
-        piece, count = move[0]
-        loc = move[1]
+        # print "move: ", move
+        action, loc = move
+        piece, count = action
 
         #Exchange resources
-        if isinstance(piece, tuple):
+        if isinstance(piece[0], tuple):
             oldResource, newResource = piece
-            player.resources[oldResource] -= count
-            player.resources[newResource] += 1
+            self.resources[oldResource] -= count
+            self.resources[newResource] += 1
                 
         #Place piece
         else:
             if piece == 'Settlement':
-                player.place_settlement(loc, game, firstTurn)
+                self.place_settlement(loc, game, firstTurn)
             elif piece == 'City':
-                player.place_city(loc, game)
+                self.place_city(loc, game)
             elif piece == 'Road':
-                player.place_road(loc, game, firstTurn)
+                self.place_road(loc, game, firstTurn, True)
             elif piece == 'DevCard':
-                game.buyDevCard(player)
+                game.buyDevCard(self)
         
         return game
     
@@ -415,19 +428,19 @@ class AiPlayer(Player):
         #Exchange resources
         if isinstance(piece, tuple):
             oldResource, newResource = piece
-            player.resources[oldResource] += count
-            player.resources[newResource] -= 1
+            self.resources[oldResource] += count
+            self.resources[newResource] -= 1
                 
         #Place piece
         else:
             if piece == 'Settlement':
-                player.remove_settlement(loc, game)
+                self.remove_settlement(loc, game)
             elif piece == 'City':
-                player.remove_city(loc, game)
+                self.remove_city(loc, game)
             elif piece == 'Road':
-                player.remove_road(loc, game)
+                self.remove_road(loc, game)
             elif piece == 'DevCard':
-                game.returnDevCard(player)
+                game.returnDevCard(self)
         
         return game
 
@@ -447,6 +460,7 @@ class AiPlayer(Player):
     #Helper to remove settlements
     def remove_settlement(self, node, game, firstTurn=False):
         node.occupyingPiece = None
+        node.isOccupied = False
         del self.cities_and_settlements[-1]
         del self.occupyingNodes[-1]
         self.score -= 1
@@ -465,19 +479,26 @@ class AiPlayer(Player):
         del node.occupyingPiece
         node.occupyingPiece = Settlement(self, node)
         del self.cities_and_settlements[-1]
-        self.occupyingNodes.append(node.occupyingPiece)
+        self.occupyingNodes.append(node)
         self.score -= 1
 
         game.updateCityResources(self, True)
 
     #Returns the successor state after a move has been taken
-    def get_successor(self, game, moves):
+    def get_successor(self, game, move):
 
         #Do each indivdual move one at a time
-        for move in moves:
-            game = self.do_move(move, game)
-
+        # for move in moves:
+        game = self.do_move(game, move)
         return game
+
+    #Update weights now that game is over and we know the outcome
+    def update_weights(self, bestFeatures, bestWeights, scoreDiff):
+        for feature, count in bestFeatures.items():
+            bestWeight = bestWeights[feature]
+            weightdiff = bestWeight - self.weights[feature]
+            self.weights[feature] += 0.1 * scoreDiff * weightdiff
+        return self.weights
 
     #Returns to starting state from a successor state
     def undo_successor(self, game, moves):
@@ -486,7 +507,7 @@ class AiPlayer(Player):
         #Loop backwards to undo moves in the correct order
         for i in range(len(actions), -1, -1):
             move = actions[i]
-            game = self.undo_move(move, game)
+            game = self.undo_move(game, move)
 
         return game
 
@@ -554,7 +575,8 @@ class weightedAI(AiPlayer):
   
     def __init__(self, turn_num, name, color, weightsLog):
         AiPlayer.__init__(self, turn_num, name, color, weightsLog)
-        self.weights = weightsLog.readDict() 
+        self.weightsLog = weightsLog
+        self.weights = defaultdict(float, weightsLog.readDict())
         if 'DELETE ME' in self.weights.keys():
             # The weights log has not been initialized
             weights = self.feature_extractor() # Get the list of features
@@ -571,7 +593,9 @@ class weightedAI(AiPlayer):
             return -1
         future = self.get_successor(game, move) 
         futureFeatures = future.players[self.turn_num].feature_extractor()
-        return util.dotProduct(futureFeatures, self.weights)
+        score = util.dotProduct(futureFeatures, self.weights)
+        self.undo_move(game, move)
+        return score
     
     # Figure out how many of each resource we would expect per roll
     def expected_resources_per_roll(self):
@@ -587,6 +611,9 @@ class weightedAI(AiPlayer):
             for tile in settlement.location.get_tiles():
                 expected_resources[tile.resource] += prob(tile.value) * multiplier
 
+        if not expected_resources:
+            for resource in self.resources:
+                expected_resources[resource] = 0
         return expected_resources
 
     def getNumSettlementsAndCities(self):
@@ -602,7 +629,7 @@ class weightedAI(AiPlayer):
     def feature_extractor(self):
         expectedResources = self.expected_resources_per_roll() 
         features = expectedResources 
-        features['Devcards played'] = sum(self.devCardsPlayed)
+        features['Devcards played'] = len(self.devCardsPlayed.values())
         features.update(self.devCardsPlayed)
         features['Num roads'] = len(self.roads)
         features['Longest Road'] = self.longestRoadLength
@@ -624,14 +651,14 @@ class weightedAI(AiPlayer):
         move = {}
         # Convert possible_moves to a list of tuples for easier reference 
         # [((piece, count), [locations]), ((piece2, count2), [locations2])] 
-        possible_moves_tup = [(a, b) for d in possible_moves if d for a, b in d.items()] 
+        possible_moves_tup = [(a, b) for d in possible_moves if d for a, b in d.items()]
         for action, possibleLocations in possible_moves_tup:
             # mostValuableActions = [(action, location, value)]
             mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleLocations]
             mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
-            
             # Get the most valuable locations according to the 'count' field in a move
             move[action] = [a[1] for a in mostValuableActions[:action[1]]]
+
 
         # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
         return move
@@ -700,16 +727,8 @@ class BasicStrategy(AiPlayer):
         weights = self.weights_log.readDict()
         if weights:
             return defaultdict(int, weights)
-        else: return defaultdict(float)
-
-    #Update weights now that game is over and we know the outcome
-    def update_weights(self):
-        # miss = self.score - self.pre_game_score
-        win = 1 if self.score == 10 else 0
-        miss = win -self.pre_game_score
-        # print "miss", miss
-        for feature, count in self.pre_game_features.items():
-            self.resource_weights[feature] += self.eta * count * miss
+        else:
+            return defaultdict(float)
 
     #Randomly picks a road. For now only the Settlement location will be optimized.
     #TODO: Add more features for evaluating a good road
