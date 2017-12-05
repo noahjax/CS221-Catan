@@ -93,11 +93,11 @@ class Display:
         self.whiteDot = pygame.transform.scale(self.whiteDot, (int(self.screenWidth / 25), int(self.screenHeight / 25)))
 
         # Load the city and town pngs
-        self.city = pygame.image.load('../res/castle.png')
-        self.city = pygame.transform.scale(self.city, (self.screenWidth / 40, self.screenHeight / 40))
+        self.city = pygame.image.load('../res/city.png')
+        self.city = pygame.transform.scale(self.city, (self.screenWidth / 38, self.screenHeight / 38))
 
-        self.town = pygame.image.load('../res/town.png')
-        self.town = pygame.transform.scale(self.town, (self.screenWidth / 25, self.screenHeight / 25))
+        # self.town = pygame.image.load('../res/town.png')
+        # self.town = pygame.transform.scale(self.town, (self.screenWidth / 25, self.screenHeight / 25))
 
         # self.tile = pygame.image.load('../res/hex.png')
         # self.tile = pygame.transform.scale(self.tile, (int(self.screenWidth / 8), int(self.screenHeight / 8)))
@@ -291,7 +291,11 @@ class Display:
         self.blitAll()
         for rd in self.roadsToDraw:
             pygame.draw.line(rd[0], rd[1], rd[2], rd[3], rd[4])
-        
+
+        # Hacky workaround to get cities to show up on top
+        for blit in self.permanentBlits:
+            if blit[0] == self.city:
+                self.screen.blit(blit[0], blit[1])
         pygame.display.flip()
 
 
@@ -320,7 +324,8 @@ class Display:
     def placeCity(self, node, player):
         if not DISPLAY_ON: return
         x1, y1, x2, y2 = self.nodeLocs[(node.row, node.col)]
-        self.permanentBlits.append((self.city, (x1 + self.city.get_rect().size[0] / 2, y1 + self.city.get_rect().size[1] / 2)))
+        self.permanentBlits.append((self.city, (x1 + self.city.get_rect().size[0] / 4, y1 + self.city.get_rect().size[1] / 4)))
+        # self.permanentBlits.append((self.city, (x1, y1)))
         self.update()
 
     def getTile(self):
