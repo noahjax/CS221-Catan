@@ -35,10 +35,7 @@ class Knight:
     # Plays the Knight card given a new position for the Robber
     def play(self, display, game):
         self.player.devCardsPlayed[self.type] += 1
-        if not self.player.isAI:
-            moveRobber(game, display)
-        else:
-            self.player.moveRobber(game, display)
+        self.player.moveRobber(game, display)
 
         players_to_give_cards = []
 

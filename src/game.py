@@ -513,14 +513,14 @@ class Game(object):
     Function to distribute resources after every roll
     """
     # Can access board through self, so really just need roll
-    def distributeResources(self, roll, display):
+    def distributeResources(self, roll, display, curr_player):
         for player in self.players:
             if player.numResources > 7:
                 player.numTimesOverSeven += 1
 
         if roll == 7:
             # return  #Don't want to do this for now
-            # moveRobber(self, display)
+            curr_player.moveRobber(self, display)
             for player in self.players:
                 if player.numResources > 7:
                     player.over_seven()

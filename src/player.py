@@ -204,6 +204,9 @@ class HumanPlayer(Player):
         oppPlayer.numResources += 1
         print(self.name + " gave one " + resource + " to " + oppPlayer.name)
 
+    def moveRobber(self, game, display):
+        util.moveRobber(game, display)
+
 
 #############################################################################
 #############################   AI Player    ################################
@@ -249,8 +252,40 @@ class AiPlayer(Player):
     '''Functions for the robber logic'''
 
     def moveRobber(self, game, display):
-        # TODO: write logic for the AI to get the possible robber locations
-        pass
+        positions = self.getPossibleRobberPositions(game)
+        maxNum, bestTile = -1, None
+        for tile in positions:
+            currNum = 0
+            for node_coordinates in game.board.getNodesForTile(tile):
+                node = game.board.getNodeFromCoords(node_coordinates[0], node_coordinates[1])
+                if node is not None and node.isOccupied:
+                    if isinstance(node.occupyingPiece, Settlement):
+                        currNum += 1
+                    if isinstance(node.occupyingPiece, City):
+                        currNum += 2
+            if currNum > maxNum:
+                maxNum, bestTile = currNum, tile
+        if display is not None:
+            display.placeRobber(bestTile.id)
+        game.set_robber_location(bestTile.id, display)
+
+    def getPossibleRobberPositions(self, game):
+        possTiles = []
+        # For every tile check if it has a piece on it with a score less than three
+        for tile in game.board.tiles:
+            if tile.hasRobber:
+                continue
+            isValid = True
+            for node_coordinates in game.board.getNodesForTile(tile):
+                node = game.board.getNodeFromCoords(node_coordinates[0], node_coordinates[1])
+                if node is not None and node.isOccupied:
+                    if node.occupyingPiece.player.score <= 3 or node.occupyingPiece.player is self:
+                        # print("Sorry this is an invalid robber location")
+                        isValid = False
+            if isValid:
+                possTiles.append(tile)
+
+        return possTiles
 
     # If the AI has over seven cards currently just discard all until you get a
     def over_seven(self):
