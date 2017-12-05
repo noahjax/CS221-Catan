@@ -119,16 +119,22 @@ class Play:
         self.first_two_turns()
 
         while True:
-            if self.turnNum/4 > 100:
-                break
+            # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
+            # if self.turnNum/4 > 50:
+            #     break
             # Check if game is over
             if self.game.currMaxScore >= 10:
                 # print self.turnNum
                 return self.endGame()
             else:
-                time.sleep(1)
                 curr_turn = self.turnNum
                 curr_player = self.players[curr_turn % self.num_players]
+                for resource in curr_player.resources:
+                    if curr_player.resources[resource] < 0:
+                        print curr_player.resources
+                #     assert(curr_player.numResources >= 0)
+                    assert(curr_player.resources[resource] >= -10)
+                    # assert(curr_player.resources[resource] >= 0)
                 # print_player_stats(curr_player)
 
                 roll = rollDice()
@@ -228,6 +234,7 @@ class Play:
 
         # Get move from AI player
         move = player.pickMove(self.game)
+        # print('move = ' + str(move))
         '''
         move = player.pickMove(self.game)
         '''
@@ -251,7 +258,7 @@ class Play:
                 player.numResources -= count
                 player.resources[newResource] += 1
                 player.numResources += 1
-
+                assert player.resources[oldResource] >= 0
             #Buying DevCard
             elif piece == 'buyDevCard':
                 self.game.buyDevCard(player)
@@ -391,7 +398,7 @@ class Play:
 
     # Initiates logic to buy and place a settlement
     def buy_and_place_settlement(self, curr_player):
-        if self.game.canBuySettlement(curr_player.resources):
+        if self.game.canBuySettlement(curr_player):
             possiblePlacement = self.game.getSettlementLocations(curr_player, False) # array of possible nodes
             if len(possiblePlacement) == 0:
                 print("Sorry there are no open settlement locations")
@@ -407,7 +414,7 @@ class Play:
 
     # Initiates logic to buy and place a city
     def buy_and_place_city(self, curr_player):
-        if self.game.canBuyCity(curr_player.resources):
+        if self.game.canBuyCity(curr_player):
             possiblePlacement = self.game.getCityLocations(curr_player)
             if len(possiblePlacement) == 0:
                 print("Sorry there are no valid city locations")
@@ -423,7 +430,7 @@ class Play:
 
     # Initiates logic to buy and place a road
     def buy_and_place_road(self, curr_player, devCard = False):
-        if self.game.canBuyRoad(curr_player.resources) or devCard:
+        if self.game.canBuyRoad(curr_player) or devCard:
             possiblePlacements = self.game.getRoadLocations(curr_player)
             if len(possiblePlacements) == 0:
                 print("Sorry there are no valid road locations")
@@ -481,3 +488,6 @@ class Play:
                 # catan_log.log(player.color + "," + player.name)
 
         # stall_end = raw_input("you sure you wanna end right now")
+
+# play = Play()
+# play.main()

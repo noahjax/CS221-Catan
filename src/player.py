@@ -35,7 +35,15 @@ class Player:
         self.numCardsDiscarded = 0
         self.holdsLongestRoad = False
         self.hasLargestArmy = False
-    
+        self.features = {"Has largest army": 0, "Num roads": 0, "Resource spread": 0,
+                         "Num cities": 0, "Has longest road": 0, "Num turns with more than 7 cards": 0,
+                         "Num cards discarded": 0, "Devcards played": 0, "Grain": 0,
+                         "Brick": 0, "Ore": 0, "Wood": 0, "Wool": 0, "Longest Road": 0, "Num settlements": 0,
+                         "Knight": 0, "Monopoly": 0, "Year of Plenty": 0, "Victory Point": 0,
+                         "Road Building": 0, "Desert": 0, "Score": 0, "Has Won": 0,
+                         'Ratio roads to settlements': 0, 'Ratio cities to settlements': 0,
+                         'Squared distance to end': 0, 'Num accesible resources': 0}
+
         # Map each node to a list of other road nodes it is touching
         # This is used for computing the longest path
         self.touching = defaultdict(list)
@@ -373,7 +381,7 @@ class AiPlayer(Player):
     # TODO: Currently gives away a random card. At some point would be nice to 
     # give away more optimally
     def give_card(self, oppPlayer):
-        if len(self.resources) != 0:
+        if self.numResources > 0:
             #Randomly select a resource to give up
             resource = random.choice(self.resources.keys())
             while(not self.resources[resource]):
@@ -405,6 +413,8 @@ class AiPlayer(Player):
             oldResource, newResource = piece
             self.resources[oldResource] -= count
             self.resources[newResource] += 1
+            self.numResources -= count
+            self.numResources += 1
                 
         #Place piece
         else:
@@ -430,6 +440,8 @@ class AiPlayer(Player):
             oldResource, newResource = piece
             self.resources[oldResource] += count
             self.resources[newResource] -= 1
+            self.numResources += count
+            self.numResources -= 1
                 
         #Place piece
         else:
@@ -497,7 +509,7 @@ class AiPlayer(Player):
         for feature, count in bestFeatures.items():
             bestWeight = bestWeights[feature]
             weightdiff = bestWeight - self.weights[feature]
-            self.weights[feature] += 0.1 * scoreDiff * weightdiff
+            self.weights[feature] += 0.01 * scoreDiff * weightdiff
         return self.weights
 
     #Returns to starting state from a successor state
@@ -579,10 +591,16 @@ class weightedAI(AiPlayer):
         self.weights = defaultdict(float, weightsLog.readDict())
         if 'DELETE ME' in self.weights.keys():
             # The weights log has not been initialized
-            weights = self.feature_extractor() # Get the list of features
+            weights = self.features # Get the list of features
             for k in weights:
                 # Initialize each feature to a random weight
-                weights[k] = random.randint(-10, 10)
+                weights[k] = random.randint(-3, 3)
+            weights['Score'] = abs(weights['Score'])
+            weights['Has Won'] = 1000
+            weights['Ratio roads to settlements'] = random.randint(-5, -3)
+            weights['Squared distance to end'] = random.randint(-1, 1)
+
+
             self.weights = weights
             # Overwrite the log with the randomized weights dict
             weightsLog.log_dict(self.weights)
@@ -626,6 +644,25 @@ class weightedAI(AiPlayer):
 
         return city, settlement
 
+    def pick_settlement_position(self, game):
+        possible_settlements = game.getSettlementLocations(self, True)
+        maxScore, maxLocation = -100, None
+        for settlement in possible_settlements:
+            action = ('Settlement', 1)
+            location = settlement
+            score = self.evaluateMoveValue(game, (action, location))
+            if score > maxScore:
+                maxScore = score
+                maxLocation = location
+        return maxLocation
+
+    def getAccessibleResources(self, expectedResources):
+        score = 0
+        for resource in expectedResources:
+            if expectedResources[resource] > 0:
+                score += 1
+        return score
+
     def feature_extractor(self):
         expectedResources = self.expected_resources_per_roll() 
         features = expectedResources 
@@ -641,6 +678,12 @@ class weightedAI(AiPlayer):
         features['Has longest road'] = 1 if self.holdsLongestRoad else 0
         features['Has largest army'] = 1 if self.hasLargestArmy else 0
         features['Num cards discarded'] = self.numCardsDiscarded
+        features['Score'] = self.score
+        features['Has Won'] = self.score == 10
+        features['Ratio roads to settlements'] = (len(self.roads) / numSettlements) if numSettlements > 0 else 1
+        features['Ratio cities to settlements'] = (numCities/ numSettlements) if numSettlements > 0 else 1 if numCities > 0 else 0
+        features['Squared distance to end'] = (10 - self.score)**2
+        features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
         return features    
       
     #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
@@ -648,28 +691,28 @@ class weightedAI(AiPlayer):
         # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
         # TODO: How can we evaluate a future game state without making a full copy?
         possible_moves = game.getPossibleActions(self)
-        move = {}
-        # Convert possible_moves to a list of tuples for easier reference 
-        # [((piece, count), [locations]), ((piece2, count2), [locations2])] 
-        possible_moves_tup = [(a, b) for d in possible_moves if d for a, b in d.items()]
-        for action, possibleLocations in possible_moves_tup:
-            # mostValuableActions = [(action, location, value)]
-            mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleLocations]
-            mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
-            # Get the most valuable locations according to the 'count' field in a move
-            move[action] = [a[1] for a in mostValuableActions[:action[1]]]
-
+        # print "In pick move :", self.resources
+        bestMoveScore, bestMove = -10000, None
+        for possibleMove in possible_moves:
+            if not possibleMove: continue
+            scoreForMove = 0
+            tempMove = {}
+            for action in possibleMove:
+                piece, count = action
+                mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+                mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+                totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
+                scoreForMove += totalValueOfAction
+                tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
+            if scoreForMove > bestMoveScore:
+                bestMoveScore, bestMove = scoreForMove, tempMove
+            # print(bestMoveScore)
 
         # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
-        return move
-        
-      
-      
-      
-      
-      
-      
-      
+        # print('best move = ' + str(bestMove))
+
+        return bestMove
+
       
 '''
 This is a class I wrote when I was high that fucks around with an simple way ot use weights
