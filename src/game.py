@@ -28,7 +28,7 @@ class Game(object):
         self.currPlayerWithLongestRoad = None
         self.playerWithLargestArmy = None
         self.board = board
-        self.turn_num = 0
+        self.turn_num = 0 #TODO: Remove fields that aren't used, like turn_num here
         self.devCards = self.initialize_dev_cards()
         self.gameStart = False
         self.robber_location = robber_tile

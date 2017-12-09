@@ -34,7 +34,7 @@ class Log:
     def readDict(self):
         
         with open(self.filepath, 'r+') as f:
-            print self.filepath
+            # print self.filepath
             lines = f.readlines()
             if not lines: return
             #Reset to start of file

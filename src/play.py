@@ -84,7 +84,7 @@ class Play:
             
             # For each of the AI players, we also pass their corresponding weight log
             # elif i == 0:
-            new_player = weightedAI(i, "AI"+str(i), colors[i], logs[i])
+            new_player = qAI(i, "AI"+str(i), colors[i], logs[i])
             # else:
             #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
@@ -119,7 +119,6 @@ class Play:
         self.first_two_turns()
 
         while True:
-
             #Delay so you can watch the game
             time.sleep(.03)
 
