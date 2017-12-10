@@ -28,7 +28,7 @@ class Game(object):
         self.currPlayerWithLongestRoad = None
         self.playerWithLargestArmy = None
         self.board = board
-        self.turn_num = 0
+        self.turn_num = 0 #TODO: Remove fields that aren't used, like turn_num here
         self.devCards = self.initialize_dev_cards()
         self.gameStart = False
         self.robber_location = robber_tile
@@ -472,11 +472,13 @@ class Game(object):
             first_node = road[0]
             second_node = road[1]
             for neighbour in second_node.neighbours:
-                if not (second_node, neighbour) in self.roads and not (neighbour, second_node) in self.roads:
+                if not (second_node, neighbour) in self.roads and not (neighbour, second_node) in self.roads \
+                    and self.isValidRoadNode(neighbour, player):
                     possible_locations.append((second_node, neighbour))
 
             for neighbour in first_node.neighbours:
-                if not (first_node, neighbour) in self.roads and not (neighbour, first_node) in self.roads:
+                if not (first_node, neighbour) in self.roads and not (neighbour, first_node) in self.roads \
+                    and self.isValidRoadNode(neighbour, player):
                     possible_locations.append((first_node, neighbour))
 
         for node in player.occupyingNodes:
@@ -486,6 +488,13 @@ class Game(object):
 
         return possible_locations
     
+    def isValidRoadNode(self, node, player):
+        empty = not node.isOccupied
+        if empty: return True
+        mine = node.occupyingPiece.player.turn_num == player.turn_num
+        return mine
+
+
     '''Missing test for settlement being at end of road'''
     #Helper to test if node is valid for a settlment. 
     def isValidSettlement(self, node, player, firstTurn):

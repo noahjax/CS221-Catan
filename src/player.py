@@ -610,7 +610,7 @@ class weightedAI(AiPlayer):
         if not move:
             return -1
         future = self.get_successor(game, move) 
-        futureFeatures = future.players[self.turn_num].feature_extractor()
+        futureFeatures = future.players[self.turn_num].feature_extractor(game)
         score = util.dotProduct(futureFeatures, self.weights)
         self.undo_move(game, move)
         return score
@@ -646,11 +646,12 @@ class weightedAI(AiPlayer):
 
     def pick_settlement_position(self, game):
         possible_settlements = game.getSettlementLocations(self, True)
-        maxScore, maxLocation = -100, None
+        maxScore, maxLocation = float('-inf'), None
         for settlement in possible_settlements:
             action = ('Settlement', 1)
             location = settlement
             score = self.evaluateMoveValue(game, (action, location))
+            # print score
             if score > maxScore:
                 maxScore = score
                 maxLocation = location
@@ -686,10 +687,9 @@ class weightedAI(AiPlayer):
         features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
         return features    
       
-    #TODO: has this been decided about whether we need to make sure two pieces are not in the same location?
+    
     def pickMove(self, game):
         # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
-        # TODO: How can we evaluate a future game state without making a full copy?
         possible_moves = game.getPossibleActions(self)
         # print "In pick move :", self.resources
         bestMoveScore, bestMove = -10000, None
@@ -713,7 +713,151 @@ class weightedAI(AiPlayer):
 
         return bestMove
 
-      
+'''
+My attempt to build an AI that updates its weights every turn. We will see if it works. Eval(s) represents predicted end
+score of gamestate s.
+
+    Q-Learning Basis:
+        Prediction: Eval(s) (or 10 if you can win)
+        Target: Eval(s') when you get to state s'
+        Don't have access to game before first few turns, so weights won't update at the start
+'''
+
+class qAI(weightedAI):
+
+    def __init__(self,turn_num, name, color, weightsLog):
+        AiPlayer.__init__(self, turn_num, name, color, weightsLog)
+        self.weightsLog = weightsLog
+
+        self.weights = defaultdict(float, weightsLog.readDict())
+        if 'DELETE ME' in self.weights.keys():
+            self.weights = defaultdict(float)
+                    
+        #Need to keep track of previous score and features to update them        
+        self.prevScore = None
+        self.prevFeatures = None
+        self.eta = .00000005
+
+    #Same as superclass feature extractor, but adding some more adversarial features
+    def feature_extractor(self, game):
+        expectedResources = self.expected_resources_per_roll() 
+        features = expectedResources 
+        features['Devcards played'] = len(self.devCardsPlayed.values())
+        features.update(self.devCardsPlayed)
+        features['Num roads'] = len(self.roads)
+        features['Longest Road'] = self.longestRoadLength
+        numCities, numSettlements = self.getNumSettlementsAndCities()
+        features['Num cities'] = numCities
+        features['Num settlements'] = numSettlements
+        features['Num turns with more than 7 cards'] = self.numTimesOverSeven
+        features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
+        features['Has longest road'] = 1 if self.holdsLongestRoad else 0
+        features['Has largest army'] = 1 if self.hasLargestArmy else 0
+        features['Num cards discarded'] = self.numCardsDiscarded
+        features['Score'] = self.score
+        features['Has Won'] = self.score == 10
+        features['Ratio roads to settlements'] = (len(self.roads) / numSettlements) if numSettlements > 0 else 1
+        features['Ratio cities to settlements'] = (numCities/ numSettlements) if numSettlements > 0 else 1 if numCities > 0 else 0
+        features['Squared distance to end'] = (10 - self.score)**2
+        features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
+
+        #Features for other players number of each piece and total score
+        #TODO: Feature for longest road or expected resources per turn?
+        if game:
+            for player in game.players:
+                if player.turn_num != self.turn_num:
+                    features["Score " + str(player.turn_num)] = player.score
+                    features["Player "+ str(player.turn_num) + " DevCards"] = len(player.devCards) + len(player.devCardsPlayed)
+                    features["Player "+ str(player.turn_num) + " Roads"] = len(player.roads)
+                    features["Player "+ str(player.turn_num) + " Settlements"] = sum([int(i.pieceType=='Settlement') for i in player.cities_and_settlements])
+                    features["Player "+ str(player.turn_num) + " Cities"] = sum([int(i.pieceType=='City') for i in player.cities_and_settlements])
+
+        return features    
+
+    #Helper function to evaluate a gamestate
+    def eval(self,game):
+        features = self.feature_extractor(game)
+        return util.dotProduct(features, self.weights)
+
+    #Update the weights of your features after a given turn. Different from update_weights used in other AI's
+    def updateWeights(self, game):
+        # print game
+        #Get current score
+        cur_features = self.feature_extractor(game)
+        target = util.dotProduct(cur_features, self.weights)
+        pred = self.prevScore
+        
+        # print "fuck" , cur_features["Player "+ str(1) + " Settlements"]
+
+        #If there are no previous features you can't update
+        if self.prevFeatures: 
+
+            #Update weights
+            diff = pred - target
+            for feature, val in self.prevFeatures.items():
+                # print diff, val
+                self.weights[feature] -= self.eta * diff * val
+        
+        self.prevFeatures = cur_features
+        self.prevScore = target
+
+
+    #Same as superclass, but it updates weights before picking the move and stores prediction at the end of the turn
+    def pickMove(self, game):
+
+        #Update weights
+        self.updateWeights(game)
+
+        #Pick a move as normal
+        possible_moves = game.getPossibleActions(self)
+        bestMoveScore, bestMove = -10000, None
+        for possibleMove in possible_moves:
+            if not possibleMove: continue
+            scoreForMove = 0
+            tempMove = {}
+            for action in possibleMove:
+                piece, count = action
+                mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+                mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+                totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
+                scoreForMove += totalValueOfAction
+                tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
+            if scoreForMove > bestMoveScore:
+                bestMoveScore, bestMove = scoreForMove, tempMove
+
+        return bestMove
+
+    #Does the end game update for each player
+    def endGameUpdate(self, game, target, eta = .000003):
+        # target = self.score
+        pred = self.prevScore
+        features = self.prevFeatures
+
+        #Get current score
+        # features = self.feature_extractor(game)
+        # pred = util.dotProduct(features, self.weights)
+    
+        # print "pred: ", pred
+        # print "features: ", features
+
+        diff = pred - target
+        print self.turn_num, " pred: ", pred, "target: ", target, "diff: ", diff
+        for feature, val in features.items():
+            # print feature, val,  diff
+            self.weights[feature] -= eta * diff * val
+
+        # print(self.weights)
+        # raw_input("")
+        if abs(pred) > 100: raw_input("FUCK")
+        self.weightsLog.log_dict(self.weights)
+
+        return diff
+        
+
+
+
+
+
 '''
 This is a class I wrote when I was high that fucks around with an simple way ot use weights
 to improve initial settlement and road locations. Basically it uses the probability of a tile
