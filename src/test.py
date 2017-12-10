@@ -17,7 +17,7 @@ weightLogs = {}  # Maps from a character number to a Log object
 # All are initialized with a placeholder dict that should be overwritten
 for i in range(4):
     weightLogs[i] = Log('../logs/qweights_new_%s.txt' % i)
-    weightLogs[i].log_dict({'DELETE ME': -1})
+    # weightLogs[i].log_dict({'DELETE ME': -1})
 
 winners = {}  # Map from the player turn index to the number of wins they have had
 runs = 2000
@@ -45,18 +45,21 @@ for i in range(runs):
     #         winners[player.turn_num] += 1
     #         print(player.color + ' wins')
 
-
     for player in play.players:
         if player.turn_num < 2:
             if player.score >= 10: eval_win_wins += 1
             target = int(player.score >= 10)
-            player.endGameUpdate(game, target, eta = .000001)
+            player.endGameUpdate(play.game, target, eta = .000001)
         else:
             if player.score >= 10: eval_score_wins += 1
             target = player.score
-            player.endGameUpdate(game, target)
+            player.endGameUpdate(play.game, target)
 
-    print "Ratio: ", eval_win_wins/(eval_win_wins+eval_score_wins)
+    if eval_win_wins > 0:
+        print i, "Ratio: ", float(eval_win_wins)/(eval_win_wins+eval_score_wins)
+    else:
+        print "Individual wins: ", eval_win_wins, eval_score_wins
+        
 
     #Update player weights one last time, but with a larger eta
     # diff = 0

@@ -31,7 +31,6 @@ class Play:
         self.num_players = 4
 
         # Simulate all possible die rolls and tile types
-        values = 2*[i for i in range(2, 13)]
         tile_types = [['Ore'] * 3,
                       ['Brick'] * 3,
                       ['Wood'] * 4,
@@ -51,12 +50,13 @@ class Play:
 
         # Select random values and resource for each tile and create it
         tile_pool = [tile for tileType in tile_types for tile in tileType]
+        tile_vals = [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]
+        random.shuffle(tile_vals)
         for i in range(19):
             # Grab a random value and assign it to the tile
             if i != 9:
-                rand_value = random.randint(0, len(values) - 1)
+                value = tile_vals.pop()
                 rand_tile = random.randint(0, len(tile_pool) - 1)
-                value = values.pop(rand_value)
                 resource = tile_pool.pop(rand_tile)
 
                 # Create the tile to store its information
@@ -120,7 +120,7 @@ class Play:
 
         while True:
             #Delay so you can watch the game
-            time.sleep(.03)
+            # time.sleep(.03)
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
             # if self.turnNum/4 > 50:
@@ -160,6 +160,7 @@ class Play:
                 self.turnNum += 1
 
                 # print "-----End Turn-----"
+                
 
 #############################################################################
 ############################  First Two Turns  ##############################

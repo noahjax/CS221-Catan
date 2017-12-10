@@ -771,8 +771,6 @@ class qAI(weightedAI):
                     features["Player "+ str(player.turn_num) + " Roads"] = len(player.roads)
                     features["Player "+ str(player.turn_num) + " Settlements"] = sum([int(i.pieceType=='Settlement') for i in player.cities_and_settlements])
                     features["Player "+ str(player.turn_num) + " Cities"] = sum([int(i.pieceType=='City') for i in player.cities_and_settlements])
-                    # print "sum: ", sum([int(i.pieceType=='Settlement') for i in player.cities_and_settlements])
-                    # print features["Player "+ str(player.turn_num) + " Settlements"]
 
         return features    
 
@@ -797,6 +795,7 @@ class qAI(weightedAI):
             #Update weights
             diff = pred - target
             for feature, val in self.prevFeatures.items():
+                # print diff, val
                 self.weights[feature] -= self.eta * diff * val
         
         self.prevFeatures = cur_features
