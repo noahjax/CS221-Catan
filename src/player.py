@@ -583,7 +583,7 @@ class AiPlayer(Player):
         pass
 
       
-class weightedAI(AiPlayer):
+class WeightedAI(AiPlayer):
   
     def __init__(self, turn_num, name, color, weightsLog):
         AiPlayer.__init__(self, turn_num, name, color, weightsLog)
@@ -609,8 +609,8 @@ class weightedAI(AiPlayer):
     def evaluateMoveValue(self, game, move):
         if not move:
             return -1
-        future = self.get_successor(game, move) 
-        futureFeatures = future.players[self.turn_num].feature_extractor(game)
+        future = self.do_move(game, move) 
+        futureFeatures = future.players[self.turn_num].feature_extractor()
         score = util.dotProduct(futureFeatures, self.weights)
         self.undo_move(game, move)
         return score
@@ -692,7 +692,7 @@ class weightedAI(AiPlayer):
         # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
         possible_moves = game.getPossibleActions(self)
         # print "In pick move :", self.resources
-        bestMoveScore, bestMove = -10000, None
+        bestMoveScore, bestMove = float('-inf'), None
         for possibleMove in possible_moves:
             if not possibleMove: continue
             scoreForMove = 0
@@ -723,7 +723,7 @@ score of gamestate s.
         Don't have access to game before first few turns, so weights won't update at the start
 '''
 
-class qAI(weightedAI):
+class qAI(WeightedAI):
 
     def __init__(self,turn_num, name, color, weightsLog):
         AiPlayer.__init__(self, turn_num, name, color, weightsLog)
