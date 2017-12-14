@@ -828,17 +828,10 @@ class qAI(WeightedAI):
         return bestMove
 
     #Does the end game update for each player
-    def endGameUpdate(self, game, target, eta = .000003):
-        # target = self.score
+    def endGameUpdate(self, game, eta = .000003):
+        target = self.score
         pred = self.prevScore
         features = self.prevFeatures
-
-        #Get current score
-        # features = self.feature_extractor(game)
-        # pred = util.dotProduct(features, self.weights)
-    
-        # print "pred: ", pred
-        # print "features: ", features
 
         diff = pred - target
         print self.turn_num, " pred: ", pred, "target: ", target, "diff: ", diff
@@ -846,14 +839,32 @@ class qAI(WeightedAI):
             # print feature, val,  diff
             self.weights[feature] -= eta * diff * val
 
-        # print(self.weights)
-        # raw_input("")
-        if abs(pred) > 100: raw_input("FUCK")
+        if abs(diff) > 100: raw_input("FUCK your diff is shit")
         self.weightsLog.log_dict(self.weights)
 
         return diff
         
+    
+class qAI_win(qAI):
 
+    def __init__(self,turn_num, name, color, weightsLog):
+        qAI.__init__(self, turn_num, name, color, weightsLog)
+
+    def endGameUpdate(self, game, eta = .000003):
+        target = int(self.score == 10)
+        pred = self.prevScore
+        features = self.prevFeatures
+
+        diff = pred - target
+        print self.turn_num, " pred: ", pred, "target: ", target, "diff: ", diff
+        for feature, val in features.items():
+            # print feature, val,  diff
+            self.weights[feature] -= eta * diff * val
+
+        if abs(diff) > 10: raw_input("FUCK your diff is shit")
+        self.weightsLog.log_dict(self.weights)
+
+        return diff
 
 
 

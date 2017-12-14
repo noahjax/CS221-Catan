@@ -70,6 +70,7 @@ class Play:
 
             self.board.setTouchingTiles(tile)  
 
+
         # 'Modified to see run AI always without asking'
         # # Initialize the players
         # for i in range(self.num_players):
@@ -83,6 +84,7 @@ class Play:
         #     new_player = qAI(i, "AI"+str(i), colors[i], logs[i])
         #     # else:
         #     #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
+        
             #self.players.append(new_player)
 
         # Initialize the game 
@@ -115,10 +117,12 @@ class Play:
         self.first_two_turns()
 
         while True:
+            print self.turnNum
             #Delay so you can watch the game
             # time.sleep(.03)
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
+
             # if self.turnNum/4 > 50:
             #    break
             # Check if game is over
