@@ -24,11 +24,12 @@ class Play:
     # Each AI player will be passed the log for their weights, which will be updated over time. 
     # This update is assuming that there is a higher level being run in test.py, where the actual log objects are stored.
     # Player types must be constant from one run to the next (e.g. P1 = human, P2 = AI, P3 = AI, P4 = Human for all runs in test.py)
-    def __init__(self, logs):
+    def __init__(self, players):
         # Initialize the board and give values and resources to tiles
         self.board = Board()
         self.turnNum = 0
         self.num_players = 4
+        self.players = players
 
         # Simulate all possible die rolls and tile types
         tile_types = [['Ore'] * 3,
@@ -74,19 +75,19 @@ class Play:
         self.players = []
         colors = ["orange", "red", "green", "blue"]
 
-        'Modified to see run AI always without asking'
-        # Initialize the players
-        for i in range(self.num_players):
-            # name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
-            name = ""
-            if name != "":
-                new_player = HumanPlayer(i, name, colors[i])
+        # 'Modified to see run AI always without asking'
+        # # Initialize the players
+        # for i in range(self.num_players):
+        #     # name = raw_input("Insert name of player or hit Enter to initialize an AI: ")
+        #     name = ""
+        #     if name != "":
+        #         new_player = HumanPlayer(i, name, colors[i])
             
-            # For each of the AI players, we also pass their corresponding weight log
-            # elif i == 0:
-            new_player = qAI(i, "AI"+str(i), colors[i], logs[i])
-            # else:
-            #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
+        #     # For each of the AI players, we also pass their corresponding weight log
+        #     # elif i == 0:
+        #     new_player = qAI(i, "AI"+str(i), colors[i], logs[i])
+        #     # else:
+        #     #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
             self.players.append(new_player)
 
         # Initialize the game 
