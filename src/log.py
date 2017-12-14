@@ -35,10 +35,10 @@ class Log:
         
         with open(self.filepath, 'r+') as f:
             # print self.filepath
-            lines = f.readlines()
-            if not lines: return
-            #Reset to start of file
-            f.seek(0)
+            # lines = f.readlines()
+            # if not lines: return
+            # #Reset to start of file
+            # f.seek(0)
             in_dict = json.load(f)
             # print "In Dict", in_dict
             
