@@ -64,6 +64,8 @@ class Player:
         # Store the two tuples of coordinates where the initial settlements are placed
         self.initialSettlementCoords = [] 
 
+    
+
     # Allows you to check if two players are equal...Not sure if we need it, but may come in handy
     def __eq__(self, other):
         if other is None:
@@ -89,6 +91,7 @@ class Player:
         if not firstTurn:
             game.updateRoadResources(self)
 
+        #Save time by not evaluating road length when evaluating future states
         if future: return
 
         self.updateLongestRoad(roadLoc)
@@ -305,14 +308,20 @@ class AiPlayer(Player):
 
         return possTiles
 
-    # If the AI has over seven cards currently just discard all until you get a
+    # If the AI has over seven cards you have to discard half
     def over_seven(self):
-        numResources = self.numResources
-        while self.numResources > (numResources/2):
+        newCount = self.numResources/2
+        while self.numResources > newCount:
             resource = self.getFavResource()
             self.resources[resource] -= 1
             self.numResources -= 1
             self.numCardsDiscarded += 1
+
+        if not util.areValidResources(self.resources):
+            print "Invalid resources over seven"
+            print self.numResources
+            print "over seven resources", self.resources
+            raw_input("")
 
     #Don't think we need this considering that this is probably for pregame
     # def pick_city_position(self, possible_locations):
@@ -368,6 +377,7 @@ class AiPlayer(Player):
                 options.append(devType)
         if not options:
             return None
+
         return random.choice(options)
         
     #Function used for the monopoly devcard to get the resource you want
@@ -382,6 +392,7 @@ class AiPlayer(Player):
     # give away more optimally
     def give_card(self, oppPlayer):
         if self.numResources > 0:
+
             #Randomly select a resource to give up
             resource = random.choice(self.resources.keys())
             while(not self.resources[resource]):
@@ -605,12 +616,39 @@ class WeightedAI(AiPlayer):
             # Overwrite the log with the randomized weights dict
             weightsLog.log_dict(self.weights)
 
+    #Resets all of the values in player except the log so that the same player can now play a new game
+    def reset(self, turn_num, name, color, weightsLog):
+        self.resources = defaultdict(int)
+        self.devCards = defaultdict(int)
+        self.devCardsPlayed = defaultdict(int)
+        self.newDevCards = defaultdict(int)
+        self.roads = []
+        self.numTimesOverSeven = 0
+        self.numCardsDiscarded = 0
+        self.holdsLongestRoad = False
+        self.hasLargestArmy = False
+        self.features = defaultdict(float)
+        self.score = 0
+        self.touching = defaultdict(list)
+        self.occupyingNodes = []
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':1000000000}
+        self.cities_and_settlements = []
+        self.numKnights = 0
+        self.longestRoadLength = 0
+        self.numResources = 0
+        self.initialSettlementCoords = [] 
+        self.prevDevCards = []
+        self.prevScore = None
+        self.prevFeatures = None
+
+        self.__init__(turn_num, name, color, weightsLog)
+
     # Use the weights to determine the value of a given roll
     def evaluateMoveValue(self, game, move):
         if not move:
             return -1
         future = self.do_move(game, move) 
-        futureFeatures = future.players[self.turn_num].feature_extractor()
+        futureFeatures = future.players[self.turn_num].feature_extractor(game)
         score = util.dotProduct(futureFeatures, self.weights)
         self.undo_move(game, move)
         return score
@@ -664,7 +702,7 @@ class WeightedAI(AiPlayer):
                 score += 1
         return score
 
-    def feature_extractor(self):
+    def feature_extractor(self, game=None):
         expectedResources = self.expected_resources_per_roll() 
         features = expectedResources 
         features['Devcards played'] = len(self.devCardsPlayed.values())
@@ -760,6 +798,7 @@ class qAI(WeightedAI):
         features['Ratio cities to settlements'] = (numCities/ numSettlements) if numSettlements > 0 else 1 if numCities > 0 else 0
         features['Squared distance to end'] = (10 - self.score)**2
         features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
+        features['offset'] = 1
 
         #Features for other players number of each piece and total score
         #TODO: Feature for longest road or expected resources per turn?
@@ -801,6 +840,7 @@ class qAI(WeightedAI):
         self.prevFeatures = cur_features
         self.prevScore = target
 
+        # print "prevscore, player num", self.prevScore, self.turn_num
 
     #Same as superclass, but it updates weights before picking the move and stores prediction at the end of the turn
     def pickMove(self, game):
@@ -831,6 +871,7 @@ class qAI(WeightedAI):
     def endGameUpdate(self, game, eta = .000003):
         target = self.score
         pred = self.prevScore
+
         features = self.prevFeatures
 
         diff = pred - target
