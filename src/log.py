@@ -16,7 +16,7 @@ class Log:
             f.write(message + '\n')
 
     def log_dict(self, out_dict):
-        with open(self.filepath, 'w') as f:
+        with open(self.filepath, 'w+') as f:
             out = json.dumps(out_dict)
             f.write(out)
 
@@ -26,7 +26,7 @@ class Log:
             f.write(out + " " + str(score) + '\n')
 
     def readlines(self):
-        with open(self.filepath, 'r+') as f:
+        with open(self.filepath, 'r') as f:
             lines = f.readlines()
             return lines
         return None
@@ -35,10 +35,10 @@ class Log:
         
         with open(self.filepath, 'r+') as f:
             # print self.filepath
-            lines = f.readlines()
-            if not lines: return
-            #Reset to start of file
-            f.seek(0)
+            # lines = f.readlines()
+            # if not lines: return
+            # #Reset to start of file
+            # f.seek(0)
             in_dict = json.load(f)
             # print "In Dict", in_dict
             
