@@ -30,7 +30,6 @@ class Play:
         self.turnNum = 0
         self.num_players = 4
         self.players = players
-
         # Simulate all possible die rolls and tile types
         tile_types = [['Ore'] * 3,
                       ['Brick'] * 3,
@@ -71,9 +70,6 @@ class Play:
 
             self.board.setTouchingTiles(tile)  
 
-        # # Variables for player initialization
-        # self.players = []
-        # colors = ["orange", "red", "green", "blue"]
 
         # 'Modified to see run AI always without asking'
         # # Initialize the players
@@ -88,7 +84,8 @@ class Play:
         #     new_player = qAI(i, "AI"+str(i), colors[i], logs[i])
         #     # else:
         #     #     new_player = AiPlayer(i, "AI" + str(i), colors[i], logs[i])
-        #    self.players.append(new_player)
+        
+            #self.players.append(new_player)
 
         # Initialize the game 
         init_robber_tile = (2, 5)
@@ -125,8 +122,9 @@ class Play:
             # time.sleep(.03)
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
-            if self.turnNum/4 > 50:
-                break
+
+            # if self.turnNum/4 > 50:
+            #    break
             # Check if game is over
             if self.game.currMaxScore >= 10:
                 # print self.turnNum
@@ -170,6 +168,7 @@ class Play:
 
     # Main function for first two turns logic
     def first_two_turns(self):
+        print('ps ' + str(len(self.players)))
         # Four players place their first settlement
         for i in range(4):
             # print ("It is player " + self.players[i].name + "\'s go")
