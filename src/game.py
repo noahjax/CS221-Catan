@@ -80,17 +80,17 @@ class Game(object):
         random.shuffle(devCards)
         return deque(devCards)
 
-    #Check to see if you can buy a devCard
-    def canBuyDevCard(self, player):
-        # Make sure there are devCards left
-        if not self.devCards:
-            return False
+    # #Check to see if you can buy a devCard
+    # def canBuyDevCard(self, player):
+    #     # Make sure there are devCards left
+    #     if not self.devCards:
+    #         return False
 
-        # Check if player has the resources to buy a devCard
-        if player.resources['Ore'] < 1 or player.resources['Wool'] < 1 or player.resources['Grain'] < 1:
-            return False
+    #     # Check if player has the resources to buy a devCard
+    #     if player.resources['Ore'] < 1 or player.resources['Wool'] < 1 or player.resources['Grain'] < 1:
+    #         return False
         
-        return True
+    #     return True
 
     # Handle buying a devCard. Update player to have this devCard, remove resources from player
     def buyDevCard(self, cur_player):
@@ -193,8 +193,7 @@ class Game(object):
             and player.resources['Wool'] >= 1 and player.resources['Grain'] >= 1
 
     def canBuyDevCard(self, player):
-        # if not self.devCards:
-        #     return False
+        if len(self.devCards) == 0: return False
         return player.resources['Ore'] >= 1 and player.resources['Grain'] >= 1 \
             and player.resources['Wool'] >= 1
 
@@ -229,14 +228,10 @@ class Game(object):
     #Handles recursion to explore items you can buy
     def findResourceCombos(self, pieces, ans, curr_player, depth=3):
 
-        # for resource in curr_player.resources:
-        #     if curr_player.resources[resource] < 0:
-        #         print curr_player.resources
-        #     assert(curr_player.numResources >= 0)
-        #     assert(curr_player.resources[resource] >= 0)
-        # if not areValidResources(curr_player.resources):
-        #     print curr_player.resources
-        #     return
+        if not areValidResources(curr_player.resources):
+            print curr_player.resources
+            print "depth: ", depth
+            raw_input("Resource combos failure")
 
         #Only recurse 5 levels to limit running time
         if depth <= 0:
@@ -251,6 +246,9 @@ class Game(object):
         if self.canBuyRoad(curr_player):
             cur_pieces['Road'] += 1
             self.updateRoadResources(curr_player)
+            if not areValidResources(curr_player.resources):
+                print "Road invalid resources"
+                raw_input("")
             # print "road before s ", curr_player.turn_num, curr_player.resources
             # subtractResources(curr_player, self.road_cost)
             # print "road after s ", curr_player.turn_num, curr_player.resources
@@ -265,6 +263,9 @@ class Game(object):
         if self.canBuySettlement(curr_player):
             cur_pieces['Settlement'] += 1
             self.updateSettlementResources(curr_player)
+            if not areValidResources(curr_player.resources):
+                print "Settlement invalid resources"
+                raw_input("")
             # print "settlement before s", curr_player.turn_num, curr_player.resources
             # subtractResources(curr_player, self.settlement_cost)
             # print "settlement after s", curr_player.turn_num, curr_player.resources
@@ -278,28 +279,28 @@ class Game(object):
         #Check if you can buy a city, if you can, recurse
         if self.canBuyCity(curr_player):
             cur_pieces['City'] += 1
-            self.updateSettlementResources(curr_player)
-            # print "city before s", curr_player.turn_num, curr_player.resources
-            # subtractResources(curr_player, self.city_cost)
-            # print "city after s", curr_player.turn_num, curr_player.resources
+            self.updateCityResources(curr_player)
+            
+            if not areValidResources(curr_player.resources):
+                print "City invalid resources"
+                print curr_player.resources
+                raw_input("")
+            
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
-            # print "city before a", curr_player.turn_num, curr_player.resources
-            # addResources(curr_player, self.city_cost)
-            # print "city after a", curr_player.turn_num, curr_player.resources
-            self.updateSettlementResources(curr_player, add=True)
+            self.updateCityResources(curr_player, add=True)
             cur_pieces['City'] -= 1
 
         #Check if you can buy a DevCard, if you can, recurse
         if self.canBuyDevCard(curr_player):
             cur_pieces['buyDevCard'] += 1
             self.updateDevCardResources(curr_player)
-            # print "devcard before s", curr_player.turn_num, curr_player.resources
-            # subtractResources(curr_player, self.devCard_cost)
-            # print "devcard after s", curr_player.turn_num, curr_player.resources
+            
+            if not areValidResources(curr_player.resources):
+                print "Devcard invalid resources"
+                print curr_player.resources
+                raw_input("")
+            
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
-            # print "devcard before a", curr_player.turn_num, curr_player.resources
-            # addResources(curr_player, self.devCard_cost)
-            # print "devcard after a", curr_player.turn_num, curr_player.resources
             self.updateDevCardResources(curr_player, add=True)
             cur_pieces['buyDevCard'] -= 1
 

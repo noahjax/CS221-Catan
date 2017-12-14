@@ -120,7 +120,6 @@ class Play:
         self.first_two_turns()
 
         while True:
-            print self.turnNum
             #Delay so you can watch the game
             # time.sleep(.03)
 
@@ -137,6 +136,7 @@ class Play:
                 for resource in curr_player.resources:
                     if curr_player.resources[resource] < 0:
                         print curr_player.resources
+                        raw_input("Negative Resources")
                 #     assert(curr_player.numResources >= 0)
                     assert(curr_player.resources[resource] >= -10)
                     # assert(curr_player.resources[resource] >= 0)
