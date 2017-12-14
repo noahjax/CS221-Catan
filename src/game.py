@@ -250,57 +250,57 @@ class Game(object):
         #Check if you can buy a road, if you can, recurse without road resources
         if self.canBuyRoad(curr_player):
             cur_pieces['Road'] += 1
-            # self.updateRoadResources(resources)
+            self.updateRoadResources(curr_player)
             # print "road before s ", curr_player.turn_num, curr_player.resources
-            subtractResources(curr_player, self.road_cost)
+            # subtractResources(curr_player, self.road_cost)
             # print "road after s ", curr_player.turn_num, curr_player.resources
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
             # print "road before a ", curr_player.turn_num, curr_player.resources
-            addResources(curr_player, self.road_cost)
+            # addResources(curr_player, self.road_cost)
             # print "road after a ", curr_player.turn_num, curr_player.resources
-            # self.updateRoadResources(resources, add=True)
+            self.updateRoadResources(curr_player, add=True)
             cur_pieces['Road'] -= 1
 
         #Check if you can buy a settlement, if you can, recurse
         if self.canBuySettlement(curr_player):
             cur_pieces['Settlement'] += 1
-            # self.updateSettlementResources(resources)
+            self.updateSettlementResources(curr_player)
             # print "settlement before s", curr_player.turn_num, curr_player.resources
-            subtractResources(curr_player, self.settlement_cost)
+            # subtractResources(curr_player, self.settlement_cost)
             # print "settlement after s", curr_player.turn_num, curr_player.resources
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
             # print "settlement before a", curr_player.turn_num, curr_player.resources
-            addResources(curr_player, self.settlement_cost)
+            # addResources(curr_player, self.settlement_cost)
             # print "settlement after a", curr_player.turn_num, curr_player.resources
-            # self.updateSettlementResources(resources, add=True)
+            self.updateSettlementResources(curr_player, add=True)
             cur_pieces['Settlement'] -= 1
 
         #Check if you can buy a city, if you can, recurse
         if self.canBuyCity(curr_player):
             cur_pieces['City'] += 1
-            # self.updateSettlementResources(resources)
+            self.updateSettlementResources(curr_player)
             # print "city before s", curr_player.turn_num, curr_player.resources
-            subtractResources(curr_player, self.city_cost)
+            # subtractResources(curr_player, self.city_cost)
             # print "city after s", curr_player.turn_num, curr_player.resources
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
             # print "city before a", curr_player.turn_num, curr_player.resources
-            addResources(curr_player, self.city_cost)
+            # addResources(curr_player, self.city_cost)
             # print "city after a", curr_player.turn_num, curr_player.resources
-            # self.updateSettlementResources(resources, add=True)
+            self.updateSettlementResources(curr_player, add=True)
             cur_pieces['City'] -= 1
 
         #Check if you can buy a DevCard, if you can, recurse
         if self.canBuyDevCard(curr_player):
             cur_pieces['buyDevCard'] += 1
-            # self.updateDevCardResources(resources)
+            self.updateDevCardResources(curr_player)
             # print "devcard before s", curr_player.turn_num, curr_player.resources
-            subtractResources(curr_player, self.devCard_cost)
+            # subtractResources(curr_player, self.devCard_cost)
             # print "devcard after s", curr_player.turn_num, curr_player.resources
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
             # print "devcard before a", curr_player.turn_num, curr_player.resources
-            addResources(curr_player, self.devCard_cost)
+            # addResources(curr_player, self.devCard_cost)
             # print "devcard after a", curr_player.turn_num, curr_player.resources
-            # self.updateDevCardResources(resources, add=True)
+            self.updateDevCardResources(curr_player, add=True)
             cur_pieces['buyDevCard'] -= 1
 
         # Check if you can exchange any of your resources
