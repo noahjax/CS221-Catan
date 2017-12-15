@@ -1,6 +1,8 @@
 from play import *
 from collections import defaultdict
 
+raise Exception('DO NOT USE THIS FILE')
+
 '''
 Class for testing multiple runs of the play class. Currently just runs it a 
 bunch of times to keep track of the winner. 

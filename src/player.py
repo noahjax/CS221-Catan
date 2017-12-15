@@ -688,7 +688,7 @@ class AiPlayer(Player):
 
 
     '''Random AI doesn't have a feature extractor, but we want it to be compatible with test'''
-    def feature_extractor(self):
+    def feature_extractor(self, game=None):
         pass
 
       
@@ -798,6 +798,7 @@ class WeightedAI(AiPlayer):
                 score += 1
         return score
 
+
     def feature_extractor(self, game=None):
         expectedResources = self.expected_resources_per_roll() 
         features = expectedResources 
@@ -876,7 +877,7 @@ class qAI(WeightedAI):
         self.eta = .00000005
 
     #Same as superclass feature extractor, but adding some more adversarial features
-    def feature_extractor(self, game):
+    def feature_extractor(self, game=None):
         expectedResources = self.expected_resources_per_roll() 
         features = expectedResources 
         features['Devcards played'] = len(self.devCardsPlayed.values())

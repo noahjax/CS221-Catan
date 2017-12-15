@@ -1,6 +1,8 @@
-import play, player, log
+from log import *
+from play import *
+from player import *
 from collections import defaultdict
-import src
+import sys 
 
 # Update to carry over to other files: standardize our filenames
 # Weight log for untrained qAI players should now be qAiWeightsLog%s.txt
@@ -16,13 +18,15 @@ import src
 # detailed statistics with the results, as well as saving the results to a csv
 
 # Usage:
-#        0         1             2               3           4
-# python eval.py [test name] [base class name] [test class] [trained weights filename] 
+#        0         1                            2               3           4
+# python eval.py [test name (for logging)] [base class name] [test class] [trained weights filename] 
 #                       5           6           
 #                   [optional -w] [optional userdefined weights filename]
 # Ex: python eval.py test1 WeightedAI qAI trainedWeights.txt -w userdefWeights.txt
 def main():
-   
+  
+    colors = ['orange', 'red', 'green', 'blue']
+
     # Changes to this may also require changes throughout the rest of the file
     possibleClasses = ['qAI', 'WeightedAI']
 
@@ -31,10 +35,11 @@ def main():
     testClass = sys.argv[3]
 
     print(testName, baseClass, testClass)
+    assert baseClass in possibleClasses and testClass in possibleClasses
   
     # Should take in a trained weights filename created via train.py as the 4th argument
     assert len(sys.argv) >= 5
-    trainedWeightsLog = log(sys.argv[4])
+    trainedWeightsLog = Log(sys.argv[4])
 
     # Set the baseline weights that we are comparing against. Can either be randomized or
     # defined by us
@@ -49,14 +54,16 @@ def main():
     else:
         # Create new random weights for each of the baseline AIs
         # These will be randomized in player.py as we've been doing
-        baselineWeights = [Log('WeightedAiWeightsLog%s.txt' % i) for i in range(4)]
+        baselineWeights = [Log('BaselineAiWeightsLog%s.txt' % i) for i in range(4)]
         for i in range(4):
             baselineWeights[i].log_dict({'DELETE ME': -1})
   
-    dump = log.Log(testName)
+    dump = Log(testName)
     dump.log('Test: ' + str(testName))
     dump.log('Base class: ' + str(baseClass))
     dump.log('Test class: ' + str(testClass))
+    dump.log_dict(trainedWeightsLog.readDict())
+    dump.log('\n')
 
     aggregateWins = 0
     aggregateGames = 0
@@ -68,20 +75,20 @@ def main():
         
         # Initialize all 4 players of type 'base class'
         if baseClass == 'qAI':
-            players = [player.qAI(j, str(j), colors[j], baselineWeights[j]) for j in range(4)]
+            players = [qAI(j, str(j), colors[j], baselineWeights[j]) for j in range(4)]
         elif baseClass == 'WeightedAI':
-            players = [player.WeightedAI(j, str(j), colors[j], baselineWeights[j]) for j in range(4)]
+            players = [WeightedAI(j, str(j), colors[j], baselineWeights[j]) for j in range(4)]
 
         # Overwrite 1 player of type 'test class' to start in position i
         if testClass == 'qAI':
-            players[i] = player.qAI(i, str(i), colors[i], trainedWeightsLog) 
+            players[i] = qAI(i, str(i), colors[i], trainedWeightsLog) 
         elif testClass == 'WeightedAI':
-            players[i] = player.WeightedAI(i, str(i), colors[i], trainedWeightsLog) 
+            players[i] = WeightedAI(i, str(i), colors[i], trainedWeightsLog) 
 
         # Run 100 iterations of a game, using the above specified players
         winners = {p:0 for p in range(4)}
-        for _ in range(100):
-            play = play.Play(players)
+        for _ in range(10):
+            play = Play(players)
             play.main()
             
             for player in play.players:

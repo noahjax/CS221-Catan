@@ -123,6 +123,7 @@ class Play:
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
 
+
             # if self.turnNum/4 > 50:
             #    return self.endGame()
 
@@ -136,7 +137,7 @@ class Play:
                 for resource in curr_player.resources:
                     if curr_player.resources[resource] < 0:
                         print curr_player.resources
-                        raw_input("Negative Resources in start of play loop")
+
                 #     assert(curr_player.numResources >= 0)
                     # assert(curr_player.resources[resource] >= -10)
                     # assert(curr_player.resources[resource] >= 0)
