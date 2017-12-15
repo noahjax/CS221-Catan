@@ -38,7 +38,7 @@ def main():
 
     # Run numIters training examples
     for i in range(numIters):
-
+        print(i)
         # In order to switch up the turn order, each player will randomly draw from this array
         # to determine their order
         nums = [0, 1, 2, 3]

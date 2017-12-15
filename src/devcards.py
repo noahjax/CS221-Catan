@@ -91,8 +91,6 @@ class RoadBuilding:
         self.player = player
         self.type = 'Road Building'
 
-#TODO: Think there might be a bug in here...ofter AI games will say they stole 
-# thousands of resources
 class Monopoly:
     def __init__(self, player, players):
         self.player = player
@@ -103,13 +101,14 @@ class Monopoly:
         self.player.devCardsPlayed[self.type] += 1
         
         if self.player.isAI:
-            resource = self.player.getFavResource()
+            resource = self.player.getFavResource(False)
+            assert resource is not None
         else: 
             resource = getResourceInput()
         total = 0
         for player in self.players:
             if not player == self.player:
-                if resource in player.resources:
+                if player.resources[resource] > 0:
                     numResources = player.resources[resource]
                     self.player.resources[resource] += numResources
                     self.player.numResources += numResources
@@ -130,7 +129,8 @@ class YearOfPlenty:
         self.player.devCardsPlayed[self.type] += 1
         for i in range(2):
             if self.player.isAI: 
-                resource = self.player.getFavResource()
+                resource = self.player.getFavResource(False)
+                assert resource is not None
             else:
                 resource = getResourceInput()
             self.player.resources[resource] += 1

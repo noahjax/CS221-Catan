@@ -15,6 +15,15 @@ class Log:
         with open(self.filepath, 'w') as f:
             f.write(message + '\n')
 
+    def append(self, message):
+        with open(self.filepath, 'a+') as f:
+            f.write(message + '\n')
+    
+    def append_dict(self, out_dict):
+        with open(self.filepath, 'a+') as f:
+            out = json.dumps(out_dict)
+            f.write(out)
+
     def log_dict(self, out_dict):
         with open(self.filepath, 'w') as f:
             out = json.dumps(out_dict)

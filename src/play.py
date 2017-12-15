@@ -123,9 +123,8 @@ class Play:
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
 
-
-            # if self.turnNum/4 > 50:
-            #    return self.endGame()
+            if self.turnNum/4 > 50:
+                return self.endGame()
 
             # Check if game is over
             if self.game.currMaxScore >= 10:
@@ -481,7 +480,9 @@ class Play:
     Ends the game and returns the winner
     """
     def endGame(self):
+        pass
         # print "game ending"
+        '''
         for player in self.players:
             #Log for BasicAI Player
             if isinstance(player, BasicStrategy):
@@ -489,10 +490,9 @@ class Play:
                 player_log = player.weights_log
                 player_log.log_dict(player.resource_weights)
 
-            print "endgame", player.prevScore
-
             if player.score >= 10:
                 pass
+        '''
                 # print(player.turn_num, player.color + player.name + " has won the game!")
                 # catan_log.log(player.color + "," + player.name)
 

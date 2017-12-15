@@ -321,17 +321,21 @@ class AiPlayer(Player):
     # If the AI has over seven cards you have to discard half
     def over_seven(self):
         newCount = self.numResources/2
+
         while self.numResources > newCount:
-            resource = self.getFavResource()
-            self.resources[resource] -= 1
-            self.numResources -= 1
-            self.numCardsDiscarded += 1
+            resource = self.getFavResource(True)
+            if resource is not None:
+                self.resources[resource] -= 1
+                self.numResources -= 1
+                self.numCardsDiscarded += 1
+            else:
+                break
 
         if not util.areValidResources(self.resources):
             print "Invalid resources over seven"
             print self.numResources
             print "over seven resources", self.resources
-            raw_input("")
+            # raw_input("")
 
     #Don't think we need this considering that this is probably for pregame
     # def pick_city_position(self, possible_locations):
@@ -391,11 +395,21 @@ class AiPlayer(Player):
         return random.choice(options)
         
     #Function used for the monopoly devcard to get the resource you want
-    def getFavResource(self):
+    def getFavResource(self, giving):
+            
+        resources = [resource for resource in self.resources if self.resources[resource] > 0]
+        if giving and resources:
+            return random.choice(resources)
+        elif giving and not resources:
+            return None
+        else:   
+            return 'Grain'
+        '''
         resources = [resource for resource in self.resources if self.resources[resource] > 0]
         if not resources:
             return 'Grain'
         return random.choice(resources)
+        '''
     
     #Random AI should still be able to do this at some point, even if not yet
     # TODO: Currently gives away a random card. At some point would be nice to 
@@ -405,7 +419,7 @@ class AiPlayer(Player):
 
             #Randomly select a resource to give up
             resource = random.choice(self.resources.keys())
-            while(not self.resources[resource]):
+            while(self.resources[resource] < 1):
                 resource = random.choice(self.resources.keys())
             
             self.resources[resource] -= 1
@@ -467,7 +481,7 @@ class AiPlayer(Player):
         #Place piece
         else:
             if piece == 'Settlement':
-                print "city and settlements: ", self.turn_num, self.cities_and_settlements
+                # print "city and settlements: ", self.turn_num, self.cities_and_settlements
                 self.remove_settlement(loc, game)
             elif piece == 'City':
                 self.remove_city(loc, game)

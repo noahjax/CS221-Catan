@@ -4,6 +4,8 @@ from player import *
 from collections import defaultdict
 import sys 
 
+# Note: before running eval.py, make sure to remove the turn limit in play.py
+
 # Update to carry over to other files: standardize our filenames
 # Weight log for untrained qAI players should now be qAiWeightsLog%s.txt
 # Weight log for untrained WeightedAI players should now be WeightedAiWeightsLog%s.txt
@@ -60,17 +62,17 @@ def main():
   
     dump = Log(testName)
     dump.log('Test: ' + str(testName))
-    dump.log('Base class: ' + str(baseClass))
-    dump.log('Test class: ' + str(testClass))
-    dump.log_dict(trainedWeightsLog.readDict())
-    dump.log('\n')
+    dump.append('Base class: ' + str(baseClass))
+    dump.append('Test class: ' + str(testClass))
+    dump.append_dict(trainedWeightsLog.readDict())
+    dump.append('\n')
 
     aggregateWins = 0
     aggregateGames = 0
 
     # Run the test player 100 times starting from each of the 4 different turn orders
     for i in range(4):
-        
+        print('i = ' + str(i))     
         players = [] 
         
         # Initialize all 4 players of type 'base class'
@@ -94,17 +96,20 @@ def main():
             for player in play.players:
                 if player.score >= 10:
                     winners[player.turn_num] += 1
-
+        print('updating aggregate wins')
         aggregateWins += winners[i]
         aggregateGames += 100 # Ignore that some games may not have had a winner
-
-        dump.log('With starting position ' + str(i) + ':')
-        dump.log_dict(winners)
-
-    dump.log('Aggregate from each of 4 starting positions:')
-    dump.log(str(aggregateWins) + ' wins')
-    dump.log(str(aggregateGames) + ' games')
-    dump.log(str(aggregateWins * 1.0 / aggregateGames) + ' win percentage for test class')
+    
+        dump.append('With starting position ' + str(i) + ':')
+        dump.append_dict(winners)
+        dump.append('\n')
+    
+    print('final logging')
+    dump.append('\n')
+    dump.append('Aggregate from each of 4 starting positions:')
+    dump.append(str(aggregateWins) + ' wins')
+    dump.append(str(aggregateGames) + ' games')
+    dump.append(str(aggregateWins * 1.0 / aggregateGames) + ' win percentage for test class')
 
 if __name__ == '__main__':
     main()
