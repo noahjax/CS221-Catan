@@ -20,7 +20,7 @@ for i in range(4):
     # weightLogs[i].log_dict({'DELETE ME': -1})
 
 winners = defaultdict(int)  # Map from the player turn index to the number of wins they have had
-runs = 100
+runs = 1000
 numWinners = 0
 # total_miss = 0
 
@@ -34,11 +34,15 @@ def print_win_percentages(winners, numWinners):
 
 for i in range(runs):
 
+    #Might want to give players random turn_nums so that we evaluate the AI and not the turn
+    turn_nums = [0,1,2,3]
+    # random.shuffle(turn_nums)
+
     #Initialize players
-    player0 = qAI(0, "qAI_0", "orange", weightLogs[0])
-    player1 = qAI(1, "qAI_1", "red", weightLogs[1])
-    player2 = qAI_minimax(2, "qAI_2", "green", weightLogs[2], 1)
-    player3 = qAI_minimax(3, "qAI_3", "blue", weightLogs[3], 1)
+    player0 = qAI_minimax(turn_nums[0], "qAI_0", "orange", weightLogs[0])
+    player1 = qAI(turn_nums[1], "qAI_1", "red", weightLogs[1])
+    player2 = qAI(turn_nums[2], "qAI_2", "green", weightLogs[2])
+    player3 = qAI_minimax(turn_nums[3], "qAI_3", "blue", weightLogs[3], 2)
 
     players = [player0, player1, player2, player3]
 
@@ -47,12 +51,20 @@ for i in range(runs):
     play = Play(players)
     play.main()
 
-    for player in play.players:
-        player.endGameUpdate(play.game)
+    for i in range(len(players)):
+        players[i].endGameUpdate(play.game)
+
+        if players[i].score >= 10:
+            winners[i] += 1
+            numWinners += 1 
+
+    
+    # for player in play.players:
+    #     player.endGameUpdate(play.game)
         
-        if player.score >= 10:
-            winners[player.turn_num] += 1
-            numWinners += 1
+    #     if player.score >= 10:
+    #         winners[player.turn_num] += 1
+    #         numWinners += 1
 
     print_win_percentages(winners, numWinners)
 

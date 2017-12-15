@@ -457,6 +457,7 @@ class AiPlayer(Player):
         #Place piece
         else:
             if piece == 'Settlement':
+                print "city and settlements: ", self.turn_num, self.cities_and_settlements
                 self.remove_settlement(loc, game)
             elif piece == 'City':
                 self.remove_city(loc, game)
@@ -570,15 +571,17 @@ class AiPlayer(Player):
         expected_features = self.feature_extractor(game)
         expected_score = util.dotProduct(expected_features, self.weights)
     
-        # for player in game.players:
-        #     print "cities and settlements: ", player.turn_num, player.cities_and_settlements
-        # print "total actions list: ", total_action_list
+        for i in range(len(game.players)):
+            player = game.players[i]
+            print "cities and settlements: ", player.turn_num, player.cities_and_settlements
+        print "total actions list: ", total_action_list
 
         #Undo moves the player made
         # print total_action_list
         for i in range(len(total_action_list)-1, -1, -1):
             to_undo = total_action_list[i]
             opp_num, opp_action = to_undo
+            print "Loop cities and settles: ",opp_num, game.players[opp_num].cities_and_settlements
             game = game.players[opp_num].undo_move(game, opp_action)
 
         #Undo moves the player made
