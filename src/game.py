@@ -231,7 +231,7 @@ class Game(object):
         if not areValidResources(curr_player.resources):
             print curr_player.resources
             print "depth: ", depth
-            raw_input("Resource combos failure")
+            # raw_input("Resource combos failure")
 
         #Only recurse 5 levels to limit running time
         if depth <= 0:

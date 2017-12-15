@@ -122,8 +122,8 @@ class Play:
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
 
-            # if self.turnNum/4 > 50:
-            #    break
+            if self.turnNum/4 > 50:
+                break
             # Check if game is over
             if self.game.currMaxScore >= 10:
                 # print self.turnNum
@@ -134,7 +134,7 @@ class Play:
                 for resource in curr_player.resources:
                     if curr_player.resources[resource] < 0:
                         print curr_player.resources
-                        raw_input("Negative Resources")
+                        # raw_input("Negative Resources")
                 #     assert(curr_player.numResources >= 0)
                     assert(curr_player.resources[resource] >= -10)
                     # assert(curr_player.resources[resource] >= 0)
@@ -168,7 +168,6 @@ class Play:
 
     # Main function for first two turns logic
     def first_two_turns(self):
-        print('ps ' + str(len(self.players)))
         # Four players place their first settlement
         for i in range(4):
             # print ("It is player " + self.players[i].name + "\'s go")
