@@ -114,8 +114,11 @@ class Monopoly:
                     self.player.resources[resource] += numResources
                     self.player.numResources += numResources
                     player.resources[resource] = 0
+                    player.numResources -= numResources
                     total += numResources
-        print("You stole a total of " + str(total) + " " + resource + " from the other players")
+
+        if not player.isAI:
+            print("You stole a total of " + str(total) + " " + resource + " from the other players")
 
 class YearOfPlenty:
     def __init__(self, player, players):

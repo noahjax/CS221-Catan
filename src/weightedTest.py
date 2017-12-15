@@ -16,6 +16,7 @@ weightLogs = {}  # Maps from a character number to a Log object
 players = []
 for i in range(4):
     weightLogs[i] = Log('../logs/WeightedAIPlayer%s.txt' % i)
+    
     if i != 2:
         weightLogs[i].log_dict({'DELETE ME': -1})
     players.append(WeightedAI(i, 'WeightedAI%s' % i, colors[i], weightLogs[i]))
@@ -25,9 +26,13 @@ runs = 50
 numWinners = 0
 
 for i in range(runs):
+    
+    print "Game number ", i+1
+    print "Starting resources: ", players[0].resources
+
     play = Play(players)
     play.main()
-
+   
     if not winners:
         for player in play.players:
             winners[player.turn_num] = 0
@@ -61,6 +66,10 @@ for i in range(runs):
             scoreDiff = bestScore - player.score
             updatedWeights = player.update_weights(bestPlayer.feature_extractor(), bestWeights, scoreDiff)
             player.weightsLog.log_dict(updatedWeights)
+        
+    #Create new players for next game    
+    for i in range(4):
+        players[i] = WeightedAI(i, 'WeightedAI%s' % i, colors[i], weightLogs[i])
 
     # print('num Winners = ' + str(numWinners))
 
