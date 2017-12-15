@@ -118,6 +118,16 @@ class Player:
         # print "placing settlement", node.row, node.col
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
+
+        #Updates exchange rates when you place on a port
+        if node.port:
+            if node.port == "Any":
+                for resource in self.exchangeRates:
+                    self.exchangeRates[resource] = 3
+                self.exchangeRates['Desert'] = float('inf')
+            else:
+                self.exchangeRates[node.port] = 2
+
         self.cities_and_settlements.append(settlement_to_add)
         self.occupyingNodes.append(node)
         self.incrementScore(1)
