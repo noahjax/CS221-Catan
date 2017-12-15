@@ -412,10 +412,8 @@ class AiPlayer(Player):
 
     #Updates a game after a move so the new gamestate s' can be used in Eval(s')
     def do_move(self, game, move, firstTurn=False):
-        
-        # for action, loc in move.items(): <- again, we're only considering single locations at this point, so 
-        # this loop is not needed at the moment
-        # print "move: ", move
+        if not move: return
+       
         action, loc = move
         piece, count = action
 
@@ -443,6 +441,8 @@ class AiPlayer(Player):
     #TODO: Potential issue: What happens when we run this at a depth > 1 and we want to 
     #Undoes a move, return s' to state s. Assumes move you are undoing was the last move made.
     def undo_move(self, game, move, firstTurn=False):
+        if not move: return
+        
         piece, count = move[0]
         loc = move[1]
 
@@ -645,12 +645,10 @@ class WeightedAI(AiPlayer):
 
     # Use the weights to determine the value of a given roll
     def evaluateMoveValue(self, game, move):
-        if not move:
-            return -1
-        future = self.do_move(game, move) 
-        futureFeatures = future.players[self.turn_num].feature_extractor(game)
+        game = self.do_move(game, move) 
+        futureFeatures = game.players[self.turn_num].feature_extractor(game)
         score = util.dotProduct(futureFeatures, self.weights)
-        self.undo_move(game, move)
+        game = self.undo_move(game, move)
         return score
     
     # Figure out how many of each resource we would expect per roll
@@ -726,28 +724,129 @@ class WeightedAI(AiPlayer):
         return features    
       
     
-    def pickMove(self, game):
-        # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
+    # def pickMove(self, game):
+    #     # TODO: Optimize this. Try to avoid using get_successor for cheap/uncomplicated moves
+    #     possible_moves = game.getPossibleActions(self)
+    #     # print "In pick move :", self.resources
+    #     bestMoveScore, bestMove = float('-inf'), None
+    #     for possibleMove in possible_moves:
+    #         if not possibleMove: continue
+    #         scoreForMove = 0
+    #         tempMove = {}
+    #         for action in possibleMove:
+    #             piece, count = action
+    #             mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+    #             mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+    #             totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
+    #             scoreForMove += totalValueOfAction
+    #             tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
+    #         if scoreForMove > bestMoveScore:
+    #             bestMoveScore, bestMove = scoreForMove, tempMove
+    #         # print(bestMoveScore)
+
+    #     # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
+    #     # print('best move = ' + str(bestMove))
+
+    #     return bestMove
+
+    def pickMove(self, game, depth = 1):
         possible_moves = game.getPossibleActions(self)
-        # print "In pick move :", self.resources
+
         bestMoveScore, bestMove = float('-inf'), None
         for possibleMove in possible_moves:
             if not possibleMove: continue
             scoreForMove = 0
-            tempMove = {}
+            cur_action_list = []
+
+            #Use simple eval function to select optimal locations. This saves a lot of computation time.
             for action in possibleMove:
                 piece, count = action
-                mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
-                mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
-                totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
-                scoreForMove += totalValueOfAction
-                tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
-            if scoreForMove > bestMoveScore:
-                bestMoveScore, bestMove = scoreForMove, tempMove
-            # print(bestMoveScore)
+                
+                #Handle case where you are exchanging resources
+                if isinstance(piece[0], tuple):
+                    cur_action_list.append((action, None))
+                else:
+                    mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+                    mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+                    
+                    #Add mostValuableActions to cur_action list in format needed for expectimax
+                    for i in range(count):
+                        cur_mva = mostValuableActions[i]
+                        cur_action_list.append(((piece, 1), cur_mva[1]))
 
-        # Returns a dict of {(piece, count) : [most valuable 'count' locations] for each key (piece, count)}
-        # print('best move = ' + str(bestMove))
+            scoreForMove = self.expectimax_value(game, cur_action_list)
+                
+            if scoreForMove > bestMoveScore:
+                bestMoveScore, bestMove = scoreForMove, cur_action_list
+
+        return bestMove
+
+    def expectimax_value(self, game, action_list, depth=0):
+        #Do all of the actions in action_list
+        for action in action_list:
+            game = self.do_move(game, action)
+
+        turn_num = (self.turn_num+1) % 4
+        total_action_list = []      #Stores all of the actions made so that you can undo them
+
+        while depth > 0:
+            opp = game.players[turn_num]
+            opp_action_list = self.guess_opp_move(opp, game)
+
+            #Add opponent actions with the opponent object so we can undo them
+            if opp_action_list:
+                for opp_action in opp_action_list:
+                    game = opp.do_move(game, opp_action)
+                    total_action_list.append((opp, opp_action))
+            
+            turn_num = (turn_num+1) % 4
+            if turn_num == self.turn_num: depth -= 1
+
+        #Find value of your estimated future state
+        expected_features = self.feature_extractor(game)
+        expected_score = util.dotProduct(expected_features, self.weights)
+    
+         #Undo moves the player made
+        for i in range(len(total_action_list)-1, -1, -1):
+            to_undo = total_action_list[i]
+            opp, opp_action = to_undo
+            game = opp.undo_move(game, opp_action)
+
+        #Undo moves the player made
+        for i in range(len(action_list)-1, -1, -1):
+            game = self.undo_move(game, action_list[i])
+
+        return expected_score
+
+    #Use original pick move logic to guess the opposing players move
+    def guess_opp_move(self, opp, game):
+        possible_moves = game.getPossibleActions(opp)
+
+        bestMoveScore, bestMove = float('-inf'), None
+        for possibleMove in possible_moves:
+            if not possibleMove: continue
+            scoreForMove = 0
+            cur_action_list = []
+
+            #Use simple eval function to select optimal locations. This saves a lot of computation time.
+            for action in possibleMove:
+                piece, count = action
+                
+                #Handle case where you are exchanging resources
+                if isinstance(piece[0], tuple):
+                    cur_action_list.append((action, None))
+                else:
+                    mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+                    mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+                    
+                    #Add mostValuableActions to cur_action list in format needed for expectimax
+                    for i in range(count):
+                        cur_mva = mostValuableActions[i]
+                        cur_action_list.append(((piece, 1), cur_mva[1]))
+                        scoreForMove += cur_mva[2]
+
+            if scoreForMove > bestMoveScore:
+                bestMoveScore, bestMove = scoreForMove, cur_action_list
 
         return bestMove
 
@@ -848,24 +947,25 @@ class qAI(WeightedAI):
         #Update weights
         self.updateWeights(game)
 
-        #Pick a move as normal
-        possible_moves = game.getPossibleActions(self)
-        bestMoveScore, bestMove = -10000, None
-        for possibleMove in possible_moves:
-            if not possibleMove: continue
-            scoreForMove = 0
-            tempMove = {}
-            for action in possibleMove:
-                piece, count = action
-                mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
-                mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
-                totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
-                scoreForMove += totalValueOfAction
-                tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
-            if scoreForMove > bestMoveScore:
-                bestMoveScore, bestMove = scoreForMove, tempMove
+        WeightedAI.pickMove(self, game)
+        # #Pick a move as normal
+        # possible_moves = game.getPossibleActions(self)
+        # bestMoveScore, bestMove = -10000, None
+        # for possibleMove in possible_moves:
+        #     if not possibleMove: continue
+        #     scoreForMove = 0
+        #     tempMove = {}
+        #     for action in possibleMove:
+        #         piece, count = action
+        #         mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+        #         mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+        #         totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
+        #         scoreForMove += totalValueOfAction
+        #         tempMove[action] = [mva[=1] for mva in mostValuableActions[:count]]
+        #     if scoreForMove > bestMoveScore:
+        #         bestMoveScore, bestMove = scoreForMove, tempMove
 
-        return bestMove
+        # return bestMove
 
     #Does the end game update for each player
     def endGameUpdate(self, game, eta = .000003):

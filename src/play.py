@@ -117,6 +117,7 @@ class Play:
         self.first_two_turns()
 
         while True:
+            print self.turnNum
             #Delay so you can watch the game
             # time.sleep(.03)
 
