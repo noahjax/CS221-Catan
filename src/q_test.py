@@ -20,7 +20,7 @@ for i in range(4):
     # weightLogs[i].log_dict({'DELETE ME': -1})
 
 winners = defaultdict(int)  # Map from the player turn index to the number of wins they have had
-runs = 100
+runs = 1000
 numWinners = 0
 # total_miss = 0
 
@@ -36,10 +36,14 @@ def print_win_percentages(winners, numWinners):
 for i in range(runs):
 
     #Initialize players
-    player0 = qAI(0, "qAI_0", "orange", weightLogs[0])
-    player1 = qAI(1, "qAI_1", "red", weightLogs[1])
-    player2 = qAI(2, "qAI_2", "green", weightLogs[2])
-    player3 = qAI(3, "qAI_3", "blue", weightLogs[3])
+    player0 = qAI(3, "qAI_0", "orange", weightLogs[0])
+    player1 = qAI_win(2, "qAI_1", "red", weightLogs[1])
+    player2 = qAI_more_features(1, "qAI_2", "green", weightLogs[2])
+    player3 = qAI_more_features_win(0, "qAI_3", "blue", weightLogs[3])
+    
+    # player2 = qAI(1, "qAI_1", "red", weightLogs[1])
+    # player1 = qAI(2, "qAI_2", "green", weightLogs[2])
+    # player0 = qAI(3, "qAI_3", "blue", weightLogs[3])
 
     players = [player0, player1, player2, player3]
 

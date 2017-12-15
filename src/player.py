@@ -811,7 +811,6 @@ class qAI(WeightedAI):
         features['offset'] = 1
 
         #Features for other players number of each piece and total score
-        #TODO: Feature for longest road or expected resources per turn?
         if game:
             for player in game.players:
                 if player.turn_num != self.turn_num:
@@ -879,7 +878,7 @@ class qAI(WeightedAI):
 
     #Does the end game update for each player
     def endGameUpdate(self, game, eta = .000003):
-        target = self.score
+        target = min(self.score,10)
         pred = self.prevScore
 
         features = self.prevFeatures
@@ -898,11 +897,8 @@ class qAI(WeightedAI):
     
 class qAI_win(qAI):
 
-    def __init__(self,turn_num, name, color, weightsLog):
-        qAI.__init__(self, turn_num, name, color, weightsLog)
-
     def endGameUpdate(self, game, eta = .000003):
-        target = int(self.score == 10)
+        target = int(self.score >= 10)
         pred = self.prevScore
         features = self.prevFeatures
 
@@ -912,11 +908,76 @@ class qAI_win(qAI):
             # print feature, val,  diff
             self.weights[feature] -= eta * diff * val
 
-        if abs(diff) > 10: raw_input("FUCK your diff is shit")
+        if abs(diff) > 10: raw_input("Diff dangerously high")
         self.weightsLog.log_dict(self.weights)
 
         return diff
 
+class qAI_more_features(qAI):
+
+    def feature_extractor(self, game):
+        expectedResources = self.expected_resources_per_roll() 
+        features = expectedResources 
+        features['Devcards played'] = len(self.devCardsPlayed.values())
+        features.update(self.devCardsPlayed)
+        features['Num roads'] = len(self.roads)
+        features['Longest Road'] = self.longestRoadLength
+        numCities, numSettlements = self.getNumSettlementsAndCities()
+        features['Num cities'] = numCities
+        features['Num settlements'] = numSettlements
+        features['Num turns with more than 7 cards'] = self.numTimesOverSeven
+        features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
+        features['Has longest road'] = 1 if self.holdsLongestRoad else 0
+        features['Has largest army'] = 1 if self.hasLargestArmy else 0
+        features['Num cards discarded'] = self.numCardsDiscarded
+        features['Score'] = self.score
+        features['Has Won'] = self.score == 10
+        features['Ratio roads to settlements'] = (len(self.roads) / numSettlements) if numSettlements > 0 else 1
+        features['Ratio cities to settlements'] = (numCities/ numSettlements) if numSettlements > 0 else 1 if numCities > 0 else 0
+        features['Squared distance to end'] = (10 - self.score)**2
+        features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
+
+        #Feature for how many possible moves opponents (and you) can make
+        for player in game.players:
+            if player.turn_num != self.turn_num:
+                features["Player "+ str(player.turn_num) + " Settlement Locs"] = len(game.getSettlementLocations(player))
+                features["Player "+ str(player.turn_num) + " City Locs"] = len(game.getCityLocations(player))
+                features["Player "+ str(player.turn_num) + " Road Locs"] = len(game.getRoadLocations(player))
+            else: 
+                features["Self Settlement Locs"] = len(game.getSettlementLocations(player))
+                features["Self City Locs"] = len(game.getCityLocations(player))
+                features["Self Road Locs"] = len(game.getRoadLocations(player))
+
+        #Features for ports
+        all_port = False
+        for resource, rate in self.exchangeRates.items():
+            if rate == 3: all_port = True
+            if resource != "Desert":
+                features[resource + " exchange Rate"] = int(rate == 2)
+        features["All Port"] = int(all_port)
+
+        #Features for other players number of each piece and total score
+        if game:
+            features['In lead'] = int(self.score == game.currMaxScore)
+
+        return features    
+
+class qAI_more_features_win(qAI_more_features):
+    def endGameUpdate(self, game, eta = .000003):
+        target = int(self.score >= 10)
+        pred = self.prevScore
+        features = self.prevFeatures
+
+        diff = pred - target
+        print self.turn_num, " pred: ", pred, "target: ", target, "diff: ", diff
+        for feature, val in features.items():
+            # print feature, val,  diff
+            self.weights[feature] -= eta * diff * val
+
+        if abs(diff) > 10: raw_input("Diff dangerously high")
+        self.weightsLog.log_dict(self.weights)
+
+        return diff
 
 
 
