@@ -15,7 +15,7 @@ def main():
 
     colors = ['orange', 'red', 'green', 'blue']
 
-    possibleClasses = ['qAI', 'WeightedAI']
+    possibleClasses = ['qAI', 'WeightedAI', 'qAI_win', 'qAI_minimax']
     trainClass = sys.argv[1]
     numIters = int(sys.argv[2])
     
@@ -29,6 +29,10 @@ def main():
             weights[i] = Log('qAiWeightsLog%s.txt' % i)
         elif trainClass == 'WeightedAI':
             weights[i] = Log('WeightedAiWeightsLog%s.txt' % i)
+        elif trainClass == 'qAIWin':
+            weights[i] = Log('qAi_win_WeightsLog%s.txt' % i) 
+        elif trainClass == 'qAI_minimax':
+            weights[i] = Log('qAi_minimax_WeightsLog%s.txt' % i) 
         weights[i].log_dict({'DELETE ME': -1})
 
     # Give each a default win, just so as to avoid errors later
@@ -48,14 +52,14 @@ def main():
         # advantage of going first
         if trainClass == 'qAI':
             players = [qAI(nums.pop(random.randint(0, len(nums) - 1)), str(j), colors[j], weights[j]) for j in range(4)] 
-            players.sort(key = lambda p: p.turn_num)
-            # players = [qAI(j, str(j), colors[j], weights[j]) for j in range(4)] 
         elif trainClass == 'WeightedAI':
             players = [WeightedAI(nums.pop(random.randint(0, len(nums) - 1)), str(j), colors[j], weights[j]) for j in range(4)] 
-            players.sort(key = lambda p: p.turn_num)
-
-            # players = [WeightedAI(j, str(j), colors[j], weights[j]) for j in range(4)] 
-
+        elif trainClass == 'qAI_win':
+            players = [qAI_win(nums.pop(random.randint(0, len(nums) - 1)), str(j), colors[j], weights[j]) for j in range(4)] 
+        elif trainClass == 'qAI_minimax':
+            players = [qAI_minimax(nums.pop(random.randint(0, len(nums) - 1)), str(j), colors[j], weights[j]) for j in range(4)] 
+             
+        players.sort(key = lambda p: p.turn_num)
         play = Play(players)
         play.main()
    
@@ -64,13 +68,9 @@ def main():
                 winners[int(player.name)] += 1
 
         # If we are training a qAI, follow that specific protocol
-        if trainClass == 'qAI':
+        if trainClass == 'qAI' or trainClass == 'qAI_win' or trainClass == 'qAI_minimax':
             for player in play.players:
-                if player.turn_num < 2:
-                    target = int(player.score >= 10)
-                    player.endGameUpdate(play.game, eta = 0.00001)
-                else:
-                    player.endGameUpdate(play.game)
+                player.endGameUpdate(play.game)
            
         # Otherwise, do what we were doing before, with updating the players' weights toward the
         # best player
