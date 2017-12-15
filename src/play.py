@@ -117,13 +117,16 @@ class Play:
         self.first_two_turns()
 
         while True:
+            # print self.turnNum
             #Delay so you can watch the game
             # time.sleep(.03)
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
 
-            if self.turnNum/4 > 50:
-                break
+
+            # if self.turnNum/4 > 50:
+            #    return self.endGame()
+
             # Check if game is over
             if self.game.currMaxScore >= 10:
                 # print self.turnNum
@@ -134,9 +137,9 @@ class Play:
                 for resource in curr_player.resources:
                     if curr_player.resources[resource] < 0:
                         print curr_player.resources
-                        # raw_input("Negative Resources")
+
                 #     assert(curr_player.numResources >= 0)
-                    assert(curr_player.resources[resource] >= -10)
+                    # assert(curr_player.resources[resource] >= -10)
                     # assert(curr_player.resources[resource] >= 0)
                 # print_player_stats(curr_player)
 
@@ -170,16 +173,12 @@ class Play:
     def first_two_turns(self):
         # Four players place their first settlement
         for i in range(4):
-            # print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
-            # printResources(self.players[i])
 
         # Players place second settlement from last to first
         for i in range(3, -1, -1):
-            # print ("It is player " + self.players[i].name + "\'s go")
             self.initial_placements(self.players[i])
 
-        # catan_log.log("Ran pregame")
 
     # Handle placements logic during the first 2 turns
     def initial_placements(self, player):
@@ -226,30 +225,25 @@ class Play:
     This will take an AI player and allow them to pick among all possible moves for a given gamestate
     """
     def run_AI_turn(self, player):
+
         #Pick and play a devCard. Often won't do anything if no available cards
         devCard = player.pickDevCard()
-        # print "devCard: ", devCard
-        # print player.devCards
+
         if devCard: self.play_devcard(devCard, player)
-        
+
         # Get all possible moves player can make and send to AI for decision making
-        # time.sleep(0.5)
         resources = player.resources
 
+      
+        
         # Get move from AI player
         move = player.pickMove(self.game)
-        # print('move = ' + str(move))
-        '''
-        move = player.pickMove(self.game)
-        '''
 
         # Print move for debugging purposes
         if not move:
             # print player.color,  "No move selected"
             return
         
-        # print "move:", move
-        # raw_input("")
 
         # Act on move by placing pieces and updating graphics
         for action, locs in move.items():
@@ -282,6 +276,7 @@ class Play:
                         self.display.placeRoad(loc[0], loc[1], player)
 
         self.game.updateDevCards(player)
+
 
 #############################################################################
 ############ Location finders for city, settlement and road #################
@@ -445,7 +440,7 @@ class Play:
                 roadLoc = self.getRoadLoc(possiblePlacements)
             if not roadLoc:
                 return
-            curr_player.place_road(roadLoc, self.game)
+            curr_player.place_road(roadLoc, self.game, True)
             self.display.placeRoad(roadLoc[0], roadLoc[1], curr_player)
         else:
             print("Sorry you do not have the resources to buy a Road")
@@ -467,6 +462,14 @@ class Play:
                     self.buy_and_place_road(currPlayer, True)
             else:
                 card.play()
+
+            for player in self.players:
+                if not areValidResources(player.resources):
+                    print type                    
+                    print "Someone is invalid after devCard in play_devcard"
+                    print currPlayer.turn_num, player.turn_num
+                    raw_input("")
+
         else:
             print("Sorry you do not have that dev card")
             return False
@@ -485,6 +488,8 @@ class Play:
                 player.update_weights()
                 player_log = player.weights_log
                 player_log.log_dict(player.resource_weights)
+
+            print "endgame", player.prevScore
 
             if player.score >= 10:
                 pass

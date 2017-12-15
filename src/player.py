@@ -64,6 +64,8 @@ class Player:
         # Store the two tuples of coordinates where the initial settlements are placed
         self.initialSettlementCoords = [] 
 
+    
+
     # Allows you to check if two players are equal...Not sure if we need it, but may come in handy
     def __eq__(self, other):
         if other is None:
@@ -89,6 +91,7 @@ class Player:
         if not firstTurn:
             game.updateRoadResources(self)
 
+        #Save time by not evaluating road length when evaluating future states
         if future: return
 
         self.updateLongestRoad(roadLoc)
@@ -115,6 +118,16 @@ class Player:
         # print "placing settlement", node.row, node.col
         settlement_to_add = Settlement(self, node)
         node.set_occupying_piece(settlement_to_add)
+
+        #Updates exchange rates when you place on a port
+        if node.port:
+            if node.port == "Any":
+                for resource in self.exchangeRates:
+                    self.exchangeRates[resource] = 3
+                self.exchangeRates['Desert'] = float('inf')
+            else:
+                self.exchangeRates[node.port] = 2
+
         self.cities_and_settlements.append(settlement_to_add)
         self.occupyingNodes.append(node)
         self.incrementScore(1)
@@ -305,14 +318,20 @@ class AiPlayer(Player):
 
         return possTiles
 
-    # If the AI has over seven cards currently just discard all until you get a
+    # If the AI has over seven cards you have to discard half
     def over_seven(self):
-        numResources = self.numResources
-        while self.numResources > (numResources/2):
+        newCount = self.numResources/2
+        while self.numResources > newCount:
             resource = self.getFavResource()
             self.resources[resource] -= 1
             self.numResources -= 1
             self.numCardsDiscarded += 1
+
+        if not util.areValidResources(self.resources):
+            print "Invalid resources over seven"
+            print self.numResources
+            print "over seven resources", self.resources
+            raw_input("")
 
     #Don't think we need this considering that this is probably for pregame
     # def pick_city_position(self, possible_locations):
@@ -368,6 +387,7 @@ class AiPlayer(Player):
                 options.append(devType)
         if not options:
             return None
+
         return random.choice(options)
         
     #Function used for the monopoly devcard to get the resource you want
@@ -382,6 +402,7 @@ class AiPlayer(Player):
     # give away more optimally
     def give_card(self, oppPlayer):
         if self.numResources > 0:
+
             #Randomly select a resource to give up
             resource = random.choice(self.resources.keys())
             while(not self.resources[resource]):
@@ -401,10 +422,8 @@ class AiPlayer(Player):
 
     #Updates a game after a move so the new gamestate s' can be used in Eval(s')
     def do_move(self, game, move, firstTurn=False):
-        
-        # for action, loc in move.items(): <- again, we're only considering single locations at this point, so 
-        # this loop is not needed at the moment
-        # print "move: ", move
+        if not move: return
+       
         action, loc = move
         piece, count = action
 
@@ -432,6 +451,8 @@ class AiPlayer(Player):
     #TODO: Potential issue: What happens when we run this at a depth > 1 and we want to 
     #Undoes a move, return s' to state s. Assumes move you are undoing was the last move made.
     def undo_move(self, game, move, firstTurn=False):
+        if not move: return
+        
         piece, count = move[0]
         loc = move[1]
 
@@ -446,6 +467,7 @@ class AiPlayer(Player):
         #Place piece
         else:
             if piece == 'Settlement':
+                print "city and settlements: ", self.turn_num, self.cities_and_settlements
                 self.remove_settlement(loc, game)
             elif piece == 'City':
                 self.remove_city(loc, game)
@@ -471,14 +493,24 @@ class AiPlayer(Player):
 
     #Helper to remove settlements
     def remove_settlement(self, node, game, firstTurn=False):
+        # print "Cities and Settlements: ", self.cities_and_settlements
         node.occupyingPiece = None
         node.isOccupied = False
-        del self.cities_and_settlements[-1]
-        del self.occupyingNodes[-1]
+        if self.cities_and_settlements: del self.cities_and_settlements[-1]
+        else: 
+            print "Removing player num: ", self.turn_num
+            print self.cities_and_settlements
+            print game.currMaxScore
+            raw_input("Broken city list")
+        if self.occupyingNodes: del self.occupyingNodes[-1]
+        else: 
+            print "Broken"
+            raw_input("")
         self.score -= 1
 
         if firstTurn:
-            self.initialSettlementCoords.append((node.row, node.col))
+            # self.initialSettlementCoords.append((node.row, node.col))
+            del self.initialSettlementCoords[-1]
             for tile in node.touchingTiles:
                 if tile.resource is not 'Desert':
                     self.resources[tile.resource] -= 1
@@ -491,18 +523,18 @@ class AiPlayer(Player):
         del node.occupyingPiece
         node.occupyingPiece = Settlement(self, node)
         del self.cities_and_settlements[-1]
-        self.occupyingNodes.append(node)
+        # self.occupyingNodes.append(node)
         self.score -= 1
 
         game.updateCityResources(self, True)
 
-    #Returns the successor state after a move has been taken
-    def get_successor(self, game, move):
+    # #Returns the successor state after a move has been taken
+    # def get_successor(self, game, move):
 
-        #Do each indivdual move one at a time
-        # for move in moves:
-        game = self.do_move(game, move)
-        return game
+    #     #Do each indivdual move one at a time
+    #     # for move in moves:
+    #     game = self.do_move(game, move)
+    #     return game
 
     #Update weights now that game is over and we know the outcome
     def update_weights(self, bestFeatures, bestWeights, scoreDiff):
@@ -512,16 +544,93 @@ class AiPlayer(Player):
             self.weights[feature] += 0.01 * scoreDiff * weightdiff
         return self.weights
 
-    #Returns to starting state from a successor state
-    def undo_successor(self, game, moves):
-        actions = moves.items()
+    # #Returns to starting state from a successor state
+    # def undo_successor(self, game, moves):
+    #     actions = moves.items()
 
-        #Loop backwards to undo moves in the correct order
-        for i in range(len(actions), -1, -1):
-            move = actions[i]
-            game = self.undo_move(game, move)
+    #     #Loop backwards to undo moves in the correct order
+    #     for i in range(len(actions), -1, -1):
+    #         move = actions[i]
+    #         game = self.undo_move(game, move)
 
-        return game
+    #     return game
+
+    def expectimax_value(self, game, action_list, depth=1):
+        # print "Player number expectimax: ", self.turn_num
+        #Do all of the actions in action_list
+        for action in action_list:
+            game = game.players[self.turn_num].do_move(game, action)
+
+        turn_num = (self.turn_num+1) % 4
+        total_action_list = []      #Stores all of the actions made so that you can undo them
+
+        while depth > 0:
+            opp = game.players[turn_num]
+            opp_action_list = self.guess_opp_move(opp, game)
+
+            #Add opponent actions with the opponent object so we can undo them
+            if opp_action_list:
+                for opp_action in opp_action_list:
+                    game = opp.do_move(game, opp_action)
+                    total_action_list.append((opp.turn_num, opp_action))
+            
+            turn_num = (turn_num+1) % 4
+            if turn_num == self.turn_num: depth -= 1
+
+        #Find value of your estimated future state
+        expected_features = self.feature_extractor(game)
+        expected_score = util.dotProduct(expected_features, self.weights)
+    
+        for i in range(len(game.players)):
+            player = game.players[i]
+            print "cities and settlements: ", player.turn_num, player.cities_and_settlements
+        print "total actions list: ", total_action_list
+
+        #Undo moves the player made
+        # print total_action_list
+        for i in range(len(total_action_list)-1, -1, -1):
+            to_undo = total_action_list[i]
+            opp_num, opp_action = to_undo
+            print "Loop cities and settles: ",opp_num, game.players[opp_num].cities_and_settlements
+            game = game.players[opp_num].undo_move(game, opp_action)
+
+        #Undo moves the player made
+        for i in range(len(action_list)-1, -1, -1):
+            game = game.players[self.turn_num].undo_move(game, action_list[i])
+
+        return expected_score
+
+    #Use original pick move logic to guess the opposing players move
+    def guess_opp_move(self, opp, game):
+        possible_moves = game.getPossibleActions(opp)
+
+        bestMoveScore, bestMove = float('-inf'), None
+        for possibleMove in possible_moves:
+            if not possibleMove: continue
+            scoreForMove = 0
+            cur_action_list = []
+
+            #Use simple eval function to select optimal locations. This saves a lot of computation time.
+            for action in possibleMove:
+                piece, count = action
+                
+                #Handle case where you are exchanging resources
+                if isinstance(piece[0], tuple):
+                    cur_action_list.append((action, None))
+                else:
+                    mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+                    mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+                    
+                    #Add mostValuableActions to cur_action list in format needed for expectimax
+                    for i in range(count):
+                        cur_mva = mostValuableActions[i]
+                        cur_action_list.append(((piece, 1), cur_mva[1]))
+                        scoreForMove += cur_mva[2]
+
+            if scoreForMove > bestMoveScore:
+                bestMoveScore, bestMove = scoreForMove, cur_action_list
+
+        return bestMove
 
 
     # def get_successor(self, game, move):
@@ -605,14 +714,39 @@ class WeightedAI(AiPlayer):
             # Overwrite the log with the randomized weights dict
             weightsLog.log_dict(self.weights)
 
+    #Resets all of the values in player except the log so that the same player can now play a new game
+    def reset(self, turn_num, name, color, weightsLog):
+        self.resources = defaultdict(int)
+        self.devCards = defaultdict(int)
+        self.devCardsPlayed = defaultdict(int)
+        self.newDevCards = defaultdict(int)
+        self.roads = []
+        self.numTimesOverSeven = 0
+        self.numCardsDiscarded = 0
+        self.holdsLongestRoad = False
+        self.hasLargestArmy = False
+        self.features = defaultdict(float)
+        self.score = 0
+        self.touching = defaultdict(list)
+        self.occupyingNodes = []
+        self.exchangeRates = {'Ore':4, 'Brick':4, 'Wood':4, 'Wool':4, 'Grain':4, 'Desert':1000000000}
+        self.cities_and_settlements = []
+        self.numKnights = 0
+        self.longestRoadLength = 0
+        self.numResources = 0
+        self.initialSettlementCoords = [] 
+        self.prevDevCards = []
+        self.prevScore = None
+        self.prevFeatures = None
+
+        self.__init__(turn_num, name, color, weightsLog)
+
     # Use the weights to determine the value of a given roll
     def evaluateMoveValue(self, game, move):
-        if not move:
-            return -1
-        future = self.do_move(game, move) 
-        futureFeatures = future.players[self.turn_num].feature_extractor()
+        game = self.do_move(game, move) 
+        futureFeatures = game.players[self.turn_num].feature_extractor(game)
         score = util.dotProduct(futureFeatures, self.weights)
-        self.undo_move(game, move)
+        game = self.undo_move(game, move)
         return score
     
     # Figure out how many of each resource we would expect per roll
@@ -664,7 +798,8 @@ class WeightedAI(AiPlayer):
                 score += 1
         return score
 
-    def feature_extractor(self, game = None):
+
+    def feature_extractor(self, game=None):
         expectedResources = self.expected_resources_per_roll() 
         features = expectedResources 
         features['Devcards played'] = len(self.devCardsPlayed.values())
@@ -713,6 +848,9 @@ class WeightedAI(AiPlayer):
 
         return bestMove
 
+    
+    
+
 '''
 My attempt to build an AI that updates its weights every turn. We will see if it works. Eval(s) represents predicted end
 score of gamestate s.
@@ -760,9 +898,9 @@ class qAI(WeightedAI):
         features['Ratio cities to settlements'] = (numCities/ numSettlements) if numSettlements > 0 else 1 if numCities > 0 else 0
         features['Squared distance to end'] = (10 - self.score)**2
         features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
+        features['offset'] = 1
 
         #Features for other players number of each piece and total score
-        #TODO: Feature for longest road or expected resources per turn?
         if game:
             for player in game.players:
                 if player.turn_num != self.turn_num:
@@ -801,6 +939,7 @@ class qAI(WeightedAI):
         self.prevFeatures = cur_features
         self.prevScore = target
 
+        # print "prevscore, player num", self.prevScore, self.turn_num
 
     #Same as superclass, but it updates weights before picking the move and stores prediction at the end of the turn
     def pickMove(self, game):
@@ -808,29 +947,31 @@ class qAI(WeightedAI):
         #Update weights
         self.updateWeights(game)
 
-        #Pick a move as normal
-        possible_moves = game.getPossibleActions(self)
-        bestMoveScore, bestMove = -10000, None
-        for possibleMove in possible_moves:
-            if not possibleMove: continue
-            scoreForMove = 0
-            tempMove = {}
-            for action in possibleMove:
-                piece, count = action
-                mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
-                mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
-                totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
-                scoreForMove += totalValueOfAction
-                tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
-            if scoreForMove > bestMoveScore:
-                bestMoveScore, bestMove = scoreForMove, tempMove
+        return WeightedAI.pickMove(self, game)
+        # #Pick a move as normal
+        # possible_moves = game.getPossibleActions(self)
+        # bestMoveScore, bestMove = -10000, None
+        # for possibleMove in possible_moves:
+        #     if not possibleMove: continue
+        #     scoreForMove = 0
+        #     tempMove = {}
+        #     for action in possibleMove:
+        #         piece, count = action
+        #         mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+        #         mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+        #         totalValueOfAction = sum([mva[2] for mva in mostValuableActions[:count]])
+        #         scoreForMove += totalValueOfAction
+        #         tempMove[action] = [mva[=1] for mva in mostValuableActions[:count]]
+        #     if scoreForMove > bestMoveScore:
+        #         bestMoveScore, bestMove = scoreForMove, tempMove
 
-        return bestMove
+        # return bestMove
 
     #Does the end game update for each player
     def endGameUpdate(self, game, eta = .000003):
-        target = self.score
+        target = min(self.score,10)
         pred = self.prevScore
+
         features = self.prevFeatures
 
         diff = pred - target
@@ -844,14 +985,54 @@ class qAI(WeightedAI):
 
         return diff
         
-    
+class qAI_minimax(qAI):
+
+    def __init__(self,turn_num, name, color, weightsLog, depth = 1):
+        qAI.__init__(self, turn_num, name, color, weightsLog)
+        self.depth = depth
+
+    def pickMove(self, game, depth = 1):
+        self.updateWeights(game)
+
+        possible_moves = game.getPossibleActions(self)
+
+        bestMoveScore, bestMove = float('-inf'), None
+        for possibleMove in possible_moves:
+            if not possibleMove: continue
+            scoreForMove = 0
+            cur_action_list = []
+            tempMove = {}
+
+            #Use simple eval function to select optimal locations. This saves a lot of computation time.
+            for action in possibleMove:
+                piece, count = action
+                
+                #Handle case where you are exchanging resources
+                if isinstance(piece[0], tuple):
+                    cur_action_list.append((action, None))
+                else:
+                    mostValuableActions = [(action, location, self.evaluateMoveValue(game, (action, location))) for location in possibleMove[action]]
+                    mostValuableActions.sort(key = lambda a: a[2], reverse = True) # Sort by value
+                    
+                    tempMove[action] = [mva[1] for mva in mostValuableActions[:count]]
+                    #Add mostValuableActions to cur_action list in format needed for expectimax
+                    for i in range(count):
+                        cur_mva = mostValuableActions[i]
+                        cur_action_list.append(((piece, 1), cur_mva[1]))
+
+            scoreForMove = self.expectimax_value(game, cur_action_list, self.depth)
+                
+            if scoreForMove > bestMoveScore:
+                bestMoveScore, bestMove = scoreForMove, tempMove
+
+        return bestMove
+
+
+
 class qAI_win(qAI):
 
-    def __init__(self,turn_num, name, color, weightsLog):
-        qAI.__init__(self, turn_num, name, color, weightsLog)
-
     def endGameUpdate(self, game, eta = .000003):
-        target = int(self.score == 10)
+        target = int(self.score >= 10)
         pred = self.prevScore
         features = self.prevFeatures
 
@@ -861,11 +1042,76 @@ class qAI_win(qAI):
             # print feature, val,  diff
             self.weights[feature] -= eta * diff * val
 
-        if abs(diff) > 10: raw_input("FUCK your diff is shit")
+        if abs(diff) > 10: raw_input("Diff dangerously high")
         self.weightsLog.log_dict(self.weights)
 
         return diff
 
+class qAI_more_features(qAI):
+
+    def feature_extractor(self, game):
+        expectedResources = self.expected_resources_per_roll() 
+        features = expectedResources 
+        features['Devcards played'] = len(self.devCardsPlayed.values())
+        features.update(self.devCardsPlayed)
+        features['Num roads'] = len(self.roads)
+        features['Longest Road'] = self.longestRoadLength
+        numCities, numSettlements = self.getNumSettlementsAndCities()
+        features['Num cities'] = numCities
+        features['Num settlements'] = numSettlements
+        features['Num turns with more than 7 cards'] = self.numTimesOverSeven
+        features['Resource spread'] = np.std([expectedResources[k] for k in expectedResources.keys()])
+        features['Has longest road'] = 1 if self.holdsLongestRoad else 0
+        features['Has largest army'] = 1 if self.hasLargestArmy else 0
+        features['Num cards discarded'] = self.numCardsDiscarded
+        features['Score'] = self.score
+        features['Has Won'] = self.score == 10
+        features['Ratio roads to settlements'] = (len(self.roads) / numSettlements) if numSettlements > 0 else 1
+        features['Ratio cities to settlements'] = (numCities/ numSettlements) if numSettlements > 0 else 1 if numCities > 0 else 0
+        features['Squared distance to end'] = (10 - self.score)**2
+        features['Num accesible resources'] = self.getAccessibleResources(expectedResources)
+
+        #Feature for how many possible moves opponents (and you) can make
+        for player in game.players:
+            if player.turn_num != self.turn_num:
+                features["Player "+ str(player.turn_num) + " Settlement Locs"] = len(game.getSettlementLocations(player))
+                features["Player "+ str(player.turn_num) + " City Locs"] = len(game.getCityLocations(player))
+                features["Player "+ str(player.turn_num) + " Road Locs"] = len(game.getRoadLocations(player))
+            else: 
+                features["Self Settlement Locs"] = len(game.getSettlementLocations(player))
+                features["Self City Locs"] = len(game.getCityLocations(player))
+                features["Self Road Locs"] = len(game.getRoadLocations(player))
+
+        #Features for ports
+        all_port = False
+        for resource, rate in self.exchangeRates.items():
+            if rate == 3: all_port = True
+            if resource != "Desert":
+                features[resource + " exchange Rate"] = int(rate == 2)
+        features["All Port"] = int(all_port)
+
+        #Features for other players number of each piece and total score
+        if game:
+            features['In lead'] = int(self.score == game.currMaxScore)
+
+        return features    
+
+class qAI_more_features_win(qAI_more_features):
+    def endGameUpdate(self, game, eta = .000003):
+        target = int(self.score >= 10)
+        pred = self.prevScore
+        features = self.prevFeatures
+
+        diff = pred - target
+        print self.turn_num, " pred: ", pred, "target: ", target, "diff: ", diff
+        for feature, val in features.items():
+            # print feature, val,  diff
+            self.weights[feature] -= eta * diff * val
+
+        if abs(diff) > 10: raw_input("Diff dangerously high")
+        self.weightsLog.log_dict(self.weights)
+
+        return diff
 
 
 

@@ -16,6 +16,39 @@ class Board:
             for node in row:
                 node.set_neighbours(self)
 
+        #Setup ports
+        self.init_ports()
+        
+
+    def init_ports(self):
+        self.nodes[0][0].port = "Any"
+        self.nodes[0][1].port = "Any"
+
+        self.nodes[0][3].port = "Wool"
+        self.nodes[0][4].port = "Wool"
+
+        self.nodes[1][7].port = "Any"
+        self.nodes[1][8].port = "Any"
+
+        self.nodes[1][0].port = "Ore"
+        self.nodes[2][0].port = "Ore"
+        
+        self.nodes[2][1].port = "Any"
+        self.nodes[3][1].port = "Any"
+
+        self.nodes[3][0].port = "Grain"
+        self.nodes[4][0].port = "Grain"
+
+        self.nodes[4][7].port = "Brick"
+        self.nodes[4][8].port = "Brick"
+        
+        self.nodes[5][0].port = "Any"
+        self.nodes[5][1].port = "Any"
+
+        self.nodes[5][3].port = "Wood"
+        self.nodes[5][4].port = "Wood"
+        
+        
     # Check whether a node is in bounds
     def inBounds(self, node):
         return node[0] >= 0 and node[0] < len(self.nodes.keys()) and node[1] >= 0 and node[1] < len(self.nodes[node[0]])

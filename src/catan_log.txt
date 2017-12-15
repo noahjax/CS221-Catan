@@ -1,0 +1,29 @@
+Start of log
+#####################################################################
+#####################################################################
+#####################################################################
+Game class intitialized
+Distributed resources to players
+Found pieces purchasable for AI0
+Found possible actions for AI0
+Distributed resources to players
+Found pieces purchasable for AI1
+Found possible actions for AI1
+Distributed resources to players
+Found pieces purchasable for AI2
+Found possible actions for AI2
+Distributed resources to players
+Found pieces purchasable for AI3
+Found possible actions for AI3
+Distributed resources to players
+Found pieces purchasable for AI0
+Found possible actions for AI0
+Distributed resources to players
+Found pieces purchasable for AI1
+Found possible actions for AI1
+Distributed resources to players
+Found pieces purchasable for AI2
+Found possible actions for AI2
+Distributed resources to players
+Found pieces purchasable for AI3
+Found possible actions for AI3

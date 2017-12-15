@@ -11,6 +11,7 @@ class Node:
         self.neighbours = []
         self.isOccupied = False
         self.occupyingPiece = None
+        self.port = None
 
 
     def __str__(self):

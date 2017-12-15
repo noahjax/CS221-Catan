@@ -80,17 +80,6 @@ class Game(object):
         random.shuffle(devCards)
         return deque(devCards)
 
-    # #Check to see if you can buy a devCard
-    # def canBuyDevCard(self, player):
-    #     # Make sure there are devCards left
-    #     if not self.devCards:
-    #         return False
-
-    #     # Check if player has the resources to buy a devCard
-    #     if player.resources['Ore'] < 1 or player.resources['Wool'] < 1 or player.resources['Grain'] < 1:
-    #         return False
-        
-    #     return True
 
     # Handle buying a devCard. Update player to have this devCard, remove resources from player
     def buyDevCard(self, cur_player):
@@ -231,7 +220,6 @@ class Game(object):
         if not areValidResources(curr_player.resources):
             print curr_player.resources
             print "depth: ", depth
-            # raw_input("Resource combos failure")
 
         #Only recurse 5 levels to limit running time
         if depth <= 0:
@@ -246,16 +234,7 @@ class Game(object):
         if self.canBuyRoad(curr_player):
             cur_pieces['Road'] += 1
             self.updateRoadResources(curr_player)
-            if not areValidResources(curr_player.resources):
-                print "Road invalid resources"
-                raw_input("")
-            # print "road before s ", curr_player.turn_num, curr_player.resources
-            # subtractResources(curr_player, self.road_cost)
-            # print "road after s ", curr_player.turn_num, curr_player.resources
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
-            # print "road before a ", curr_player.turn_num, curr_player.resources
-            # addResources(curr_player, self.road_cost)
-            # print "road after a ", curr_player.turn_num, curr_player.resources
             self.updateRoadResources(curr_player, add=True)
             cur_pieces['Road'] -= 1
 
@@ -263,16 +242,7 @@ class Game(object):
         if self.canBuySettlement(curr_player):
             cur_pieces['Settlement'] += 1
             self.updateSettlementResources(curr_player)
-            if not areValidResources(curr_player.resources):
-                print "Settlement invalid resources"
-                raw_input("")
-            # print "settlement before s", curr_player.turn_num, curr_player.resources
-            # subtractResources(curr_player, self.settlement_cost)
-            # print "settlement after s", curr_player.turn_num, curr_player.resources
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
-            # print "settlement before a", curr_player.turn_num, curr_player.resources
-            # addResources(curr_player, self.settlement_cost)
-            # print "settlement after a", curr_player.turn_num, curr_player.resources
             self.updateSettlementResources(curr_player, add=True)
             cur_pieces['Settlement'] -= 1
 
@@ -280,12 +250,6 @@ class Game(object):
         if self.canBuyCity(curr_player):
             cur_pieces['City'] += 1
             self.updateCityResources(curr_player)
-            
-            if not areValidResources(curr_player.resources):
-                print "City invalid resources"
-                print curr_player.resources
-                raw_input("")
-            
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
             self.updateCityResources(curr_player, add=True)
             cur_pieces['City'] -= 1
@@ -294,12 +258,6 @@ class Game(object):
         if self.canBuyDevCard(curr_player):
             cur_pieces['buyDevCard'] += 1
             self.updateDevCardResources(curr_player)
-            
-            if not areValidResources(curr_player.resources):
-                print "Devcard invalid resources"
-                print curr_player.resources
-                raw_input("")
-            
             self.findResourceCombos(cur_pieces, ans, curr_player, depth-1)
             self.updateDevCardResources(curr_player, add=True)
             cur_pieces['buyDevCard'] -= 1
@@ -433,6 +391,7 @@ class Game(object):
     #that represent buying and placing pieces. 
     '''Note: Does not handle playing DevCards. This logic is handled in player'''
     def getPossibleActions(self, player):
+        # print "Getting possible actions"
         #Get possible purchases
         possiblePurchases = self.piecesPurchasable(player)
 
