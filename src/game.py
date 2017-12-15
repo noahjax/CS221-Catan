@@ -393,6 +393,7 @@ class Game(object):
     #that represent buying and placing pieces. 
     '''Note: Does not handle playing DevCards. This logic is handled in player'''
     def getPossibleActions(self, player):
+        print "Getting possible actions"
         #Get possible purchases
         possiblePurchases = self.piecesPurchasable(player)
 

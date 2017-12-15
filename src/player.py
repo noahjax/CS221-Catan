@@ -781,7 +781,7 @@ class WeightedAI(AiPlayer):
 
         return bestMove
 
-    def expectimax_value(self, game, action_list, depth=0):
+    def expectimax_value(self, game, action_list, depth=1):
         #Do all of the actions in action_list
         for action in action_list:
             game = self.do_move(game, action)
@@ -797,7 +797,7 @@ class WeightedAI(AiPlayer):
             if opp_action_list:
                 for opp_action in opp_action_list:
                     game = opp.do_move(game, opp_action)
-                    total_action_list.append((opp, opp_action))
+                    total_action_list.append((opp.turn_num, opp_action))
             
             turn_num = (turn_num+1) % 4
             if turn_num == self.turn_num: depth -= 1
@@ -806,11 +806,12 @@ class WeightedAI(AiPlayer):
         expected_features = self.feature_extractor(game)
         expected_score = util.dotProduct(expected_features, self.weights)
     
-         #Undo moves the player made
+        #Undo moves the player made
+        # print total_action_list
         for i in range(len(total_action_list)-1, -1, -1):
             to_undo = total_action_list[i]
-            opp, opp_action = to_undo
-            game = opp.undo_move(game, opp_action)
+            opp_num, opp_action = to_undo
+            game = game.players[opp_num].undo_move(game, opp_action)
 
         #Undo moves the player made
         for i in range(len(action_list)-1, -1, -1):
