@@ -123,7 +123,7 @@ class Play:
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
 
-            if self.turnNum/4 > 50:
+            if self.turnNum/4 > 150:
                 return self.endGame()
 
             # Check if game is over
