@@ -32,14 +32,13 @@ def print_win_percentages(winners, numWinners):
         print "Player ", player, " wins: ", float(val)/numWinners
 
 
-
 for i in range(runs):
 
     #Initialize players
     player0 = qAI(0, "qAI_0", "orange", weightLogs[0])
     player1 = qAI(1, "qAI_1", "red", weightLogs[1])
-    player2 = qAI(2, "qAI_2", "green", weightLogs[2])
-    player3 = qAI(3, "qAI_3", "blue", weightLogs[3])
+    player2 = qAI_minimax(2, "qAI_2", "green", weightLogs[2], 1)
+    player3 = qAI_minimax(3, "qAI_3", "blue", weightLogs[3], 1)
 
     players = [player0, player1, player2, player3]
 
