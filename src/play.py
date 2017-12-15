@@ -117,12 +117,13 @@ class Play:
         self.first_two_turns()
 
         while True:
+            # print self.turnNum
             #Delay so you can watch the game
             # time.sleep(.03)
 
             # print(str(self.turnNum % self.num_players) + ' ' + str(self.players[self.turnNum % self.num_players].resources))
 
-            # if self.turnNum/4 > 150:
+            # if self.turnNum/4 > 50:
             #    return self.endGame()
 
             # Check if game is over
@@ -224,52 +225,24 @@ class Play:
     """
     def run_AI_turn(self, player):
 
-        if not areValidResources(player.resources):
-            print "Invalid resources before devcard in play"
-            raw_input("")
-
         #Pick and play a devCard. Often won't do anything if no available cards
         devCard = player.pickDevCard()
 
-        if not areValidResources(player.resources):
-            print "Invalid resources after pick devcard in play"
-            raw_input("")
-
-        # print "devCard: ", devCard
-        # print player.devCards
         if devCard: self.play_devcard(devCard, player)
 
-        for p in self.players:
-            if not areValidResources(p.resources):
-                print "Invalid resources in AI turn after devcard"
-        
         # Get all possible moves player can make and send to AI for decision making
         resources = player.resources
 
-        if not areValidResources(resources):
-            print "Invalid resources before picking move in play"
-            raw_input("")
-
-        # print "ai_turn player", player.turn_num
+      
         
         # Get move from AI player
         move = player.pickMove(self.game)
-        # print('move = ' + str(move))
-        '''
-        move = player.pickMove(self.game)
-        '''
 
         # Print move for debugging purposes
         if not move:
             # print player.color,  "No move selected"
             return
         
-        # print "move:", move
-        # raw_input("")
-
-        if not areValidResources(player.resources):
-            print "Invalid resources before move"
-            raw_input("")
 
         # Act on move by placing pieces and updating graphics
         for action, locs in move.items():
@@ -303,10 +276,6 @@ class Play:
 
         self.game.updateDevCards(player)
 
-        if not areValidResources(player.resources):
-            print "Invalid resources after move"
-            print "move: ", move
-            raw_input("")
 
 #############################################################################
 ############ Location finders for city, settlement and road #################
