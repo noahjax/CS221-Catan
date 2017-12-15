@@ -17,7 +17,7 @@ weightLogs = {}  # Maps from a character number to a Log object
 # All are initialized with a placeholder dict that should be overwritten
 for i in range(4):
     weightLogs[i] = Log('../logs/q_test_%s.txt' % i)
-    weightLogs[i].log_dict({'DELETE ME': -1})
+    # weightLogs[i].log_dict({'DELETE ME': -1})
 
 winners = defaultdict(int)  # Map from the player turn index to the number of wins they have had
 runs = 100

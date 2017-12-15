@@ -237,9 +237,7 @@ class Play:
 
         # print "devCard: ", devCard
         # print player.devCards
-        if devCard: 
-            self.play_devcard(devCard, player)
-            print devCard
+        if devCard: self.play_devcard(devCard, player)
 
         for p in self.players:
             if not areValidResources(p.resources):
