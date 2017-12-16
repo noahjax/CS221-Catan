@@ -1,0 +1,2 @@
+Human robber movement is not correct. Too many nodes are being checked to evaluate validity of robber placement, so tiles that should be
+valid locations are declared invalid, and the robber cannot be moved.
